@@ -49,4 +49,12 @@ loop:
 ; Пауза
 CALL delay;
 ; Возврат в начало основного цикла
-RJMP loop ;
+
+RJMP loop
+
+
+OUT 0x1A, R20
+LDI R20, 0xFF
+MOV R17, R13
+SBRC R20, 1
+
