@@ -6,5 +6,8 @@ for word in words:
         s = s + bin(int(l, 16))[2:] + " "
     bins.append(s)
 for binn in bins:
-    print(binn)
+    bytes_ = binn.split()
+    bytes_ = [x.zfill(4) for x in bytes_]
+    print(' '.join(bytes_))
+    
     
