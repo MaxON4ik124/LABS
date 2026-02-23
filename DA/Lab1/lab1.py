@@ -1,5 +1,6 @@
 import os
 import argparse
+import shutil
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--create", nargs=1)
@@ -15,7 +16,7 @@ def f_create(path):
         file.close()
         print("[+] File successfully created")
     except FileExistsError as e:
-        print(f"[-] File already exists. {e}")
+        print(f"[-] File {path} already exists. {e}")
 
 def f_delete(path):
     try:
@@ -32,10 +33,10 @@ def f_write(path, content):
     try:
         content = content.replace("\\r\\n", "\n")
         content = content.replace("\\n", "\n")
-        file = open(path, 'a')
-        file.write(rf"{content}")
+        file = open(path, 'xa')
+        file.write(f"{content}")
         file.close()
-        print("[+] Content successfully written into file")
+        print(f"[+] Content successfully written into {path}")
     except FileNotFoundError as e:
         print(f"[-] File {path} doesn't exist {e}")
     except IsADirectoryError as e:
@@ -60,48 +61,18 @@ def f_read(path):
 def f_copy(src, dest):
 
     try:
-        filename = src.split('\\')[-1]
-        source = open(src, "r")
-        content = source.read()
-        source.close()
+        shutil.copyfile(src, dest)
+        print(f"[+] File successfully copied from {src} to {dest}")
     except FileNotFoundError as e:
         print(f"[-] File {src} doesn't exist {e}")
-        return
     except IsADirectoryError as e:
         print(f"[-] Path {src} is a directory. {e}")
-        return
     except PermissionError as e:
         print(f"[-] Permission error for {src}. {e}")
-        return
-    try:
-        destination = open(f"{dest}\\{filename}", "w")
-        destination.write(content)
-        destination.close()
-        print(f"[+] File successfully copied from {src} to {dest}\\{filename}")
-    except FileNotFoundError as e:
-        print(f"[-] Invalid path {dest}. {e}")
-    except UnboundLocalError:
-        pass
 
 def f_rename(src, dest):
     try:
-        source = open(src, "r")
-        content = source.read()
-        source.close()
-    except FileNotFoundError as e:
-        print(f"[-] File {src} doesn't exist {e}")
-        return
-    except IsADirectoryError as e:
-        print(f"[-] Path {src} is a directory. {e}")
-        return
-    except PermissionError as e:
-        print(f"[-] Permission error for {src}. {e}")
-        return
-    try:
-        destination = open(dest, "w")
-        destination.write(content)
-        destination.close()
-        os.remove(src)
+        os.rename(src, dest)
         print(f"[+] File successfully renamed from {src} to {dest}")
     except FileNotFoundError as e:
         print(f"[-] File {dest} doesn't exist {e}")
