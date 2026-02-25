@@ -1,5 +1,6 @@
 import os
 import argparse
+import re
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--create", nargs='*', default=False)
@@ -11,7 +12,8 @@ parser.add_argument("--rename", nargs='*', default=False)
 
 def f_create(path):
     try:
-        dirs = path.split('\\')
+
+        dirs = re.split(r'/|\\', path)
         for i in range(len(dirs) - 1):
             if not os.path.exists(dirs[i]):
                 os.mkdir(dirs[i])
