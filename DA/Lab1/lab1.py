@@ -1,49 +1,72 @@
 import os
 import argparse
-import shutil
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--create", nargs=1)
-parser.add_argument("--delete", nargs=1)
-parser.add_argument("--write",nargs=2)
-parser.add_argument("--read",nargs=1)
-parser.add_argument("--copy", nargs=2)
-parser.add_argument("--rename", nargs=2)
+parser.add_argument("--create", nargs='*', default=False)
+parser.add_argument("--delete", nargs='*', default=False)
+parser.add_argument("--write",nargs='*', default=False)
+parser.add_argument("--read",nargs='*', default=False)
+parser.add_argument("--copy", nargs='*', default=False)
+parser.add_argument("--rename", nargs='*', default=False)
 
 def f_create(path):
     try:
-        file = open(path, 'x')
+        dirs = path.split('\\')
+        for i in range(len(dirs) - 1):
+            if not os.path.exists(dirs[i]):
+                os.mkdir(dirs[i])
+            os.chdir(dirs[i])
+        file = open(dirs[-1], 'x')
         file.close()
-        print("[+] File successfully created")
+        print(f"[+] {path} successfully created")
     except FileExistsError as e:
-        print(f"[-] File {path} already exists. {e}")
+        print(f"[-] {path} already exists. {e}")
+    except UnboundLocalError as e:
+        print(f"Invalid path: {path}. {e}")
+    except IsADirectoryError as e:
+        print(f"[-] Path {path} is a directory. {e}")
+    except PermissionError as e:
+        print(f"[-] Permission error for {path}. {e}")
+    except OSError as e:
+        print(f"[-] OS error for {path}. {e}")
+    except ValueError as e:
+        print(f"[-] Value error for {path}")
 
 def f_delete(path):
     try:
         os.remove(path)
-        print("[+] File successfully deleted")
+        print("[+] {path} successfully deleted")
     except FileNotFoundError as e:
         print(f"[-] File {path} doesn't exist {e}")
     except IsADirectoryError as e:
         print(f"[-] Path {path} is a directory. {e}")
     except PermissionError as e:
         print(f"[-] Permission error for {path}. {e}")
+    except OSError as e:
+        print(f"[-] OS Error for {path}. {e}")
+    except ValueError as e:
+        print(f"[-] Value error for {path}")
 
 def f_write(path, content):
     try:
+        if not os.path.exists(path):
+            raise FileNotFoundError
         content = content.replace("\\r\\n", "\n")
         content = content.replace("\\n", "\n")
-        file = open(path, 'xa')
-        file.write(f"{content}")
+        file = open(path, 'w')
+        file.write(rf"{content}")
         file.close()
-        print(f"[+] Content successfully written into {path}")
+        print(f"[+] Content successfully written to {path}")
     except FileNotFoundError as e:
         print(f"[-] File {path} doesn't exist {e}")
     except IsADirectoryError as e:
         print(f"[-] Path {path} is a directory. {e}")
     except PermissionError as e:
         print(f"[-] Permission error for {path}. {e}")
-
+    except OSError as e:
+        print(f"[-] OS Error for {path}. {e}")
+    except ValueError as e:
+        print(f"[-] Value error for {path}")
 def f_read(path):
     try:
         file = open(path, 'r')
@@ -57,22 +80,78 @@ def f_read(path):
         print(f"[-] Path {path} is a directory. {e}")
     except PermissionError as e:
         print(f"[-] Permission error for {path}. {e}")
+    except OSError as e:
+        print(f"[-] OS Error for {path}. {e}")
+    except ValueError as e:
+        print(f"[-] Value error for {path}")
+
 
 def f_copy(src, dest):
-
     try:
-        shutil.copyfile(src, dest)
-        print(f"[+] File successfully copied from {src} to {dest}")
+        assert(src != dest)
+        source = open(src, "r")
+        content = source.read()
+        source.close()
     except FileNotFoundError as e:
         print(f"[-] File {src} doesn't exist {e}")
+        return
+    except IsADirectoryError as e:
+        print(f"[-] Path {src} is a directory. {e}")
+        return
+    except PermissionError as e:
+        print(f"[-] Permission error for {src}. {e}")
+        return
+    except OSError as e:
+        print(f"[-] OS Error for {src}. {e}")
+        return
+    except ValueError as e:
+        print(f"[-] Value error for {src}. {e}")
+        return
+    try:
+        destination = open(f"{dest}", "w")
+        destination.write(content)
+        destination.close()
+        print(f"[+] File successfully copied from {src} to {dest}")
+    except FileNotFoundError as e:
+        print(f"[-] Invalid path {dest}. {e}")
+    except UnboundLocalError:
+        print(f"Unbound Local Error for {dest}. {e}")
+    except OSError as e:
+        print(f"[-] OS Error for {dest}. {e}")
+    except ValueError as e:
+        print(f"[-] Value error for {dest}. {e}")
     except IsADirectoryError as e:
         print(f"[-] Path {src} is a directory. {e}")
     except PermissionError as e:
         print(f"[-] Permission error for {src}. {e}")
 
+
 def f_rename(src, dest):
     try:
-        os.rename(src, dest)
+        assert(src != dest)
+        source = open(src, "r")
+        content = source.read()
+        source.close()
+    except FileNotFoundError as e:
+        print(f"[-] File {src} doesn't exist {e}")
+        return
+    except IsADirectoryError as e:
+        print(f"[-] Path {src} is a directory. {e}")
+        return
+    except PermissionError as e:
+        print(f"[-] Permission error for {src}. {e}")
+        return
+    except OSError as e:
+        print(f"[-] OS Error for {src}. {e}")
+        return
+    except ValueError as e:
+        print(f"[-] Value error for {src}. {e}")
+        return
+    try:
+        destination = open(dest, "w")
+        destination.write(content)
+        destination.close()
+        os.remove(src)
         print(f"[+] File successfully renamed from {src} to {dest}")
     except FileNotFoundError as e:
         print(f"[-] File {dest} doesn't exist {e}")
@@ -80,19 +159,45 @@ def f_rename(src, dest):
         print(f"[-] File {dest} is a directory. {e}")
     except PermissionError as e:
         print(f"[-] Permission error for {dest}. {e}")
-
+    except OSError as e:
+        print(f"[-] OS Error for {dest}. {e}")
+    except ValueError as e:
+        print(f"[-] Value error for {dest}. {e}")
 if __name__ == "__main__":
     args = parser.parse_args()
-    match args:
-        case argparse.Namespace(create=[path]):
+    if args.create != False:
+        if len(args.create) < 1:
+            raise ValueError("[-] Path cannot be None")
+        else:
             f_create(args.create[0])
-        case argparse.Namespace(delete=[path]):
+    elif args.delete != False:
+        if len(args.delete) < 1:
+            raise ValueError("[-] Path cannot be None")
+        else:
             f_delete(args.delete[0])
-        case argparse.Namespace(write=[path, content]):
+    elif args.write != False:
+        if len(args.write) == 1:
+            raise ValueError("[-] Content cannot be None")
+        elif len(args.write) < 1:
+            raise ValueError("[-] Path cannot be None")
+        else:
             f_write(args.write[0], args.write[1])
-        case argparse.Namespace(read=[path]):
+    elif args.read != False:
+        if len(args.read) < 1:
+            raise ValueError("[-] Path cannot be None")
+        else:
             f_read(args.read[0])
-        case argparse.Namespace(copy=[src, dest]):
+    elif args.copy != False:
+        if len(args.copy) == 1:
+            raise ValueError("[-] Dest cannot be None")
+        elif len(args.copy) < 1:
+            raise ValueError("[-] Src cannot be None")
+        else:
             f_copy(args.copy[0], args.copy[1])
-        case argparse.Namespace(rename=[src, dest]):
+    elif args.rename != False:
+        if len(args.rename) == 1:
+            raise ValueError("[-] Dest cannot be None")
+        elif len(args.rename) < 1:
+            raise ValueError("[-] Src cannot be None")
+        else:
             f_rename(args.rename[0], args.rename[1])
