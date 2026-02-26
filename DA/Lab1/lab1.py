@@ -56,17 +56,12 @@ def f_write(path, content):
             raise FileNotFoundError
         content = content.replace("\\r\\n", "\n")
         content = content.replace("\\n", "\n")
-<<<<<<< HEAD
         if content is None:
             raise ValueError("[-] Content cannot be None")
         if not os.path.exists(path):
             raise FileNotFoundError
         file = open(path, 'a')
         file.write(f"{content}")
-=======
-        file = open(path, 'w')
-        file.write(rf"{content}")
->>>>>>> c7b168f4bea8dc219176bfcb9cbdfd338f8319b7
         file.close()
         print(f"[+] Content successfully written to {path}")
     except FileNotFoundError as e:
