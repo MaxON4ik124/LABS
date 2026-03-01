@@ -115,7 +115,12 @@ def f_copy(src, dest):
         print(f"[-] Value error for {src}. {e}")
         return
     try:
-        destination = open(f"{dest}", "w")
+        dirs = re.split(r'/|\\', dest)
+        for i in range(len(dirs) - 1):
+            if not os.path.exists(dirs[i]):
+                os.mkdir(dirs[i])
+            os.chdir(dirs[i])
+        destination = open(f"{dirs[-1]}", "w")
         destination.write(content)
         destination.close()
         print(f"[+] File successfully copied from {src} to {dest}")
