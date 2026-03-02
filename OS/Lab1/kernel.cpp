@@ -1,148 +1,352 @@
-// kernel.cpp (32-bit freestanding, VGA + keyboard polling)
+// kernel.cpp
+// 32-bit freestanding kernel: VGA text console + PS/2 keyboard polling
 
-// extern "C" void kmain();
-
-// Надёжная точка входа для загрузчика: jmp/call в kmain
 __asm__(
     ".code32\n"
     ".global _start\n"
     "_start:\n"
+    "    cli\n"
     "    call kmain\n"
     "1:  hlt\n"
     "    jmp 1b\n"
 );
 
-#define VIDEO_BUF_PTR 0xB8000
-static volatile unsigned short* const VGA = (unsigned short*)VIDEO_BUF_PTR;
-static const int VGA_W = 80;
-static const int VGA_H = 25;
+extern "C" void kmain();
 
-// --- I/O портов ---
-static inline void outb(unsigned short port, unsigned char val) {
+using u8  = unsigned char;
+using u16 = unsigned short;
+using u32 = unsigned int;
+
+static constexpr u32 VIDEO_BUF_PTR = 0xB8000;
+static volatile u16* const VGA = (u16*)VIDEO_BUF_PTR;
+
+static constexpr int VGA_W = 80;
+static constexpr int VGA_H = 25;
+
+// -------------------------
+// Port I/O
+// -------------------------
+static inline void outb(u16 port, u8 val) {
     asm volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
 }
-static inline unsigned char inb(unsigned short port) {
-    unsigned char ret;
+
+static inline u8 inb(u16 port) {
+    u8 ret;
     asm volatile ("inb %1, %0" : "=a"(ret) : "Nd"(port));
     return ret;
 }
 
-// --- VGA вывод ---
-static inline unsigned short vga_cell(unsigned char ch, unsigned char color) {
-    return (unsigned short)((color << 8) | ch);
+// -------------------------
+// Tiny libc-like helpers
+// -------------------------
+static int strlen(const char* s) {
+    int n = 0;
+    while (s[n]) ++n;
+    return n;
 }
 
-static void vga_put_at(int row, int col, unsigned char ch, unsigned char color) {
-    if (row < 0 || row >= VGA_H || col < 0 || col >= VGA_W) return;
-    VGA[row * VGA_W + col] = vga_cell(ch, color);
-}
-
-static void vga_write_str(int row, int col, unsigned char color, const char* s) {
-    int c = col;
-    while (*s && c < VGA_W) {
-        vga_put_at(row, c, (unsigned char)*s, color);
-        ++c;
-        ++s;
+static bool streq(const char* a, const char* b) {
+    while (*a && *b) {
+        if (*a != *b) return false;
+        ++a;
+        ++b;
     }
+    return *a == *b;
 }
 
-static void vga_clear_row(int row, unsigned char color) {
-    for (int col = 0; col < VGA_W; ++col) {
-        vga_put_at(row, col, ' ', color);
+static void strcpy(char* dst, const char* src) {
+    while (*src) {
+        *dst++ = *src++;
     }
+    *dst = '\0';
 }
 
-// --- Простейшая таблица scancode set 1 -> ASCII (US), без Shift ---
-static const char sc_to_ascii[128] = {
-    0,  27, '1','2','3','4','5','6','7','8','9','0','-','=', '\b', // 0x0E = backspace
-    '\t','q','w','e','r','t','y','u','i','o','p','[',']','\n', 0,   // 0x1C = enter
-    'a','s','d','f','g','h','j','k','l',';','\'','`', 0, '\\',
-    'z','x','c','v','b','n','m',',','.','/', 0, '*',  0,  ' ',
-    0,0,0,0,0,0,0,0,0,0, // F-keys и т.п. игнорируем
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0
+// -------------------------
+// VGA console
+// -------------------------
+static inline u16 vga_cell(char ch, u8 color) {
+    return (u16)(((u16)color << 8) | (u8)ch);
+}
+
+struct Console {
+    int row = 0;
+    int col = 0;
+    u8 color = 0x07;
+
+    void move_hw_cursor() {
+        u16 pos = (u16)(row * VGA_W + col);
+        outb(0x3D4, 0x0F);
+        outb(0x3D5, (u8)(pos & 0xFF));
+        outb(0x3D4, 0x0E);
+        outb(0x3D5, (u8)((pos >> 8) & 0xFF));
+    }
+
+    void clear_row(int r, u8 clr) {
+        if (r < 0 || r >= VGA_H) return;
+        for (int c = 0; c < VGA_W; ++c) {
+            VGA[r * VGA_W + c] = vga_cell(' ', clr);
+        }
+    }
+
+    void clear() {
+        for (int r = 0; r < VGA_H; ++r) {
+            clear_row(r, color);
+        }
+        row = 0;
+        col = 0;
+        move_hw_cursor();
+    }
+
+    void scroll_if_needed() {
+        if (row < VGA_H) return;
+
+        for (int r = 1; r < VGA_H; ++r) {
+            for (int c = 0; c < VGA_W; ++c) {
+                VGA[(r - 1) * VGA_W + c] = VGA[r * VGA_W + c];
+            }
+        }
+        clear_row(VGA_H - 1, color);
+        row = VGA_H - 1;
+    }
+
+    void putc(char ch) {
+        if (ch == '\n') {
+            col = 0;
+            ++row;
+            scroll_if_needed();
+            move_hw_cursor();
+            return;
+        }
+
+        if (ch == '\r') {
+            col = 0;
+            move_hw_cursor();
+            return;
+        }
+
+        if (ch == '\b') {
+            if (col > 0) {
+                --col;
+                VGA[row * VGA_W + col] = vga_cell(' ', color);
+            }
+            move_hw_cursor();
+            return;
+        }
+
+        if (ch == '\t') {
+            int next = (col + 4) & ~3;
+            while (col < next) putc(' ');
+            return;
+        }
+
+        VGA[row * VGA_W + col] = vga_cell(ch, color);
+        ++col;
+
+        if (col >= VGA_W) {
+            col = 0;
+            ++row;
+            scroll_if_needed();
+        }
+
+        move_hw_cursor();
+    }
+
+    void print(const char* s) {
+        while (*s) putc(*s++);
+    }
+
+    void println(const char* s) {
+        print(s);
+        putc('\n');
+    }
+
+    void set_color(u8 clr) {
+        color = clr;
+    }
 };
 
-// Ждём следующий scancode (polling)
-static unsigned char kbd_read_scancode() {
-    // статус контроллера: бит0=1 => есть байт в буфере вывода
+static Console console;
+
+// -------------------------
+// Keyboard (PS/2, set 1, polling)
+// -------------------------
+struct KeyboardState {
+    bool left_shift  = false;
+    bool right_shift = false;
+    bool caps_lock   = false;
+
+    bool shift() const {
+        return left_shift || right_shift;
+    }
+};
+
+static KeyboardState kbd;
+
+static const char keymap[128] = {
+    0,   27,  '1','2','3','4','5','6','7','8','9','0','-','=', '\b',
+    '\t','q','w','e','r','t','y','u','i','o','p','[',']','\n', 0,
+    'a','s','d','f','g','h','j','k','l',';','\'','`', 0, '\\',
+    'z','x','c','v','b','n','m',',','.','/', 0, '*',  0, ' ',
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+};
+
+static const char keymap_shift[128] = {
+    0,   27,  '!','@','#','$','%','^','&','*','(',')','_','+', '\b',
+    '\t','Q','W','E','R','T','Y','U','I','O','P','{','}','\n', 0,
+    'A','S','D','F','G','H','J','K','L',':','"','~', 0, '|',
+    'Z','X','C','V','B','N','M','<','>','?', 0, '*',  0, ' ',
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+};
+
+static u8 kbd_read_scancode() {
     while ((inb(0x64) & 0x01) == 0) {
-        asm volatile ("hlt"); // экономим CPU, QEMU нормально
+        asm volatile ("pause");
     }
     return inb(0x60);
 }
 
-static bool kbd_scancode_to_char(unsigned char sc, char& out) {
-    if (sc & 0x80) return false;              // key release
-    char c = sc_to_ascii[sc & 0x7F];
-    if (!c) return false;                     // не печатный/не поддержан
+static bool is_alpha(char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+
+static bool kbd_translate_scancode(u8 sc, char& out) {
+    out = 0;
+
+    // extended prefix пока игнорируем
+    if (sc == 0xE0) {
+        (void)kbd_read_scancode();
+        return false;
+    }
+
+    bool released = (sc & 0x80) != 0;
+    u8 code = sc & 0x7F;
+
+    switch (code) {
+        case 0x2A: // left shift
+            kbd.left_shift = !released;
+            return false;
+        case 0x36: // right shift
+            kbd.right_shift = !released;
+            return false;
+        case 0x3A: // caps lock
+            if (!released) kbd.caps_lock = !kbd.caps_lock;
+            return false;
+        default:
+            break;
+    }
+
+    if (released) return false;
+    if (code >= 128) return false;
+
+    char c = kbd.shift() ? keymap_shift[code] : keymap[code];
+    if (!c) return false;
+
+    if (is_alpha(c)) {
+        bool upper = kbd.shift() ^ kbd.caps_lock;
+        if (upper) {
+            if (c >= 'a' && c <= 'z') c = (char)(c - 'a' + 'A');
+        } else {
+            if (c >= 'A' && c <= 'Z') c = (char)(c - 'A' + 'a');
+        }
+    }
+
     out = c;
     return true;
 }
 
-// Ввод строки с экранированием в VGA (без Shift/Caps), поддержка backspace, enter
-static void read_line(char* buf, int max_len, int row, int col, unsigned char color) {
+// -------------------------
+// Line input
+// -------------------------
+static void read_line(char* buf, int max_len) {
     int len = 0;
-    int cur = col;
-
-    // очистим остаток строки справа от курсора
-    for (int i = col; i < VGA_W; ++i) vga_put_at(row, i, ' ', color);
 
     while (true) {
-        unsigned char sc = kbd_read_scancode();
         char ch;
-        if (!kbd_scancode_to_char(sc, ch)) continue;
+        if (!kbd_translate_scancode(kbd_read_scancode(), ch)) {
+            continue;
+        }
 
-        if (ch == '\n') { // Enter
+        if (ch == '\n') {
             buf[len] = '\0';
+            console.putc('\n');
             return;
         }
 
-        if (ch == '\b') { // Backspace
+        if (ch == '\b') {
             if (len > 0) {
                 --len;
-                --cur;
-                vga_put_at(row, cur, ' ', color);
+                console.putc('\b');
             }
             continue;
         }
 
-        // фильтр: только "видимые" и пока есть место
-        if (ch >= 32 && ch <= 126 && len < (max_len - 1) && cur < VGA_W) {
+        if (ch >= 32 && ch <= 126 && len < max_len - 1) {
             buf[len++] = ch;
-            vga_put_at(row, cur++, (unsigned char)ch, color);
+            console.putc(ch);
         }
     }
 }
 
-extern "C" int kmain()
-{
-    // Немного “UI”
-    vga_clear_row(5, 0x07);
-    vga_clear_row(6, 0x07);
-    vga_clear_row(7, 0x07);
-    vga_clear_row(8, 0x07);
-    vga_clear_row(9, 0x07);
-    vga_clear_row(10,0x07);
+// -------------------------
+// Command loop
+// -------------------------
+static void print_banner() {
+    console.set_color(0x0A);
+    console.println("HelloWorldOS");
+    console.set_color(0x07);
+    console.println("------------------------------");
+    console.println("Commands: help, clear, about");
+    console.println("");
+}
 
-    const char* hello = "Welcome to HelloWorldOS (gcc edition)!";
-    vga_write_str(6, 0, 0x0A, hello);
-
-    const char* prompt = "Enter your name: ";
-    vga_write_str(8, 0, 0x0F, prompt);
-
-    char name[32];
-    read_line(name, (int)sizeof(name), 8, 17, 0x0F);
-
-    // Вывод "Hello, {name}"
-    vga_clear_row(10, 0x07);
-    vga_write_str(10, 0, 0x0E, "Hello, ");
-    vga_write_str(10, 7, 0x0E, name);
-
-    while (1) {
-        asm volatile ("hlt");
+static void handle_command(const char* cmd) {
+    if (streq(cmd, "")) {
+        return;
     }
-    return 0;
+
+    if (streq(cmd, "help")) {
+        console.println("Available commands:");
+        console.println("  help  - show this help");
+        console.println("  clear - clear screen");
+        console.println("  about - show system info");
+        return;
+    }
+
+    if (streq(cmd, "clear")) {
+        console.clear();
+        return;
+    }
+
+    if (streq(cmd, "about")) {
+        console.println("HelloWorldOS kernel");
+        console.println("Mode: 32-bit protected mode");
+        console.println("Keyboard: PS/2 polling");
+        console.println("Display: VGA text mode");
+        return;
+    }
+
+    console.set_color(0x0C);
+    console.print("Unknown command: ");
+    console.println(cmd);
+    console.set_color(0x07);
+}
+
+extern "C" void kmain() {
+    console.set_color(0x07);
+    console.clear();
+
+    print_banner();
+
+    char line[64];
+
+    while (true) {
+        console.set_color(0x0F);
+        console.print("> ");
+        console.set_color(0x07);
+
+        read_line(line, sizeof(line));
+        handle_command(line);
+    }
 }
