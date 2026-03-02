@@ -14,32 +14,21 @@ _start:
 
     jmp load_kernel
 
-    movb $0x0E, %ah
-    movb $'A', %al
-    int $0x10
-
-
-
 load_kernel:
     movw $0x1000, %ax
     movw %ax, %es
     xorw %bx, %bx
 
-    movb $0x0E, %ah
-    movb $'R', %al
-    int $0x10
-
     movb $0x01, %dl
     movb $0x00, %dh
     movb $0x00, %ch
     movb $0x02, %cl
-    movb $0x01, %al
+    movb $0x10, %al
     movb $0x02, %ah
+    xorw %ax, %ax
     int $0x13
     jc disk_error
-    movb $0x0E, %ah
-    movb $'C', %al
-    int $0x10
+
 
     call a20
     cli
@@ -49,15 +38,11 @@ load_kernel:
     orb $0x01, %al
     movl %eax, %cr0
 
-    movb $0x0E, %ah
-    movb $'P', %al
-    int $0x10
+
 
     ljmp $0x08, $prot_mode_entry
 disk_error:
-    movb $0x0E, %ah
-    movb $'E', %al
-    int $0x10
+
     hlt
     jmp disk_error
 a20:
@@ -74,8 +59,8 @@ prot_mode_entry:
     movw %ax, %fs
     movw %ax, %gs
     movl $0x90000, %esp
-
-    jmp 0x00010000
+    movl $0x10000, %eax
+    jmp *%eax
 
 .balign 8
 gdt:
