@@ -19,17 +19,20 @@ load_kernel:
     movw %ax, %es
     xorw %bx, %bx
 
+    ; xorw %ax, %ax
+    ; int $0x13
+    ; jc disk_error
+
     movb $0x01, %dl
     movb $0x00, %dh
     movb $0x00, %ch
     movb $0x02, %cl
     movb $0x10, %al
     movb $0x02, %ah
-    xorw %ax, %ax
+
     int $0x13
     jc disk_error
-
-
+    
     call a20
     cli
     lgdt gdt_info
