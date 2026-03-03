@@ -1,5 +1,5 @@
 .code16
-
+; org 0x7C00
 .section .text
 .globl _start
 
@@ -11,49 +11,38 @@ _start:
     movw %ax, %ss
     movw $0x7C00, %sp
     sti
-
     jmp load_kernel
 
+
+
 load_kernel:
+
     movw $0x1000, %ax
     movw %ax, %es
     xorw %bx, %bx
 
-    ; xorw %ax, %ax
-    ; int $0x13
-    ; jc disk_error
-
-    movb $0x01, %dl
     movb $0x00, %dh
     movb $0x00, %ch
-    movb $0x02, %cl
-    movb $0x10, %al
+    movb $0x01, %cl
+    movb $0x01, %al
     movb $0x02, %ah
 
-    int $0x13
-    jc disk_error
-    
+    movb %dl, boot_drive
+
     call a20
     cli
-    lgdt gdt_info
+    lgdt (gdt_info)
 
-    movl %cr0, %eax 
+    movl %cr0, %eax ; cr0 -> eax : Защищенный режим
     orb $0x01, %al
-    movl %eax, %cr0
-
-
+    movl %cr0, %cr0
 
     ljmp $0x08, $prot_mode_entry
-disk_error:
-
-    hlt
-    jmp disk_error
 a20:
     inb $0x92, %al
     orb $0x02, %al
-    outb %al, $0x92
+    outb %al, 0x92
     ret
-.code32
 prot_mode_entry:
     movw $0x10, %ax
     movw %ax, %es
@@ -61,22 +50,19 @@ prot_mode_entry:
     movw %ax, %ss
     movw %ax, %fs
     movw %ax, %gs
-    movl $0x90000, %esp
-    movl $0x10000, %eax
-    jmp *%eax
+    jmp *$0x00010000
 
-.balign 8
+.align 8
 gdt:
     .quad 0x0000000000000000
     .quad 0x00CF9A000000FFFF
     .quad 0x00CF92000000FFFF
 
 gdt_info:
-    .word (gdt_end - gdt - 1)
+    .word (gdt_info - gdt - 1)
     .long gdt
-gdt_end:
 boot_drive:
-    .byte 1
+    .byte 0
 
 
 .org 510
