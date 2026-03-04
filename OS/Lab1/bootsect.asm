@@ -82,11 +82,11 @@ boot_now:
     int  $0x13
     jc disk_error
 
-    movb $0x01, %dl
+    movb $0x01, %dl 
     movb $0x00, %dh
     movb $0x00, %ch
-    movb $0x01, %cl
-    movb $0x32, %al
+    movb $0x02, %cl
+    movb $0x10, %al
     movb $0x02, %ah
     int  $0x13
     jc disk_error
