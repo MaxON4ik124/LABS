@@ -1,3 +1,4 @@
+.att_syntax prefix
 .code16
 .section .text
 .globl _start
@@ -30,7 +31,7 @@ redraw:
     call puts
 
 wait_key:
-    xorw %ax, %ax
+    movb $0x00, %ah
     int  $0x16
 
     cmpb $0x0D, %al
@@ -41,8 +42,10 @@ wait_key:
 
     cmpb $0x48, %ah
     je key_up
+
     cmpb $0x50, %ah
     je key_down
+
     jmp wait_key
 
 key_up:
@@ -83,7 +86,7 @@ boot_now:
     movb $0x00, %dh
     movb $0x00, %ch
     movb $0x01, %cl
-    movb $0x01, %al
+    movb $0x32, %al
     movb $0x02, %ah
     int  $0x13
     jc disk_error
@@ -128,7 +131,8 @@ pmode:
     movw %ax, %ss
     movw %ax, %fs
     movw %ax, %gs
-    jmp *$0x00010000
+    movl $0x00010000, %eax
+    jmp *%eax
 
 .code16
 gdt:
