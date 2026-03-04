@@ -1,4 +1,6 @@
 .def TMP = R20
+.def ONE = R21
+.def Y = R22
 
 .equ F_CPU = 8000000
 .equ PRESC = 1024
@@ -34,29 +36,44 @@ reset:
     CLI
     CLR R1
 	LDI TMP, 0x01
-	LDI R31, 0x01
+	LDI ONE, 0x01
 	MOV R0, TMP
 	CLR TMP
 
-    ; Захуярим Стек
+    ; Инициализируем Стек
     LDI TMP, HIGH(RAMEND) ; Старшие разряды адреса
 	OUT SPH, TMP
 	LDI TMP, LOW(RAMEND) ; Младшие разряды адреса
 	OUT SPL, TMP
 
-    ; Ебашим порты
-    SER TMP
+    ; Выставляем порты
+/*    SER TMP
     OUT DDRA, TMP   ; Вывод
     OUT DDRB, TMP   ; Вывод
-    LDI TMP, 0x00
+    LDI TMP, 0x01
     OUT DDRC, TMP   ; Ввод
+	SER TMP
+	OUT PORTC, TMP
     LDI TMP, (1<<PD0)|(1<<PD1)|(1<<PD4)|(1<<PD5)    ;0b00110011 
     OUT DDRD, TMP
     
-    LDI TMP, (1<<PD2)|(1<<PD3)|(1<<PD7)
-    OUT DDRD, TMP
+    LDI TMP, (1<<PD2)|(1<<PD3)|(1<<PD7)		;0b10001100
+    OUT PORTD, TMP
+	LDI R16, 0x00
+	OUT PORTA, R16
+	LDI R16, 0xFF
+	out PORTB, R16*/
+	LDI Y, 0x55
+	SER TMP
+	OUT DDRA, TMP
+	OUT DDRB, TMP
+	OUT DDRD, TMP
+	LDI TMP, 0x1
+	OUT DDRC, TMP
 
-    ; Грузим из EEPROM
+
+
+
 
     ; Режим работы
 
@@ -67,7 +84,7 @@ reset:
     ; Частота X
     LDI R24, EE_X
     RCALL EEPROM_READ
-    STS x_freq, R24
+    STS x_freq, R24	
 
     ; Y
     LDI R24, EE_Y
@@ -87,7 +104,7 @@ _chk_x:
     LDS R16, x_freq
     CPI R16, 0xFF
     BRNE _chk_y
-    CLR R16
+    LDI R16, 2
     STS x_freq, R16
 ; Выставляем Y
 _chk_y:
@@ -115,60 +132,69 @@ _set_phase:
 MAIN:
     ; Проверяем, нажата ли PD7, если нажата, ждем отжатия
     IN R16, PIND
-    SBRC R16, PD7
+    SBRS R16, PD7
+    RCALL READ_Y_FROM_PORTC
     RJMP MAIN
 
-    IN R17, PINC
+READ_Y_FROM_PORTC:
+    IN  R17, PINC
     STS y_val, R17
-
-    RJMP MAIN
-
+    RET
 
 ISR_T1_COMPA:
     PUSH R16
     PUSH R17
     PUSH R18
+	PUSH R19
 
-    IN R16, PIND
-    SBRS R16, PD7
-    RJMP _only_inds
+    ;IN R16, PIND
+    ;SBRS R16, PD7
+    ;RJMP _only_inds
 
     ; Переключение состояний
 
     LDS R16, phase
-    EOR R16, R31
+    EOR R16, ONE
     STS phase, R16
 
     LDS R18, mode
     TST R18
     BRNE _mode1
 
-
+_mode0:
     ; Режим 0x00, 0xFF
     LDS R16, phase
-    LDS R17, y_val
     TST R16
     BREQ _out00
     LDI R17, 0xFF
+	LDI R19, 0x00
     RJMP _do_out
 _out00:
     LDI R17, 0x00
+	LDI R19, 0xFF
     RJMP _do_out
 
 ; Режим y, -y
 _mode1:
     LDS R16, phase
-    LDS R17, y_val
-    TST R16
-    BREQ _do_out        ;y
-    ORI R17, 0x80       ;-y
+    LDS R17, y_val		;y
+	ANDI R17, 0x7F
+	MOV R19, R17
+    
+    ORI R19, 0x80       ;-y
+	TST R16
+	BREQ _do_out
+	MOV TMP, R19
+	MOV R19, R17
+	MOV R17, TMP      
 
 _do_out:
+	;COM R17
+	;COM R19
     OUT PORTA, R17
-    OUT PORTB, R17
-
-_only_inds:
+    OUT PORTB, R19
     RCALL UPDATE_PORTD
+	POP R19
     POP R18
     POP R17
     POP R16
@@ -180,26 +206,26 @@ ISR_INT0:
     PUSH R24
     PUSH R25
     LDS R16, mode
-    EOR R16, R31
+    EOR R16, ONE
     STS mode, R16
 
-    ; Сброс состояния к хуям при смене режима
+    ; Сброс состояния при смене режима
 
     CLR R16
     STS phase, R16
     RCALL UPDATE_PORTD
 
-    ; Ебашим режим в память
+    ; Грузим режим в память
     LDS R25, mode
     LDI R24, EE_MODE
     RCALL EEPROM_WRITE
 
-    ; Ебашим Х
+    ; Грузим Х
     LDS R25, x_freq
     LDI R24, EE_X
     RCALL EEPROM_WRITE
 
-    ; Ебашим Y
+    ; Грузим Y
     LDS R25, y_val
     LDI R24, EE_Y
     RCALL EEPROM_WRITE
@@ -240,7 +266,7 @@ UPDATE_PORTD:
     PUSH R17
 
     IN R16, PORTD
-    LDI R17, !((1<<PD0)|(1<<PD1)|(1<<PD4)|(1<<PD5))
+    LDI R17, ~((1<<PD0)|(1<<PD1)|(1<<PD4)|(1<<PD5))
     AND R16, R17
 
     ; Выставляем режим
@@ -280,24 +306,24 @@ APPLY_XCODE_TO_TIMER1:
     LDS R16, x_freq
     CPI R16, 0
     BREQ _ocr_025
-    CPI R16, 15
+    CPI R16, 1
     BREQ _ocr_05
 _ocr_1:
+    LDI R16, LOW(3905)
+    OUT OCR1AL, R16
+    LDI R16, HIGH(3905)
+    OUT OCR1AH, R16
+    RJMP _timer_start
+_ocr_05:
     LDI R16, LOW(7811)
     OUT OCR1AL, R16
     LDI R16, HIGH(7811)
     OUT OCR1AH, R16
     RJMP _timer_start
-_ocr_05:
+_ocr_025:
     LDI R16, LOW(15624)
     OUT OCR1AL, R16
     LDI R16, HIGH(15624)
-    OUT OCR1AH, R16
-    RJMP _timer_start
-_ocr_025:
-    LDI R16, LOW(31249)
-    OUT OCR1AL, R16
-    LDI R16, HIGH(31249)
     OUT OCR1AH, R16
 
 _timer_start:
@@ -337,6 +363,7 @@ _wait_ew:
     SBIC EECR, EEWE
     RJMP _wait_ew
     OUT EEARL, R24
+
     OUT EEDR, R25
 
     SBI EECR, EEMWE
