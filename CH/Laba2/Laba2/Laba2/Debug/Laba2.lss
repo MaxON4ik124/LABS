@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Labs\LABS\CH\Laba2\Laba2\Laba2\main.asm Fri Feb 27 00:14:06 2026
+AVRASM ver. 2.2.7  C:\Labs\LABS\CH\Laba2\Laba2\Laba2\main.asm Fri Feb 27 16:07:26 2026
 
 [builtin](2): Including file 'D:/AtmelStudio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m32def.inc'
 [builtin](2): Including file 'D:/AtmelStudio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m32def.inc'
@@ -820,7 +820,7 @@ AVRASM ver. 2.2.7  C:\Labs\LABS\CH\Laba2\Laba2\Laba2\main.asm Fri Feb 27 00:14:0
                                  #endif  /* _M32DEF_INC_ */
                                  
                                  
-                                 
+                                 .def ONE = R21
                                  .equ F_CPU = 8000000
                                  .equ PRESC = 1024
                                  
@@ -840,13 +840,13 @@ AVRASM ver. 2.2.7  C:\Labs\LABS\CH\Laba2\Laba2\Laba2\main.asm Fri Feb 27 00:14:0
 000000 c00e                      RJMP reset
                                  
                                  .org INT0addr
-000002 c078                      RJMP ISR_INT0
+000002 c083                      RJMP ISR_INT0
                                  
                                  .org INT1addr
-000004 c092                      RJMP ISR_INT1
+000004 c09d                      RJMP ISR_INT1
                                  
                                  .org OC1Aaddr
-00000e c045                      RJMP ISR_T1_COMPA
+00000e c04c                      RJMP ISR_T1_COMPA
                                  
                                  
                                  
@@ -855,316 +855,331 @@ AVRASM ver. 2.2.7  C:\Labs\LABS\CH\Laba2\Laba2\Laba2\main.asm Fri Feb 27 00:14:0
 00000f 94f8                          CLI
 000010 2411                          CLR R1
 000011 e041                      	LDI TMP, 0x01
-000012 e0f1                      	LDI R31, 0x01
+000012 e051                      	LDI ONE, 0x01
 000013 2e04                      	MOV R0, TMP
 000014 2744                      	CLR TMP
                                  
-                                     ; Захуярим Стек
+                                     ; Инициализируем Стек
 000015 e048                          LDI TMP, HIGH(RAMEND) ; Старшие разряды адреса
 000016 bf4e                      	OUT SPH, TMP
 000017 e54f                      	LDI TMP, LOW(RAMEND) ; Младшие разряды адреса
 000018 bf4d                      	OUT SPL, TMP
                                  
-                                     ; Ебашим порты
+                                     ; Выставляем порты
 000019 ef4f                          SER TMP
 00001a bb4a                          OUT DDRA, TMP   ; Вывод
 00001b bb47                          OUT DDRB, TMP   ; Вывод
 00001c e040                          LDI TMP, 0x00
 00001d bb44                          OUT DDRC, TMP   ; Ввод
-00001e e343                          LDI TMP, (1<<PD0)|(1<<PD1)|(1<<PD4)|(1<<PD5)    ;0b00110011 
-00001f bb41                          OUT DDRD, TMP
-                                     
-000020 e84c                          LDI TMP, (1<<PD2)|(1<<PD3)|(1<<PD7)
+00001e ef4f                      	SER TMP
+00001f bb45                      	OUT PORTC, TMP
+000020 e343                          LDI TMP, (1<<PD0)|(1<<PD1)|(1<<PD4)|(1<<PD5)    ;0b00110011 
 000021 bb41                          OUT DDRD, TMP
+                                     
+000022 e84c                          LDI TMP, (1<<PD2)|(1<<PD3)|(1<<PD7)		;0b10001100
+000023 bb42                          OUT PORTD, TMP
+000024 e000                      	LDI R16, 0x00
+000025 bb0b                      	OUT PORTA, R16
+000026 ef0f                      	LDI R16, 0xFF
+000027 bb08                      	out PORTB, R16
                                  
-                                     ; Грузим из EEPROM
                                  
                                      ; Режим работы
                                  
-000022 e080                          LDI R24, EE_MODE
-000023 d0c4                          RCALL EEPROM_READ
-000024 9380 0060                     STS mode, R24
+000028 e080                          LDI R24, EE_MODE
+000029 d0c9                          RCALL EEPROM_READ
+00002a 9380 0060                     STS mode, R24
                                  
                                      ; Частота X
-000026 e081                          LDI R24, EE_X
-000027 d0c0                          RCALL EEPROM_READ
-000028 9380 0062                     STS x_freq, R24
+00002c e081                          LDI R24, EE_X
+00002d d0c5                          RCALL EEPROM_READ
+00002e 9380 0062                     STS x_freq, R24	
                                  
                                      ; Y
-00002a e082                          LDI R24, EE_Y
-00002b d0bc                          RCALL EEPROM_READ
-00002c 9380 0063                     STS y_val, R24
+000030 e082                          LDI R24, EE_Y
+000031 d0c1                          RCALL EEPROM_READ
+000032 9380 0063                     STS y_val, R24
                                  
                                      ; Начальные значения (Выставляем режим)
                                  
-00002e 9100 0060                     LDS R16, mode
-000030 3f0f                          CPI R16, 0xFF
-000031 f419                          BRNE _chk_x
-000032 2700                          CLR R16
-000033 9300 0060                     STS mode, R16
+000034 9100 0060                     LDS R16, mode
+000036 3f0f                          CPI R16, 0xFF
+000037 f419                          BRNE _chk_x
+000038 2700                          CLR R16
+000039 9300 0060                     STS mode, R16
                                  
                                  ; Выставляем X
                                  _chk_x:
-000035 9100 0062                     LDS R16, x_freq
-000037 3f0f                          CPI R16, 0xFF
-000038 f419                          BRNE _chk_y
-000039 2700                          CLR R16
-00003a 9300 0062                     STS x_freq, R16
+00003b 9100 0062                     LDS R16, x_freq
+00003d 3f0f                          CPI R16, 0xFF
+00003e f419                          BRNE _chk_y
+00003f e002                          LDI R16, 2
+000040 9300 0062                     STS x_freq, R16
                                  ; Выставляем Y
                                  _chk_y:
-00003c 9100 0063                     LDS R16, y_val
-00003e 3f0f                          CPI R16, 0xFF
-00003f f419                          BRNE _set_phase
-000040 e505                          LDI R16, 0x55
-000041 9300 0063                     STS y_val, R16
+000042 9100 0063                     LDS R16, y_val
+000044 3f0f                          CPI R16, 0xFF
+000045 f419                          BRNE _set_phase
+000046 e505                          LDI R16, 0x55
+000047 9300 0063                     STS y_val, R16
                                  ; Выставляем ссостояние
                                  _set_phase:
-000043 2700                          CLR R16
-000044 9300 0061                     STS phase, R16
-000046 d065                          RCALL UPDATE_PORTD
-000047 d07b                          RCALL APPLY_XCODE_TO_TIMER1
+000049 2700                          CLR R16
+00004a 9300 0061                     STS phase, R16
+00004c d06a                          RCALL UPDATE_PORTD
+00004d d080                          RCALL APPLY_XCODE_TO_TIMER1
                                  
-000048 e00a                          LDI R16, (1<<ISC01)|(1<<ISC11)
-000049 bf05                          OUT MCUCR, R16
+00004e e00a                          LDI R16, (1<<ISC01)|(1<<ISC11)
+00004f bf05                          OUT MCUCR, R16
                                  
-00004a ec00                          LDI R16, (1<<INT0)|(1<<INT1)
-00004b bf0b                          OUT GICR, R16
+000050 ec00                          LDI R16, (1<<INT0)|(1<<INT1)
+000051 bf0b                          OUT GICR, R16
                                  
-00004c 9478                          SEI
+000052 9478                          SEI
                                  
                                  
                                  MAIN:
                                      ; Проверяем, нажата ли PD7, если нажата, ждем отжатия
-00004d b300                          IN R16, PIND
-00004e fd07                          SBRC R16, PD7
-00004f cffd                          RJMP MAIN
+000053 b300                          IN R16, PIND
+000054 ff07                          SBRS R16, PD7
+000055 d001                          RCALL READ_Y_FROM_PORTC
+000056 cffc                          RJMP MAIN
                                  
-000050 b313                          IN R17, PINC
-000051 9310 0063                     STS y_val, R17
-                                 
-000053 cff9                          RJMP MAIN
-                                 
+                                 READ_Y_FROM_PORTC:
+000057 b313                          IN  R17, PINC
+000058 9310 0063                     STS y_val, R17
+00005a 9508                          RET
                                  
                                  ISR_T1_COMPA:
-000054 930f                          PUSH R16
-000055 931f                          PUSH R17
-000056 932f                          PUSH R18
+00005b 930f                          PUSH R16
+00005c 931f                          PUSH R17
+00005d 932f                          PUSH R18
+00005e 933f                      	PUSH R19
                                  
-000057 b300                          IN R16, PIND
-000058 ff07                          SBRS R16, PD7
-000059 c01c                          RJMP _only_inds
+                                     ;IN R16, PIND
+                                     ;SBRS R16, PD7
+                                     ;RJMP _only_inds
                                  
                                      ; Переключение состояний
                                  
-00005a 9100 0061                     LDS R16, phase
-00005c 270f                          EOR R16, R31
-00005d 9300 0061                     STS phase, R16
+00005f 9100 0061                     LDS R16, phase
+000061 2705                          EOR R16, ONE
+000062 9300 0061                     STS phase, R16
                                  
-00005f 9120 0060                     LDS R18, mode
-000061 2322                          TST R18
-000062 f451                          BRNE _mode1
+000064 9120 0060                     LDS R18, mode
+000066 2322                          TST R18
+000067 f451                          BRNE _mode1
                                  
-                                 
+                                 _mode0:
                                      ; Режим 0x00, 0xFF
-000063 9100 0061                     LDS R16, phase
-000065 9110 0063                     LDS R17, y_val
-000067 2300                          TST R16
-000068 f011                          BREQ _out00
-000069 ef1f                          LDI R17, 0xFF
-00006a c009                          RJMP _do_out
+000068 9100 0061                     LDS R16, phase
+00006a 2300                          TST R16
+00006b f019                          BREQ _out00
+00006c ef1f                          LDI R17, 0xFF
+00006d e030                      	LDI R19, 0x00
+00006e c00f                          RJMP _do_out
                                  _out00:
-00006b e010                          LDI R17, 0x00
-00006c c007                          RJMP _do_out
+00006f e010                          LDI R17, 0x00
+000070 ef3f                      	LDI R19, 0xFF
+000071 c00c                          RJMP _do_out
                                  
                                  ; Режим y, -y
                                  _mode1:
-00006d 9100 0061                     LDS R16, phase
-00006f 9110 0063                     LDS R17, y_val
-000071 2300                          TST R16
-000072 f009                          BREQ _do_out        ;y
-000073 6810                          ORI R17, 0x80       ;-y
+000072 9100 0061                     LDS R16, phase
+000074 9110 0063                     LDS R17, y_val		;y
+000076 771f                      	ANDI R17, 0x7F
+000077 2f31                      	MOV R19, R17
+                                     
+000078 6830                          ORI R19, 0x80       ;-y
+000079 2300                      	TST R16
+00007a f019                      	BREQ _do_out
+00007b 2f43                      	MOV TMP, R19
+00007c 2f31                      	MOV R19, R17
+00007d 2f14                      	MOV R17, TMP      
                                  
                                  _do_out:
-000074 bb1b                          OUT PORTA, R17
-000075 bb18                          OUT PORTB, R17
-                                 
-                                 _only_inds:
-000076 d035                          RCALL UPDATE_PORTD
-000077 912f                          POP R18
-000078 911f                          POP R17
-000079 910f                          POP R16
-00007a 9518                          RETI
+                                 	;COM R17
+                                 	;COM R19
+00007e bb1b                          OUT PORTA, R17
+00007f bb38                          OUT PORTB, R19
+000080 d036                          RCALL UPDATE_PORTD
+000081 913f                      	POP R19
+000082 912f                          POP R18
+000083 911f                          POP R17
+000084 910f                          POP R16
+000085 9518                          RETI
                                  
                                  ; Прерывания при смене режима
                                  ISR_INT0:
-00007b 930f                          PUSH R16
-00007c 938f                          PUSH R24
-00007d 939f                          PUSH R25
-00007e 9100 0060                     LDS R16, mode
-000080 270f                          EOR R16, R31
-000081 9300 0060                     STS mode, R16
+000086 930f                          PUSH R16
+000087 938f                          PUSH R24
+000088 939f                          PUSH R25
+000089 9100 0060                     LDS R16, mode
+00008b 2705                          EOR R16, ONE
+00008c 9300 0060                     STS mode, R16
                                  
-                                     ; Сброс состояния к хуям при смене режима
+                                     ; Сброс состояния при смене режима
                                  
-000083 2700                          CLR R16
-000084 9300 0061                     STS phase, R16
-000086 d025                          RCALL UPDATE_PORTD
+00008e 2700                          CLR R16
+00008f 9300 0061                     STS phase, R16
+000091 d025                          RCALL UPDATE_PORTD
                                  
-                                     ; Ебашим режим в память
-000087 9190 0060                     LDS R25, mode
-000089 e080                          LDI R24, EE_MODE
-00008a d065                          RCALL EEPROM_WRITE
+                                     ; Грузим режим в память
+000092 9190 0060                     LDS R25, mode
+000094 e080                          LDI R24, EE_MODE
+000095 d065                          RCALL EEPROM_WRITE
                                  
-                                     ; Ебашим Х
-00008b 9190 0062                     LDS R25, x_freq
-00008d e081                          LDI R24, EE_X
-00008e d061                          RCALL EEPROM_WRITE
+                                     ; Грузим Х
+000096 9190 0062                     LDS R25, x_freq
+000098 e081                          LDI R24, EE_X
+000099 d061                          RCALL EEPROM_WRITE
                                  
-                                     ; Ебашим Y
-00008f 9190 0063                     LDS R25, y_val
-000091 e082                          LDI R24, EE_Y
-000092 d05d                          RCALL EEPROM_WRITE
+                                     ; Грузим Y
+00009a 9190 0063                     LDS R25, y_val
+00009c e082                          LDI R24, EE_Y
+00009d d05d                          RCALL EEPROM_WRITE
                                  
-000093 919f                          POP R25
-000094 918f                          POP R24
-000095 910f                          POP R16
-000096 9518                          RETI
+00009e 919f                          POP R25
+00009f 918f                          POP R24
+0000a0 910f                          POP R16
+0000a1 9518                          RETI
                                  
                                  ; Вторые прерывания на x
                                  
                                  ISR_INT1:
-000097 930f                          PUSH R16
-000098 938f                          PUSH R24
-000099 939f                          PUSH R25
+0000a2 930f                          PUSH R16
+0000a3 938f                          PUSH R24
+0000a4 939f                          PUSH R25
                                  
-00009a 9100 0062                     LDS R16, x_freq
-00009c 9503                          INC R16
-00009d 3003                          CPI R16, 3
-00009e f008                          BRLO _x_ok
-00009f 2700                          CLR R16
+0000a5 9100 0062                     LDS R16, x_freq
+0000a7 9503                          INC R16
+0000a8 3003                          CPI R16, 3
+0000a9 f008                          BRLO _x_ok
+0000aa 2700                          CLR R16
                                  _x_ok:
-0000a0 9300 0062                     STS x_freq, R16
-0000a2 d020                          RCALL APPLY_XCODE_TO_TIMER1
-0000a3 d008                          RCALL UPDATE_PORTD
+0000ab 9300 0062                     STS x_freq, R16
+0000ad d020                          RCALL APPLY_XCODE_TO_TIMER1
+0000ae d008                          RCALL UPDATE_PORTD
                                  
-0000a4 9190 0062                     LDS R25, x_freq
-0000a6 e081                          LDI R24, EE_X
-0000a7 d048                          RCALL EEPROM_WRITE
+0000af 9190 0062                     LDS R25, x_freq
+0000b1 e081                          LDI R24, EE_X
+0000b2 d048                          RCALL EEPROM_WRITE
                                  
-0000a8 919f                          POP R25
-0000a9 918f                          POP R24
-0000aa 910f                          POP R16
-0000ab 9518                          RETI
+0000b3 919f                          POP R25
+0000b4 918f                          POP R24
+0000b5 910f                          POP R16
+0000b6 9518                          RETI
                                  
                                  UPDATE_PORTD:
-0000ac 930f                          PUSH R16
-0000ad 931f                          PUSH R17
+0000b7 930f                          PUSH R16
+0000b8 931f                          PUSH R17
                                  
-0000ae b302                          IN R16, PORTD
-0000af e010                          LDI R17, !((1<<PD0)|(1<<PD1)|(1<<PD4)|(1<<PD5))
-0000b0 2301                          AND R16, R17
+0000b9 b302                          IN R16, PORTD
+0000ba ec1c                          LDI R17, ~((1<<PD0)|(1<<PD1)|(1<<PD4)|(1<<PD5))
+0000bb 2301                          AND R16, R17
                                  
                                      ; Выставляем режим
                                  
-0000b1 9110 0060                     LDS R17, mode
-0000b3 2311                          TST R17
-0000b4 f009                          BREQ _no_modebit
-0000b5 6100                          ORI R16, (1<<PD4)
+0000bc 9110 0060                     LDS R17, mode
+0000be 2311                          TST R17
+0000bf f009                          BREQ _no_modebit
+0000c0 6100                          ORI R16, (1<<PD4)
                                  _no_modebit:
                                      ; Выставляем состояние
-0000b6 9110 0061                     LDS R17, phase
-0000b8 2311                          TST R17
-0000b9 f009                          BREQ _no_phasebit
-0000ba 6200                          ORI R16, (1<<PD5)
+0000c1 9110 0061                     LDS R17, phase
+0000c3 2311                          TST R17
+0000c4 f009                          BREQ _no_phasebit
+0000c5 6200                          ORI R16, (1<<PD5)
                                  _no_phasebit:
                                      ; Меняем Частоту
-0000bb 9110 0062                     LDS R17, x_freq
-0000bd 7013                          ANDI R17, 0x03
-0000be 2b01                          OR R16, R17
+0000c6 9110 0062                     LDS R17, x_freq
+0000c8 7013                          ANDI R17, 0x03
+0000c9 2b01                          OR R16, R17
                                  
-0000bf bb02                          OUT PORTD, R16
+0000ca bb02                          OUT PORTD, R16
                                  
-0000c0 911f                          POP R17
-0000c1 910f                          POP R16
-0000c2 9508                          RET
+0000cb 911f                          POP R17
+0000cc 910f                          POP R16
+0000cd 9508                          RET
                                  APPLY_XCODE_TO_TIMER1:
                                  ; Выставляем частоту
-0000c3 930f                          PUSH R16
-0000c4 931f                          PUSH R17
+0000ce 930f                          PUSH R16
+0000cf 931f                          PUSH R17
                                  
-0000c5 e000                          LDI R16, 0
-0000c6 bd0e                          OUT TCCR1B, R16
+0000d0 e000                          LDI R16, 0
+0000d1 bd0e                          OUT TCCR1B, R16
                                  
-0000c7 e008                          LDI R16, (1<<WGM12)
-0000c8 bd0e                          OUT TCCR1B, R16
+0000d2 e008                          LDI R16, (1<<WGM12)
+0000d3 bd0e                          OUT TCCR1B, R16
                                  
-0000c9 9100 0062                     LDS R16, x_freq
-0000cb 3000                          CPI R16, 0
-0000cc f061                          BREQ _ocr_025
-0000cd 300f                          CPI R16, 15
-0000ce f029                          BREQ _ocr_05
+0000d4 9100 0062                     LDS R16, x_freq
+0000d6 3000                          CPI R16, 0
+0000d7 f061                          BREQ _ocr_025
+0000d8 3001                          CPI R16, 1
+0000d9 f029                          BREQ _ocr_05
                                  _ocr_1:
-0000cf e803                          LDI R16, LOW(7811)
-0000d0 bd0a                          OUT OCR1AL, R16
-0000d1 e10e                          LDI R16, HIGH(7811)
-0000d2 bd0b                          OUT OCR1AH, R16
-0000d3 c009                          RJMP _timer_start
+0000da e401                          LDI R16, LOW(3905)
+0000db bd0a                          OUT OCR1AL, R16
+0000dc e00f                          LDI R16, HIGH(3905)
+0000dd bd0b                          OUT OCR1AH, R16
+0000de c009                          RJMP _timer_start
                                  _ocr_05:
-0000d4 e008                          LDI R16, LOW(15624)
-0000d5 bd0a                          OUT OCR1AL, R16
-0000d6 e30d                          LDI R16, HIGH(15624)
-0000d7 bd0b                          OUT OCR1AH, R16
-0000d8 c004                          RJMP _timer_start
+0000df e803                          LDI R16, LOW(7811)
+0000e0 bd0a                          OUT OCR1AL, R16
+0000e1 e10e                          LDI R16, HIGH(7811)
+0000e2 bd0b                          OUT OCR1AH, R16
+0000e3 c004                          RJMP _timer_start
                                  _ocr_025:
-0000d9 e101                          LDI R16, LOW(31249)
-0000da bd0a                          OUT OCR1AL, R16
-0000db e70a                          LDI R16, HIGH(31249)
-0000dc bd0b                          OUT OCR1AH, R16
+0000e4 e008                          LDI R16, LOW(15624)
+0000e5 bd0a                          OUT OCR1AL, R16
+0000e6 e30d                          LDI R16, HIGH(15624)
+0000e7 bd0b                          OUT OCR1AH, R16
                                  
                                  _timer_start:
-0000dd 2700                          CLR R16
-0000de bd0d                          OUT TCNT1H, R16
-0000df bd0c                          OUT TCNT1L, R16
+0000e8 2700                          CLR R16
+0000e9 bd0d                          OUT TCNT1H, R16
+0000ea bd0c                          OUT TCNT1L, R16
                                  
-0000e0 e100                          LDI R16, (1<<OCIE1A)
-0000e1 bf09                          OUT TIMSK, R16
+0000eb e100                          LDI R16, (1<<OCIE1A)
+0000ec bf09                          OUT TIMSK, R16
                                  
-0000e2 b50e                          IN R16, TCCR1B
-0000e3 6005                          ORI R16, (1<<CS12)|(1<<CS10)
-0000e4 bd0e                          OUT TCCR1B, R16
+0000ed b50e                          IN R16, TCCR1B
+0000ee 6005                          ORI R16, (1<<CS12)|(1<<CS10)
+0000ef bd0e                          OUT TCCR1B, R16
                                  
-0000e5 911f                          POP R17
-0000e6 910f                          POP R16
-0000e7 9508                          ret
+0000f0 911f                          POP R17
+0000f1 910f                          POP R16
+0000f2 9508                          ret
                                  
                                  EEPROM_READ:
-0000e8 930f                          PUSH R16
+0000f3 930f                          PUSH R16
                                  
                                  _wait_er:
-0000e9 99e1                          sbic EECR, EEWE
-0000ea cffe                          RJMP _wait_er
+0000f4 99e1                          sbic EECR, EEWE
+0000f5 cffe                          RJMP _wait_er
                                  
-0000eb bb8e                          OUT EEARL, R24
-0000ec 9ae0                          SBI EECR, EERE
-0000ed b38d                          IN R24, EEDR
+0000f6 bb8e                          OUT EEARL, R24
+0000f7 9ae0                          SBI EECR, EERE
+0000f8 b38d                          IN R24, EEDR
                                  
-0000ee 910f                          POP R16
-0000ef 9508                          RET
+0000f9 910f                          POP R16
+0000fa 9508                          RET
                                  
                                  EEPROM_WRITE:
-0000f0 930f                          PUSH R16
+0000fb 930f                          PUSH R16
                                  
                                  _wait_ew:
-0000f1 99e1                          SBIC EECR, EEWE
-0000f2 cffe                          RJMP _wait_ew
-0000f3 bb8e                          OUT EEARL, R24
-0000f4 bb9d                          OUT EEDR, R25
+0000fc 99e1                          SBIC EECR, EEWE
+0000fd cffe                          RJMP _wait_ew
+0000fe bb8e                          OUT EEARL, R24
                                  
-0000f5 9ae2                          SBI EECR, EEMWE
-0000f6 9ae1                          SBI EECR, EEWE
+0000ff bb9d                          OUT EEDR, R25
                                  
-0000f7 910f                          POP R16
-0000f8 9508                          RET
+000100 9ae2                          SBI EECR, EEMWE
+000101 9ae1                          SBI EECR, EEWE
+                                 
+000102 910f                          POP R16
+000103 9508                          RET
                                  
                                  
                                  
@@ -1190,37 +1205,37 @@ counted separately from r26..r31 here.
 "ATmega32" register use summary:
 x  :   0 y  :   0 z  :   0 r0 :   1 r1 :   1 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  86 r17:  24 r18:   4 r19:   0 r20:  16 
-r21:   0 r22:   0 r23:   0 r24:  17 r25:   9 r26:   0 r27:   0 r28:   0 
-r29:   0 r30:   0 r31:   3 
-Registers used: 9 out of 35 (25.7%)
+r13:   0 r14:   0 r15:   0 r16:  88 r17:  25 r18:   4 r19:   9 r20:  20 
+r21:   3 r22:   0 r23:   0 r24:  17 r25:   9 r26:   0 r27:   0 r28:   0 
+r29:   0 r30:   0 r31:   0 
+Registers used: 10 out of 35 (28.6%)
 
 "ATmega32" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   1 
-andi  :   1 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+andi  :   2 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
 brcc  :   0 brcs  :   0 break :   0 breq  :   6 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   1 brlt  :   0 brmi  :   0 
 brne  :   4 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
 brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   0 cbr   :   0 
-clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   8 cls   :   0 
+clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   7 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
 cpi   :   6 cpse  :   0 dec   :   0 eor   :   2 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   6 inc   :   1 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  29 lds   :  19 lpm   :   0 lsl   :   0 
-lsr   :   0 mov   :   1 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   1 ori   :   4 out   :  27 pop   :  15 
-push  :  15 rcall :  13 ret   :   4 reti  :   3 rjmp  :  13 rol   :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   5 inc   :   1 jmp   :   0 
+ld    :   0 ldd   :   0 ldi   :  34 lds   :  18 lpm   :   0 lsl   :   0 
+lsr   :   0 mov   :   5 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   0 or    :   1 ori   :   4 out   :  30 pop   :  16 
+push  :  16 rcall :  14 ret   :   5 reti  :   3 rjmp  :  11 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :   3 sbic  :   2 sbis  :   0 
-sbiw  :   0 sbr   :   0 sbrc  :   1 sbrs  :   1 sec   :   0 seh   :   0 
-sei   :   1 sen   :   0 ser   :   1 ses   :   0 set   :   0 sev   :   0 
+sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   1 sec   :   0 seh   :   0 
+sei   :   1 sen   :   0 ser   :   2 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  12 
 sub   :   0 subi  :   0 swap  :   0 tst   :   5 wdr   :   0 
-Instructions used: 31 out of 113 (27.4%)
+Instructions used: 30 out of 113 (26.5%)
 
 "ATmega32" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0001f2    476      0    476   32768   1.5%
+[.cseg] 0x000000 0x000208    498      0    498   32768   1.5%
 [.dseg] 0x000060 0x000064      0      4      4    2048   0.2%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
