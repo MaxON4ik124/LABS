@@ -158,7 +158,7 @@ static char is_valid(char* cnt, char* base)
         base_digit = '0' + base_;
     while(*cnt != '\0')
     {
-        if(*cnt == base_digit) return *cnt;
+        if(*cnt >= base_digit) return *cnt;
         ++cnt;
     }
     return '0';
@@ -209,9 +209,16 @@ void write2(char* buf, int v)
 };
 void get_time(char* timee, int mode, char* res)
 {
+    long long time_ = atoi(timee);
     int time;
+    int before_posix = 0;
     if(mode == 0) time = (int)atoi(timee);
-    if(mode == 1) time = atoi(timee) - 11644473600;
+    if(mode == 1 && time_ > 11644473600) time = atoi(timee) - 11644473600;
+    if(mode == 1 && time_ <= 11644473600)
+    {
+        time = (int)atoi(timee);
+        before_posix = 1;
+    }
     int yr, mth, dy, hr, mnt, sc;
     mth = 0;
     sc = time % 60;
@@ -220,12 +227,12 @@ void get_time(char* timee, int mode, char* res)
     time /= 60;
     hr = time % 24;
     time /= 24;
-    yr = 1970;
+    yr = (before_posix) ? 1601 : 1970;
     int days_in_yr;
     while(1)
     {
         days_in_yr = detect_leap(yr) ? 366 : 365;
-        if(time > days_in_yr)
+        if(time >= days_in_yr)
         {
             yr++;
             time -= days_in_yr;
@@ -239,7 +246,7 @@ void get_time(char* timee, int mode, char* res)
         int days_in_month = monthdays[i];
         if(i == 1 && detect_leap(yr))
             days_in_month = 29;
-        if(time > days_in_month)
+        if(time >= days_in_month)
         {
             time -= days_in_month;
             mth++;
