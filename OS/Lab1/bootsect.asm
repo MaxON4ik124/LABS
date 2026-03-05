@@ -29,6 +29,20 @@ redraw:
     shlw $1, %bx
     movw names(%bx), %si
     call puts
+putc:
+    movb $0x0E, %ah
+    int  $0x10
+    ret
+
+puts:
+1:
+    lodsb
+    testb %al, %al
+    jz 2f
+    call putc
+    jmp 1b
+2:
+    ret
 
 wait_key:
     movb $0x00, %ah
@@ -108,20 +122,6 @@ disk_error:
     hlt
     jmp disk_error
 
-putc:
-    movb $0x0E, %ah
-    int  $0x10
-    ret
-
-puts:
-1:
-    lodsb
-    testb %al, %al
-    jz 2f
-    call putc
-    jmp 1b
-2:
-    ret
 
 .code32
 pmode:
