@@ -166,7 +166,7 @@ def f_read(path_str: str) -> int:
 
         ok(f"Content from '{path}' successfully extracted:")
         print(content)
-        return 0
+        return content
 
     except UnicodeDecodeError as e:
         err(f"Decoding error while reading '{path_str}': {e}")
@@ -273,12 +273,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     group = parser.add_mutually_exclusive_group(required=True)
 
-    group.add_argument("--create", metavar="PATH")
-    group.add_argument("--delete", metavar="PATH")
-    group.add_argument("--read", metavar="PATH")
-    group.add_argument("--write", nargs=2, metavar=("PATH", "CONTENT"))
-    group.add_argument("--copy", nargs=2, metavar=("SRC", "DEST"))
-    group.add_argument("--rename", nargs=2, metavar=("SRC", "DEST"))
+    group.add_argument("--create", nargs='*', metavar="PATH")
+    group.add_argument("--delete", nargs='*', metavar="PATH")
+    group.add_argument("--read", nargs='*', metavar="PATH")
+    group.add_argument("--write", nargs='*', metavar=("PATH", "CONTENT"))
+    group.add_argument("--copy", nargs='*', metavar=("SRC", "DEST"))
+    group.add_argument("--rename", nargs='*', metavar=("SRC", "DEST"))
 
     return parser
 
@@ -314,7 +314,7 @@ def main() -> int:
         return 2
 
     except SystemExit:
-        raise
+        raise("[-] Interruption excepted")
     except KeyboardInterrupt:
         err("Interrupted by user")
         return 130
