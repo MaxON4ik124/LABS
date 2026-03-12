@@ -1,327 +1,400 @@
 import argparse
 import os
 import shutil
-import sys
-from pathlib import Path
 
 
-def ok(msg: str) -> None:
-    print(f"[+] {msg}")
+class SafeArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        print(f"[-] {message}")
+        raise ValueError(f"[-] {message}")
 
-def err(msg: str) -> None:
-    print(f"[-] {msg}")
 
-def normalize_text(s: str) -> str:
-    return s.replace("\\r\\n", "\n").replace("\\n", "\n").replace("\\r", "\n")
+def ok(message):
+    print(f"[+] {message}")
 
-def ensure_parent_dir(path: Path) -> None:
-    parent = path.parent
-    if parent and str(parent) not in ("", "."):
-        parent.mkdir(parents=True, exist_ok=True)
 
-def safe_resolve(p: Path) -> Path:
+def print_and_raise(error_type, message):
+    print(message)
+    raise error_type(message)
+
+
+def normalize_text(text):
+    return text.replace("\\r\\n", "\n").replace("\\n", "\n").replace("\\r", "\n")
+
+
+def expand_path(path):
+    return os.path.expanduser(path)
+
+
+def ensure_parent_dir(path):
+    parent = os.path.dirname(path)
+    if parent not in ("", "."):
+        os.makedirs(parent, exist_ok=True)
+
+
+def safe_resolve(path):
     try:
-        return p.expanduser().resolve(strict=False)
+        return os.path.abspath(expand_path(path))
     except Exception:
-        return p.expanduser()
+        return expand_path(path)
 
-def same_path(a: Path, b: Path) -> bool:
-    ra = safe_resolve(a)
-    rb = safe_resolve(b)
+
+def same_path(left, right):
     try:
-        return os.path.normcase(str(ra)) == os.path.normcase(str(rb))
+        return os.path.normcase(safe_resolve(left)) == os.path.normcase(safe_resolve(right))
     except Exception:
-        return str(ra) == str(rb)
-
-def fail_and_exit(message: str, code: int = 2) -> None:
-    err(message)
-    sys.exit(code)
+        return expand_path(left) == expand_path(right)
 
 
-def f_create(path_str: str) -> int:
+def validate_path_arg(value, name):
+    if isinstance(value, (int, float)):
+        print_and_raise(ValueError, f"[-] {name} cannot be a number")
+
+    if value is None:
+        print_and_raise(ValueError, f"[-] {name} cannot be None")
+
     try:
-        if not path_str or not path_str.strip():
-            err("Path cannot be empty")
-            return 2
+        text = str(value)
+    except Exception as e:
+        print_and_raise(ValueError, f"[-] Cannot convert {name} to string: {e}")
 
-        path = Path(path_str)
-        path = path.expanduser()
+    if text == "":
+        print_and_raise(ValueError, f"[-] {name} cannot be empty")
 
-        if path.exists() and path.is_dir():
-            err(f"Path '{path}' is a directory")
-            return 2
+    if text.strip() == "":
+        print_and_raise(ValueError, f"[-] {name} cannot contain only spaces")
+    if "\x00" in text:
+        print(f"[-] {name} cannot contain NUL byte")
+
+    return expand_path(text)
+
+
+def validate_content_arg(value):
+    if isinstance(value, (int, float)):
+        print_and_raise(ValueError, "[-] Content cannot be a number")
+
+    if value is None:
+        print_and_raise(ValueError, "[-] Content cannot be None")
+
+    try:
+        text = str(value)
+    except Exception as e:
+        print_and_raise(ValueError, f"[-] Cannot convert Content to string: {e}")
+
+    if "\x00" in text:
+        print_and_raise(ValueError, "[-] Content cannot contain NUL byte")
+
+    return normalize_text(text)
+
+
+def require_exact_args(values, command_name, expected_count):
+    actual_count = len(values)
+
+    if actual_count < expected_count:
+        print_and_raise(
+            ValueError,
+            f"[-] Command --{command_name} expects {expected_count} argument(s), got {actual_count}"
+        )
+
+    if actual_count > expected_count:
+        print_and_raise(
+            ValueError,
+            f"[-] Command --{command_name} expects {expected_count} argument(s), got {actual_count}. "
+            f"Possible reason: one of the arguments contains spaces or was passed incorrectly"
+        )
+
+    return values
+
+
+def f_create(path_value) -> None:
+    try:
+        path = validate_path_arg(path_value, "Path")
+
+        if os.path.isdir(path):
+            print_and_raise(IsADirectoryError, f"[-] Path '{path}' is a directory")
 
         ensure_parent_dir(path)
 
-        with open(path, "x", encoding="utf-8"):
+        with open(path, "w", encoding="utf-8"):
             pass
 
         ok(f"File '{path}' successfully created")
-        return 0
 
-    except FileExistsError:
-        err(f"File '{path_str}' already exists")
-        return 2
+    except ValueError:
+        raise
+    except UnicodeEncodeError:
+        print(f"[-] Unicode Encode error occured.")
     except PermissionError as e:
-        err(f"Permission error for '{path_str}': {e}")
-        return 2
-    except IsADirectoryError as e:
-        err(f"Path '{path_str}' is a directory: {e}")
-        return 2
+        print_and_raise(PermissionError, f"[-] Permission denied for '{path_value}': {e}")
+    except FileExistsError as e:
+        print_and_raise(OSError, f"[-] File '{path_value}' already exists: {e}")
+    except IsADirectoryError:
+        raise
+    except FileNotFoundError as e:
+        print_and_raise(FileNotFoundError, f"[-] File path '{path_value}' not found: {e}")
     except OSError as e:
-        err(f"OS error while creating '{path_str}': {e}")
-        return 2
+        print_and_raise(OSError, f"[-] OS error while creating '{path_value}': {e}")
     except Exception as e:
-        err(f"Unexpected error while creating '{path_str}': {e}")
-        return 2
+        print_and_raise(Exception, f"[-] Unexpected error while creating '{path_value}': {e}")
 
 
-def f_delete(path_str: str) -> int:
+def f_delete(path_value) -> None:
     try:
-        if not path_str or not path_str.strip():
-            err("Path cannot be empty")
-            return 2
+        path = validate_path_arg(path_value, "Path")
 
-        path = Path(path_str).expanduser()
+        if not os.path.exists(path):
+            print_and_raise(FileNotFoundError, f"[-] File '{path}' doesn't exist")
 
-        if not path.exists():
-            err(f"File '{path}' doesn't exist")
-            return 2
-        if path.is_dir():
-            err(f"Path '{path}' is a directory (delete supports files only)")
-            return 2
+        if os.path.isdir(path):
+            print_and_raise(IsADirectoryError, f"[-] Path '{path}' is a directory")
 
-        path.unlink()
+        os.remove(path)
+
         ok(f"File '{path}' successfully deleted")
-        return 0
 
+    except ValueError:
+        raise
+    except FileNotFoundError:
+        raise
+    except IsADirectoryError:
+        raise
+    except UnicodeEncodeError:
+        print(f"[-] Unicode Encode error occured.")
     except PermissionError as e:
-        err(f"Permission error for '{path_str}': {e}")
-        return 2
+        print_and_raise(PermissionError, f"[-] Permission denied for '{path_value}': {e}")
     except OSError as e:
-        err(f"OS error while deleting '{path_str}': {e}")
-        return 2
+        print_and_raise(OSError, f"[-] OS error while deleting '{path_value}': {e}")
     except Exception as e:
-        err(f"Unexpected error while deleting '{path_str}': {e}")
-        return 2
+        print_and_raise(Exception, f"[-] Unexpected error while deleting '{path_value}': {e}")
 
 
-def f_write(path_str: str, content: str) -> int:
+def f_write(path_value, content_value) -> None:
     try:
-        if not path_str or not path_str.strip():
-            err("Path cannot be empty")
-            return 2
-        if content is None:
-            err("Content cannot be None")
-            return 2
+        path = validate_path_arg(path_value, "Path")
+        content = validate_content_arg(content_value)
 
-        path = Path(path_str).expanduser()
+        if os.path.exists(path) and os.path.isdir(path):
+            print_and_raise(IsADirectoryError, f"[-] Path '{path}' is a directory")
 
-        if not path.exists():
-            err(f"File '{path}' doesn't exist")
-            return 2
-        if path.is_dir():
-            err(f"Path '{path}' is a directory")
-            return 2
+        ensure_parent_dir(path)
 
-        text = normalize_text(content)
-
-        with open(path, "a", encoding="utf-8", errors="strict") as f:
-            f.write(text)
+        with open(path, "w", encoding="utf-8") as file:
+            file.write(content)
 
         ok(f"Content successfully written to '{path}'")
-        return 0
 
     except UnicodeEncodeError as e:
-        err(f"Encoding error while writing '{path_str}': {e}")
-        return 2
-    except PermissionError as e:
-        err(f"Permission error for '{path_str}': {e}")
-        return 2
-    except OSError as e:
-        err(f"OS error while writing '{path_str}': {e}")
-        return 2
-    except Exception as e:
-        err(f"Unexpected error while writing '{path_str}': {e}")
-        return 2
-
-
-def f_read(path_str: str) -> int:
-    try:
-        if not path_str or not path_str.strip():
-            err("Path cannot be empty")
-            return 2
-
-        path = Path(path_str).expanduser()
-
-        if not path.exists():
-            err(f"File '{path}' doesn't exist")
-            return 2
-        if path.is_dir():
-            err(f"Path '{path}' is a directory")
-            return 2
-
-        with open(path, "r", encoding="utf-8", errors="strict") as f:
-            content = f.read()
-
-        ok(f"Content from '{path}' successfully extracted:")
-        print(content)
-        return content
-
+        print(f"[-] Unicode encode error occured.")
+        raise
     except UnicodeDecodeError as e:
-        err(f"Decoding error while reading '{path_str}': {e}")
-        return 2
+        print(f"[-] Unicode decode error occured.")
+        raise 
+    except ValueError:
+        raise
+    except IsADirectoryError:
+        raise
     except PermissionError as e:
-        err(f"Permission error for '{path_str}': {e}")
-        return 2
+        print_and_raise(PermissionError, f"[-] Permission denied for '{path_value}': {e}")
+    except FileNotFoundError as e:
+        print_and_raise(FileNotFoundError, f"[-] File '{path_value}' doesn't exist: {e}")
+    except UnicodeEncodeError as e:
+        print_and_raise(OSError, f"[-] Encoding error while writing to '{path_value}': {e}")
     except OSError as e:
-        err(f"OS error while reading '{path_str}': {e}")
-        return 2
+        print_and_raise(OSError, f"[-] OS error while writing to '{path_value}': {e}")
     except Exception as e:
-        err(f"Unexpected error while reading '{path_str}': {e}")
-        return 2
+        print_and_raise(Exception, f"[-] Unexpected error while writing to '{path_value}': {e}")
 
 
-def f_copy(src_str: str, dest_str: str) -> int:
+def f_read(path_value):
     try:
-        if not src_str or not src_str.strip():
-            err("Src cannot be empty")
-            return 2
-        if not dest_str or not dest_str.strip():
-            err("Dest cannot be empty")
-            return 2
+        path = validate_path_arg(path_value, "Path")
 
-        src = Path(src_str).expanduser()
-        dest = Path(dest_str).expanduser()
+        if not os.path.exists(path):
+            print_and_raise(FileNotFoundError, f"[-] File '{path}' doesn't exist")
 
-        if not src.exists():
-            err(f"File '{src}' doesn't exist")
-            return 2
-        if src.is_dir():
-            err(f"Src '{src}' is a directory (copy supports files only)")
-            return 2
-        if dest.exists() and dest.is_dir():
-            err(f"Dest '{dest}' is a directory")
-            return 2
+        if os.path.isdir(path):
+            print_and_raise(IsADirectoryError, f"[-] Path '{path}' is a directory")
+
+        with open(path, "r", encoding="utf-8") as file:
+            content = file.read()
+
+        ok(f"Content from '{path}' successfully extracted")
+        return content
+    except UnicodeEncodeError as e:
+        print(f"[-] Unicode encode error occured.")
+        raise
+    except UnicodeDecodeError as e:
+        print(f"[-] Unicode decode error occured.")
+        raise 
+    except ValueError:
+        raise
+    except FileNotFoundError:
+        raise
+    except IsADirectoryError:
+        raise
+    except UnicodeEncodeError:
+        print(f"[-] Unicode Encode error occured.")
+    except PermissionError as e:
+        print_and_raise(PermissionError, f"[-] Permission denied for '{path_value}': {e}")
+    except UnicodeDecodeError as e:
+        print_and_raise(OSError, f"[-] Decoding error while reading '{path_value}': {e}")
+    except OSError as e:
+        print_and_raise(OSError, f"[-] OS error while reading '{path_value}': {e}")
+    except Exception as e:
+        print_and_raise(Exception, f"[-] Unexpected error while reading '{path_value}': {e}")
+
+
+def f_copy(src_value, dest_value):
+    try:
+        src = validate_path_arg(src_value, "Src")
+        dest = validate_path_arg(dest_value, "Dest")
+
+        if not os.path.exists(src):
+            print_and_raise(FileNotFoundError, f"[-] Src '{src}' doesn't exist")
+
+        if os.path.isdir(src):
+            print_and_raise(IsADirectoryError, f"[-] Src '{src}' is a directory")
+
+        if os.path.exists(dest) and os.path.isdir(dest):
+            print_and_raise(IsADirectoryError, f"[-] Dest '{dest}' is a directory")
 
         if same_path(src, dest):
-            err("Src and dest refer to the same path")
-            return 2
+            print_and_raise(OSError, "[-] Src and dest refer to the same path")
 
         ensure_parent_dir(dest)
 
-        shutil.copy2(src, dest)
+        shutil.copy(src, dest)
+
         ok(f"File successfully copied from '{src}' to '{dest}'")
-        return 0
 
+    except UnicodeEncodeError as e:
+        print(f"[-] Unicode encode error occured.")
+        raise
+    except UnicodeDecodeError as e:
+        print(f"[-] Unicode decode error occured.")
+        raise    
+    except ValueError:
+        raise
+    except FileNotFoundError:
+        raise
+    except IsADirectoryError:
+        raise
     except PermissionError as e:
-        err(f"Permission error while copying '{src_str}' -> '{dest_str}': {e}")
-        return 2
+        print_and_raise(PermissionError, f"[-] Permission denied while copying '{src_value}' -> '{dest_value}': {e}")
+        raise
+    except UnicodeEncodeError:
+        print(f"[-] Unicode Encode error occured.")
+    except UnicodeDecodeError as e:
+        print_and_raise(UnicodeDecodeError, f"[-] Encoding or decoding error: {e}")
+    except shutil.SameFileError as e:
+        print_and_raise(OSError, f"[-] Source and destination are the same file: {e}")
     except OSError as e:
-        err(f"OS error while copying '{src_str}' -> '{dest_str}': {e}")
-        return 2
+        print_and_raise(OSError, f"[-] OS error while copying '{src_value}' -> '{dest_value}': {e}")
+        raise
     except Exception as e:
-        err(f"Unexpected error while copying '{src_str}' -> '{dest_str}': {e}")
-        return 2
+        print_and_raise(Exception, f"[-] Unexpected error while copying '{src_value}' -> '{dest_value}': {e}")
 
 
-def f_rename(src_str: str, dest_str: str) -> int:
+def f_rename(src_value, dest_value):
     try:
-        if not src_str or not src_str.strip():
-            err("Src cannot be empty")
-            return 2
-        if not dest_str or not dest_str.strip():
-            err("Dest cannot be empty")
-            return 2
+        src = validate_path_arg(src_value, "Src")
+        dest = validate_path_arg(dest_value, "Dest")
 
-        src = Path(src_str).expanduser()
-        dest = Path(dest_str).expanduser()
+        if not os.path.exists(src):
+            print_and_raise(FileNotFoundError, f"[-] Src '{src}' doesn't exist")
 
-        if not src.exists():
-            err(f"File '{src}' doesn't exist")
-            return 2
-        if src.is_dir():
-            err(f"Src '{src}' is a directory (rename supports files only)")
-            return 2
-        if dest.exists() and dest.is_dir():
-            err(f"Dest '{dest}' is a directory")
-            return 2
+        if os.path.isdir(src):
+            print_and_raise(IsADirectoryError, f"[-] Src '{src}' is a directory")
+
+        if os.path.exists(dest) and os.path.isdir(dest):
+            print_and_raise(IsADirectoryError, f"[-] Dest '{dest}' is a directory")
 
         if same_path(src, dest):
-            err("Src and dest refer to the same path")
-            return 2
+            print_and_raise(OSError, "[-] Src and dest refer to the same path")
 
         ensure_parent_dir(dest)
 
-        os.replace(src, dest)
+        os.rename(src, dest)
+
         ok(f"File successfully renamed from '{src}' to '{dest}'")
-        return 0
 
+    except UnicodeEncodeError as e:
+        print(f"[-] Unicode encode error occured.")
+        raise
+    except UnicodeDecodeError as e:
+        print(f"[-] Unicode decode error occured.")
+        raise 
+    except ValueError:
+        raise
+    except FileNotFoundError:
+        raise
+    except IsADirectoryError:
+        raise
     except PermissionError as e:
-        err(f"Permission error while renaming '{src_str}' -> '{dest_str}': {e}")
-        return 2
+        print_and_raise(PermissionError, f"[-] Permission denied while renaming '{src_value}' -> '{dest_value}': {e}")
+        raise
+    except UnicodeEncodeError:
+        print(f"[-] Unicode Encode error occured.")
+    except UnicodeDecodeError as e:
+        print_and_raise(UnicodeDecodeError, f"[-] Encoding or decoding error: {e}")
     except OSError as e:
-        err(f"OS error while renaming '{src_str}' -> '{dest_str}': {e}")
-        return 2
+        print_and_raise(OSError, f"[-] OS error while renaming '{src_value}' -> '{dest_value}': {e}")
+        raise
     except Exception as e:
-        err(f"Unexpected error while renaming '{src_str}' -> '{dest_str}': {e}")
-        return 2
+        print_and_raise(Exception, f"[-] Unexpected error while renaming '{src_value}' -> '{dest_value}': {e}")
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
+def build_parser():
+    parser = SafeArgumentParser()
 
     group = parser.add_mutually_exclusive_group(required=True)
 
-    group.add_argument("--create", nargs='*', metavar="PATH")
-    group.add_argument("--delete", nargs='*', metavar="PATH")
-    group.add_argument("--read", nargs='*', metavar="PATH")
-    group.add_argument("--write", nargs='*', metavar=("PATH", "CONTENT"))
-    group.add_argument("--copy", nargs='*', metavar=("SRC", "DEST"))
-    group.add_argument("--rename", nargs='*', metavar=("SRC", "DEST"))
+    group.add_argument("--create", nargs="*")
+    group.add_argument("--delete", nargs="*")
+    group.add_argument("--read", nargs="*")
+    group.add_argument("--write", nargs="*")
+    group.add_argument("--copy", nargs="*")
+    group.add_argument("--rename", nargs="*")
 
     return parser
 
 
-def main() -> int:
+def main():
     parser = build_parser()
+    args = parser.parse_args()
 
-    try:
-        args = parser.parse_args()
+    if args.create is not None:
+        values = require_exact_args(args.create, "create", 1)
+        f_create(values[0])
+        return
 
-        if args.create is not None:
-            return f_create(args.create)
+    if args.delete is not None:
+        values = require_exact_args(args.delete, "delete", 1)
+        f_delete(values[0])
+        return
 
-        if args.delete is not None:
-            return f_delete(args.delete)
+    if args.read is not None:
+        values = require_exact_args(args.read, "read", 1)
+        content = f_read(values[0])
+        print(content)
+        return
 
-        if args.read is not None:
-            return f_read(args.read)
+    if args.write is not None:
+        values = require_exact_args(args.write, "write", 2)
+        f_write(values[0], values[1])
+        return
 
-        if args.write is not None:
-            path, content = args.write
-            return f_write(path, content)
+    if args.copy is not None:
+        values = require_exact_args(args.copy, "copy", 2)
+        f_copy(values[0], values[1])
+        return
 
-        if args.copy is not None:
-            src, dest = args.copy
-            return f_copy(src, dest)
+    if args.rename is not None:
+        values = require_exact_args(args.rename, "rename", 2)
+        f_rename(values[0], values[1])
+        return
 
-        if args.rename is not None:
-            src, dest = args.rename
-            return f_rename(src, dest)
-
-        err("No operation selected")
-        return 2
-
-    except SystemExit:
-        raise("[-] Interruption excepted")
-    except KeyboardInterrupt:
-        err("Interrupted by user")
-        return 130
-    except Exception as e:
-        err(f"Fatal unexpected error: {e}")
-        return 2
-
+    print_and_raise(ValueError, "[-] No operation selected")
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
