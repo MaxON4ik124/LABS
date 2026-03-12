@@ -1,0 +1,1813 @@
+
+Laba3.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         0000091a  00000000  00000000  00000094  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000026  00800060  0000091a  000009ae  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          0000002b  00800086  00800086  000009d4  2**0
+                  ALLOC
+  3 .comment      00000030  00000000  00000000  000009d4  2**0
+                  CONTENTS, READONLY
+  4 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  00000a04  2**2
+                  CONTENTS, READONLY
+  5 .debug_aranges 00000048  00000000  00000000  00000a40  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_info   000010f1  00000000  00000000  00000a88  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_abbrev 0000079a  00000000  00000000  00001b79  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_line   0000081b  00000000  00000000  00002313  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_frame  00000180  00000000  00000000  00002b30  2**2
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_str    0000062d  00000000  00000000  00002cb0  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_loc    00000c6f  00000000  00000000  000032dd  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 12 .debug_ranges 00000100  00000000  00000000  00003f4c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	0c 94 2a 00 	jmp	0x54	; 0x54 <__ctors_end>
+   4:	0c 94 1e 02 	jmp	0x43c	; 0x43c <__vector_1>
+   8:	0c 94 78 02 	jmp	0x4f0	; 0x4f0 <__vector_2>
+   c:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  10:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  14:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  18:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  1c:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  20:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  24:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  28:	0c 94 d2 02 	jmp	0x5a4	; 0x5a4 <__vector_10>
+  2c:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  30:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  34:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  38:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  3c:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  40:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  44:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  48:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  4c:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+  50:	0c 94 47 00 	jmp	0x8e	; 0x8e <__bad_interrupt>
+
+00000054 <__ctors_end>:
+  54:	11 24       	eor	r1, r1
+  56:	1f be       	out	0x3f, r1	; 63
+  58:	cf e5       	ldi	r28, 0x5F	; 95
+  5a:	d8 e0       	ldi	r29, 0x08	; 8
+  5c:	de bf       	out	0x3e, r29	; 62
+  5e:	cd bf       	out	0x3d, r28	; 61
+
+00000060 <__do_copy_data>:
+  60:	10 e0       	ldi	r17, 0x00	; 0
+  62:	a0 e6       	ldi	r26, 0x60	; 96
+  64:	b0 e0       	ldi	r27, 0x00	; 0
+  66:	ea e1       	ldi	r30, 0x1A	; 26
+  68:	f9 e0       	ldi	r31, 0x09	; 9
+  6a:	02 c0       	rjmp	.+4      	; 0x70 <__do_copy_data+0x10>
+  6c:	05 90       	lpm	r0, Z+
+  6e:	0d 92       	st	X+, r0
+  70:	a6 38       	cpi	r26, 0x86	; 134
+  72:	b1 07       	cpc	r27, r17
+  74:	d9 f7       	brne	.-10     	; 0x6c <__do_copy_data+0xc>
+
+00000076 <__do_clear_bss>:
+  76:	20 e0       	ldi	r18, 0x00	; 0
+  78:	a6 e8       	ldi	r26, 0x86	; 134
+  7a:	b0 e0       	ldi	r27, 0x00	; 0
+  7c:	01 c0       	rjmp	.+2      	; 0x80 <.do_clear_bss_start>
+
+0000007e <.do_clear_bss_loop>:
+  7e:	1d 92       	st	X+, r1
+
+00000080 <.do_clear_bss_start>:
+  80:	a1 3b       	cpi	r26, 0xB1	; 177
+  82:	b2 07       	cpc	r27, r18
+  84:	e1 f7       	brne	.-8      	; 0x7e <.do_clear_bss_loop>
+  86:	0e 94 98 03 	call	0x730	; 0x730 <main>
+  8a:	0c 94 8b 04 	jmp	0x916	; 0x916 <_exit>
+
+0000008e <__bad_interrupt>:
+  8e:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+00000092 <refresh_display_buffer>:
+    if (g_selected == SEL_SS) return VIEW_MMSS;
+    return g_view;
+}
+
+static void refresh_display_buffer(void)
+{
+  92:	cf 93       	push	r28
+  94:	df 93       	push	r29
+    app_mode_t mode;
+    view_mode_t view;
+    setup_sel_t selected;
+    uint8_t blink_visible;
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+  96:	9f b7       	in	r25, 0x3f	; 63
+    return 1;
+}
+
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+  98:	f8 94       	cli
+        hh = g_hours;
+  9a:	a0 91 96 00 	lds	r26, 0x0096	; 0x800096 <g_hours>
+        mm = g_minutes;
+  9e:	50 91 95 00 	lds	r21, 0x0095	; 0x800095 <g_minutes>
+        ss = g_seconds;
+  a2:	e0 91 94 00 	lds	r30, 0x0094	; 0x800094 <g_seconds>
+        mode = g_mode;
+  a6:	80 91 93 00 	lds	r24, 0x0093	; 0x800093 <g_mode>
+        view = g_view;
+  aa:	20 91 92 00 	lds	r18, 0x0092	; 0x800092 <g_view>
+        selected = g_selected;
+  ae:	40 91 91 00 	lds	r20, 0x0091	; 0x800091 <g_selected>
+        blink_visible = g_blink_visible;
+  b2:	30 91 7a 00 	lds	r19, 0x007A	; 0x80007a <g_blink_visible>
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+  b6:	9f bf       	out	0x3f, r25	; 63
+    }
+
+    if (mode == MODE_SETUP) {
+  b8:	81 30       	cpi	r24, 0x01	; 1
+  ba:	09 f0       	breq	.+2      	; 0xbe <refresh_display_buffer+0x2c>
+  bc:	a7 c0       	rjmp	.+334    	; 0x20c <refresh_display_buffer+0x17a>
+    }
+}
+
+static view_mode_t get_effective_view_for_setup(void)
+{
+    if (g_selected == SEL_HH) return VIEW_HHMM;
+  be:	80 91 91 00 	lds	r24, 0x0091	; 0x800091 <g_selected>
+  c2:	88 23       	and	r24, r24
+  c4:	09 f4       	brne	.+2      	; 0xc8 <refresh_display_buffer+0x36>
+  c6:	4b c0       	rjmp	.+150    	; 0x15e <refresh_display_buffer+0xcc>
+    if (g_selected == SEL_SS) return VIEW_MMSS;
+  c8:	80 91 91 00 	lds	r24, 0x0091	; 0x800091 <g_selected>
+  cc:	82 30       	cpi	r24, 0x02	; 2
+  ce:	09 f4       	brne	.+2      	; 0xd2 <refresh_display_buffer+0x40>
+  d0:	cc c0       	rjmp	.+408    	; 0x26a <refresh_display_buffer+0x1d8>
+    return g_view;
+  d2:	80 91 92 00 	lds	r24, 0x0092	; 0x800092 <g_view>
+
+    {
+        uint8_t d0, d1, d2, d3;
+        uint8_t p0, p1, p2, p3;
+
+        if (view == VIEW_HHMM) {
+  d6:	88 23       	and	r24, r24
+  d8:	09 f4       	brne	.+2      	; 0xdc <refresh_display_buffer+0x4a>
+  da:	5e c0       	rjmp	.+188    	; 0x198 <refresh_display_buffer+0x106>
+  dc:	c6 c0       	rjmp	.+396    	; 0x26a <refresh_display_buffer+0x1d8>
+            d0 = (uint8_t)(hh / 10u);
+            d1 = (uint8_t)(hh % 10u);
+            d2 = (uint8_t)(mm / 10u);
+            d3 = (uint8_t)(mm % 10u);
+
+            if (mode == MODE_SETUP && !blink_visible) {
+  de:	31 11       	cpse	r19, r1
+  e0:	0f c0       	rjmp	.+30     	; 0x100 <refresh_display_buffer+0x6e>
+                if (selected == SEL_HH) {
+  e2:	44 23       	and	r20, r20
+  e4:	09 f4       	brne	.+2      	; 0xe8 <refresh_display_buffer+0x56>
+  e6:	95 c0       	rjmp	.+298    	; 0x212 <refresh_display_buffer+0x180>
+                    d0 = 255u;
+                    d1 = 255u;
+                } else if (selected == SEL_MM) {
+  e8:	41 30       	cpi	r20, 0x01	; 1
+  ea:	51 f4       	brne	.+20     	; 0x100 <refresh_display_buffer+0x6e>
+                    d2 = 255u;
+                    d3 = 255u;
+  ec:	ef ef       	ldi	r30, 0xFF	; 255
+            if (mode == MODE_SETUP && !blink_visible) {
+                if (selected == SEL_HH) {
+                    d0 = 255u;
+                    d1 = 255u;
+                } else if (selected == SEL_MM) {
+                    d2 = 255u;
+  ee:	8f ef       	ldi	r24, 0xFF	; 255
+  f0:	07 c0       	rjmp	.+14     	; 0x100 <refresh_display_buffer+0x6e>
+            d1 = (uint8_t)(mm % 10u);
+            d2 = (uint8_t)(ss / 10u);
+            d3 = (uint8_t)(ss % 10u);
+
+            if (mode == MODE_SETUP && !blink_visible) {
+                if (selected == SEL_MM) {
+  f2:	41 30       	cpi	r20, 0x01	; 1
+  f4:	09 f4       	brne	.+2      	; 0xf8 <refresh_display_buffer+0x66>
+  f6:	8d c0       	rjmp	.+282    	; 0x212 <refresh_display_buffer+0x180>
+                    d0 = 255u;
+                    d1 = 255u;
+                } else if (selected == SEL_SS) {
+  f8:	42 30       	cpi	r20, 0x02	; 2
+  fa:	11 f4       	brne	.+4      	; 0x100 <refresh_display_buffer+0x6e>
+                    d2 = 255u;
+                    d3 = 255u;
+  fc:	ef ef       	ldi	r30, 0xFF	; 255
+            if (mode == MODE_SETUP && !blink_visible) {
+                if (selected == SEL_MM) {
+                    d0 = 255u;
+                    d1 = 255u;
+                } else if (selected == SEL_SS) {
+                    d2 = 255u;
+  fe:	8f ef       	ldi	r24, 0xFF	; 255
+#define SEG_DP    0x80
+#define SEG_BLANK 0x00
+
+static inline uint8_t seg_encode_digit(uint8_t d)
+{
+    if (d < 10u) return seg_digits[d];
+ 100:	ca 30       	cpi	r28, 0x0A	; 10
+ 102:	08 f0       	brcs	.+2      	; 0x106 <refresh_display_buffer+0x74>
+ 104:	89 c0       	rjmp	.+274    	; 0x218 <refresh_display_buffer+0x186>
+ 106:	d0 e0       	ldi	r29, 0x00	; 0
+ 108:	c5 58       	subi	r28, 0x85	; 133
+ 10a:	df 4f       	sbci	r29, 0xFF	; 255
+ 10c:	38 81       	ld	r19, Y
+                }
+            }
+        }
+
+        p0 = (d0 < 10u) ? seg_encode_digit(d0) : SEG_BLANK;
+        p1 = (d1 < 10u) ? (uint8_t)(seg_encode_digit(d1) | SEG_DP) : SEG_BLANK;
+ 10e:	aa 30       	cpi	r26, 0x0A	; 10
+ 110:	10 f0       	brcs	.+4      	; 0x116 <refresh_display_buffer+0x84>
+ 112:	07 c0       	rjmp	.+14     	; 0x122 <refresh_display_buffer+0x90>
+#define SEG_BLANK 0x00
+
+static inline uint8_t seg_encode_digit(uint8_t d)
+{
+    if (d < 10u) return seg_digits[d];
+    return SEG_BLANK;
+ 114:	30 e0       	ldi	r19, 0x00	; 0
+#define SEG_DP    0x80
+#define SEG_BLANK 0x00
+
+static inline uint8_t seg_encode_digit(uint8_t d)
+{
+    if (d < 10u) return seg_digits[d];
+ 116:	b0 e0       	ldi	r27, 0x00	; 0
+ 118:	a5 58       	subi	r26, 0x85	; 133
+ 11a:	bf 4f       	sbci	r27, 0xFF	; 255
+                }
+            }
+        }
+
+        p0 = (d0 < 10u) ? seg_encode_digit(d0) : SEG_BLANK;
+        p1 = (d1 < 10u) ? (uint8_t)(seg_encode_digit(d1) | SEG_DP) : SEG_BLANK;
+ 11c:	2c 91       	ld	r18, X
+ 11e:	20 68       	ori	r18, 0x80	; 128
+ 120:	01 c0       	rjmp	.+2      	; 0x124 <refresh_display_buffer+0x92>
+ 122:	20 e0       	ldi	r18, 0x00	; 0
+#define SEG_DP    0x80
+#define SEG_BLANK 0x00
+
+static inline uint8_t seg_encode_digit(uint8_t d)
+{
+    if (d < 10u) return seg_digits[d];
+ 124:	8a 30       	cpi	r24, 0x0A	; 10
+ 126:	08 f0       	brcs	.+2      	; 0x12a <refresh_display_buffer+0x98>
+ 128:	7d c0       	rjmp	.+250    	; 0x224 <refresh_display_buffer+0x192>
+ 12a:	a8 2f       	mov	r26, r24
+ 12c:	b0 e0       	ldi	r27, 0x00	; 0
+ 12e:	a5 58       	subi	r26, 0x85	; 133
+ 130:	bf 4f       	sbci	r27, 0xFF	; 255
+ 132:	4c 91       	ld	r20, X
+        }
+
+        p0 = (d0 < 10u) ? seg_encode_digit(d0) : SEG_BLANK;
+        p1 = (d1 < 10u) ? (uint8_t)(seg_encode_digit(d1) | SEG_DP) : SEG_BLANK;
+        p2 = (d2 < 10u) ? seg_encode_digit(d2) : SEG_BLANK;
+        p3 = (d3 < 10u) ? (uint8_t)(seg_encode_digit(d3) | SEG_DP) : SEG_BLANK;
+ 134:	ea 30       	cpi	r30, 0x0A	; 10
+ 136:	10 f0       	brcs	.+4      	; 0x13c <refresh_display_buffer+0xaa>
+ 138:	07 c0       	rjmp	.+14     	; 0x148 <refresh_display_buffer+0xb6>
+#define SEG_BLANK 0x00
+
+static inline uint8_t seg_encode_digit(uint8_t d)
+{
+    if (d < 10u) return seg_digits[d];
+    return SEG_BLANK;
+ 13a:	40 e0       	ldi	r20, 0x00	; 0
+#define SEG_DP    0x80
+#define SEG_BLANK 0x00
+
+static inline uint8_t seg_encode_digit(uint8_t d)
+{
+    if (d < 10u) return seg_digits[d];
+ 13c:	f0 e0       	ldi	r31, 0x00	; 0
+ 13e:	e5 58       	subi	r30, 0x85	; 133
+ 140:	ff 4f       	sbci	r31, 0xFF	; 255
+        }
+
+        p0 = (d0 < 10u) ? seg_encode_digit(d0) : SEG_BLANK;
+        p1 = (d1 < 10u) ? (uint8_t)(seg_encode_digit(d1) | SEG_DP) : SEG_BLANK;
+        p2 = (d2 < 10u) ? seg_encode_digit(d2) : SEG_BLANK;
+        p3 = (d3 < 10u) ? (uint8_t)(seg_encode_digit(d3) | SEG_DP) : SEG_BLANK;
+ 142:	90 81       	ld	r25, Z
+ 144:	90 68       	ori	r25, 0x80	; 128
+ 146:	01 c0       	rjmp	.+2      	; 0x14a <refresh_display_buffer+0xb8>
+ 148:	90 e0       	ldi	r25, 0x00	; 0
+ * Display preparation
+ * ============================================================ */
+
+static void display_store_patterns(uint8_t p0, uint8_t p1, uint8_t p2, uint8_t p3)
+{
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+ 14a:	8f b7       	in	r24, 0x3f	; 63
+    return 1;
+}
+
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+ 14c:	f8 94       	cli
+        g_disp[0] = p0;
+ 14e:	e7 e9       	ldi	r30, 0x97	; 151
+ 150:	f0 e0       	ldi	r31, 0x00	; 0
+ 152:	30 83       	st	Z, r19
+        g_disp[1] = p1;
+ 154:	21 83       	std	Z+1, r18	; 0x01
+        g_disp[2] = p2;
+ 156:	42 83       	std	Z+2, r20	; 0x02
+        g_disp[3] = p3;
+ 158:	93 83       	std	Z+3, r25	; 0x03
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+ 15a:	8f bf       	out	0x3f, r24	; 63
+        p2 = (d2 < 10u) ? seg_encode_digit(d2) : SEG_BLANK;
+        p3 = (d3 < 10u) ? (uint8_t)(seg_encode_digit(d3) | SEG_DP) : SEG_BLANK;
+
+        display_store_patterns(p0, p1, p2, p3);
+    }
+}
+ 15c:	a6 c0       	rjmp	.+332    	; 0x2aa <refresh_display_buffer+0x218>
+    {
+        uint8_t d0, d1, d2, d3;
+        uint8_t p0, p1, p2, p3;
+
+        if (view == VIEW_HHMM) {
+            d0 = (uint8_t)(hh / 10u);
+ 15e:	8d ec       	ldi	r24, 0xCD	; 205
+ 160:	a8 9f       	mul	r26, r24
+ 162:	c1 2d       	mov	r28, r1
+ 164:	11 24       	eor	r1, r1
+ 166:	c6 95       	lsr	r28
+ 168:	c6 95       	lsr	r28
+ 16a:	c6 95       	lsr	r28
+            d1 = (uint8_t)(hh % 10u);
+ 16c:	2c 2f       	mov	r18, r28
+ 16e:	22 0f       	add	r18, r18
+ 170:	92 2f       	mov	r25, r18
+ 172:	99 0f       	add	r25, r25
+ 174:	99 0f       	add	r25, r25
+ 176:	92 0f       	add	r25, r18
+ 178:	a9 1b       	sub	r26, r25
+            d2 = (uint8_t)(mm / 10u);
+ 17a:	58 9f       	mul	r21, r24
+ 17c:	81 2d       	mov	r24, r1
+ 17e:	11 24       	eor	r1, r1
+ 180:	86 95       	lsr	r24
+ 182:	86 95       	lsr	r24
+ 184:	86 95       	lsr	r24
+            d3 = (uint8_t)(mm % 10u);
+ 186:	28 2f       	mov	r18, r24
+ 188:	22 0f       	add	r18, r18
+ 18a:	92 2f       	mov	r25, r18
+ 18c:	99 0f       	add	r25, r25
+ 18e:	99 0f       	add	r25, r25
+ 190:	92 0f       	add	r25, r18
+ 192:	e5 2f       	mov	r30, r21
+ 194:	e9 1b       	sub	r30, r25
+ 196:	a3 cf       	rjmp	.-186    	; 0xde <refresh_display_buffer+0x4c>
+    {
+        uint8_t d0, d1, d2, d3;
+        uint8_t p0, p1, p2, p3;
+
+        if (view == VIEW_HHMM) {
+            d0 = (uint8_t)(hh / 10u);
+ 198:	8d ec       	ldi	r24, 0xCD	; 205
+ 19a:	a8 9f       	mul	r26, r24
+ 19c:	c1 2d       	mov	r28, r1
+ 19e:	11 24       	eor	r1, r1
+ 1a0:	c6 95       	lsr	r28
+ 1a2:	c6 95       	lsr	r28
+ 1a4:	c6 95       	lsr	r28
+            d1 = (uint8_t)(hh % 10u);
+ 1a6:	2c 2f       	mov	r18, r28
+ 1a8:	22 0f       	add	r18, r18
+ 1aa:	92 2f       	mov	r25, r18
+ 1ac:	99 0f       	add	r25, r25
+ 1ae:	99 0f       	add	r25, r25
+ 1b0:	92 0f       	add	r25, r18
+ 1b2:	a9 1b       	sub	r26, r25
+            d2 = (uint8_t)(mm / 10u);
+ 1b4:	58 9f       	mul	r21, r24
+ 1b6:	81 2d       	mov	r24, r1
+ 1b8:	11 24       	eor	r1, r1
+ 1ba:	86 95       	lsr	r24
+ 1bc:	86 95       	lsr	r24
+ 1be:	86 95       	lsr	r24
+            d3 = (uint8_t)(mm % 10u);
+ 1c0:	28 2f       	mov	r18, r24
+ 1c2:	22 0f       	add	r18, r18
+ 1c4:	92 2f       	mov	r25, r18
+ 1c6:	99 0f       	add	r25, r25
+ 1c8:	99 0f       	add	r25, r25
+ 1ca:	92 0f       	add	r25, r18
+ 1cc:	e5 2f       	mov	r30, r21
+ 1ce:	e9 1b       	sub	r30, r25
+ 1d0:	86 cf       	rjmp	.-244    	; 0xde <refresh_display_buffer+0x4c>
+    {
+        uint8_t d0, d1, d2, d3;
+        uint8_t p0, p1, p2, p3;
+
+        if (view == VIEW_HHMM) {
+            d0 = (uint8_t)(hh / 10u);
+ 1d2:	8d ec       	ldi	r24, 0xCD	; 205
+ 1d4:	a8 9f       	mul	r26, r24
+ 1d6:	c1 2d       	mov	r28, r1
+ 1d8:	11 24       	eor	r1, r1
+ 1da:	c6 95       	lsr	r28
+ 1dc:	c6 95       	lsr	r28
+ 1de:	c6 95       	lsr	r28
+            d1 = (uint8_t)(hh % 10u);
+ 1e0:	2c 2f       	mov	r18, r28
+ 1e2:	22 0f       	add	r18, r18
+ 1e4:	92 2f       	mov	r25, r18
+ 1e6:	99 0f       	add	r25, r25
+ 1e8:	99 0f       	add	r25, r25
+ 1ea:	92 0f       	add	r25, r18
+ 1ec:	a9 1b       	sub	r26, r25
+            d2 = (uint8_t)(mm / 10u);
+ 1ee:	58 9f       	mul	r21, r24
+ 1f0:	81 2d       	mov	r24, r1
+ 1f2:	11 24       	eor	r1, r1
+ 1f4:	86 95       	lsr	r24
+ 1f6:	86 95       	lsr	r24
+ 1f8:	86 95       	lsr	r24
+            d3 = (uint8_t)(mm % 10u);
+ 1fa:	28 2f       	mov	r18, r24
+ 1fc:	22 0f       	add	r18, r18
+ 1fe:	92 2f       	mov	r25, r18
+ 200:	99 0f       	add	r25, r25
+ 202:	99 0f       	add	r25, r25
+ 204:	92 0f       	add	r25, r18
+ 206:	e5 2f       	mov	r30, r21
+ 208:	e9 1b       	sub	r30, r25
+ 20a:	7a cf       	rjmp	.-268    	; 0x100 <refresh_display_buffer+0x6e>
+
+    {
+        uint8_t d0, d1, d2, d3;
+        uint8_t p0, p1, p2, p3;
+
+        if (view == VIEW_HHMM) {
+ 20c:	21 11       	cpse	r18, r1
+ 20e:	10 c0       	rjmp	.+32     	; 0x230 <refresh_display_buffer+0x19e>
+ 210:	e0 cf       	rjmp	.-64     	; 0x1d2 <refresh_display_buffer+0x140>
+#define SEG_BLANK 0x00
+
+static inline uint8_t seg_encode_digit(uint8_t d)
+{
+    if (d < 10u) return seg_digits[d];
+    return SEG_BLANK;
+ 212:	30 e0       	ldi	r19, 0x00	; 0
+                }
+            }
+        }
+
+        p0 = (d0 < 10u) ? seg_encode_digit(d0) : SEG_BLANK;
+        p1 = (d1 < 10u) ? (uint8_t)(seg_encode_digit(d1) | SEG_DP) : SEG_BLANK;
+ 214:	20 e0       	ldi	r18, 0x00	; 0
+ 216:	86 cf       	rjmp	.-244    	; 0x124 <refresh_display_buffer+0x92>
+ 218:	aa 30       	cpi	r26, 0x0A	; 10
+ 21a:	08 f4       	brcc	.+2      	; 0x21e <refresh_display_buffer+0x18c>
+ 21c:	7b cf       	rjmp	.-266    	; 0x114 <refresh_display_buffer+0x82>
+#define SEG_BLANK 0x00
+
+static inline uint8_t seg_encode_digit(uint8_t d)
+{
+    if (d < 10u) return seg_digits[d];
+    return SEG_BLANK;
+ 21e:	30 e0       	ldi	r19, 0x00	; 0
+                }
+            }
+        }
+
+        p0 = (d0 < 10u) ? seg_encode_digit(d0) : SEG_BLANK;
+        p1 = (d1 < 10u) ? (uint8_t)(seg_encode_digit(d1) | SEG_DP) : SEG_BLANK;
+ 220:	20 e0       	ldi	r18, 0x00	; 0
+ 222:	80 cf       	rjmp	.-256    	; 0x124 <refresh_display_buffer+0x92>
+        p2 = (d2 < 10u) ? seg_encode_digit(d2) : SEG_BLANK;
+        p3 = (d3 < 10u) ? (uint8_t)(seg_encode_digit(d3) | SEG_DP) : SEG_BLANK;
+ 224:	ea 30       	cpi	r30, 0x0A	; 10
+ 226:	08 f4       	brcc	.+2      	; 0x22a <refresh_display_buffer+0x198>
+ 228:	88 cf       	rjmp	.-240    	; 0x13a <refresh_display_buffer+0xa8>
+#define SEG_BLANK 0x00
+
+static inline uint8_t seg_encode_digit(uint8_t d)
+{
+    if (d < 10u) return seg_digits[d];
+    return SEG_BLANK;
+ 22a:	40 e0       	ldi	r20, 0x00	; 0
+        }
+
+        p0 = (d0 < 10u) ? seg_encode_digit(d0) : SEG_BLANK;
+        p1 = (d1 < 10u) ? (uint8_t)(seg_encode_digit(d1) | SEG_DP) : SEG_BLANK;
+        p2 = (d2 < 10u) ? seg_encode_digit(d2) : SEG_BLANK;
+        p3 = (d3 < 10u) ? (uint8_t)(seg_encode_digit(d3) | SEG_DP) : SEG_BLANK;
+ 22c:	90 e0       	ldi	r25, 0x00	; 0
+ 22e:	8d cf       	rjmp	.-230    	; 0x14a <refresh_display_buffer+0xb8>
+                    d2 = 255u;
+                    d3 = 255u;
+                }
+            }
+        } else {
+            d0 = (uint8_t)(mm / 10u);
+ 230:	8d ec       	ldi	r24, 0xCD	; 205
+ 232:	58 9f       	mul	r21, r24
+ 234:	c1 2d       	mov	r28, r1
+ 236:	11 24       	eor	r1, r1
+ 238:	c6 95       	lsr	r28
+ 23a:	c6 95       	lsr	r28
+ 23c:	c6 95       	lsr	r28
+            d1 = (uint8_t)(mm % 10u);
+ 23e:	2c 2f       	mov	r18, r28
+ 240:	22 0f       	add	r18, r18
+ 242:	92 2f       	mov	r25, r18
+ 244:	99 0f       	add	r25, r25
+ 246:	99 0f       	add	r25, r25
+ 248:	92 0f       	add	r25, r18
+ 24a:	a5 2f       	mov	r26, r21
+ 24c:	a9 1b       	sub	r26, r25
+            d2 = (uint8_t)(ss / 10u);
+ 24e:	e8 9f       	mul	r30, r24
+ 250:	81 2d       	mov	r24, r1
+ 252:	11 24       	eor	r1, r1
+ 254:	86 95       	lsr	r24
+ 256:	86 95       	lsr	r24
+ 258:	86 95       	lsr	r24
+            d3 = (uint8_t)(ss % 10u);
+ 25a:	28 2f       	mov	r18, r24
+ 25c:	22 0f       	add	r18, r18
+ 25e:	92 2f       	mov	r25, r18
+ 260:	99 0f       	add	r25, r25
+ 262:	99 0f       	add	r25, r25
+ 264:	92 0f       	add	r25, r18
+ 266:	e9 1b       	sub	r30, r25
+ 268:	4b cf       	rjmp	.-362    	; 0x100 <refresh_display_buffer+0x6e>
+                    d2 = 255u;
+                    d3 = 255u;
+                }
+            }
+        } else {
+            d0 = (uint8_t)(mm / 10u);
+ 26a:	8d ec       	ldi	r24, 0xCD	; 205
+ 26c:	58 9f       	mul	r21, r24
+ 26e:	c1 2d       	mov	r28, r1
+ 270:	11 24       	eor	r1, r1
+ 272:	c6 95       	lsr	r28
+ 274:	c6 95       	lsr	r28
+ 276:	c6 95       	lsr	r28
+            d1 = (uint8_t)(mm % 10u);
+ 278:	2c 2f       	mov	r18, r28
+ 27a:	22 0f       	add	r18, r18
+ 27c:	92 2f       	mov	r25, r18
+ 27e:	99 0f       	add	r25, r25
+ 280:	99 0f       	add	r25, r25
+ 282:	92 0f       	add	r25, r18
+ 284:	a5 2f       	mov	r26, r21
+ 286:	a9 1b       	sub	r26, r25
+            d2 = (uint8_t)(ss / 10u);
+ 288:	e8 9f       	mul	r30, r24
+ 28a:	81 2d       	mov	r24, r1
+ 28c:	11 24       	eor	r1, r1
+ 28e:	86 95       	lsr	r24
+ 290:	86 95       	lsr	r24
+ 292:	86 95       	lsr	r24
+            d3 = (uint8_t)(ss % 10u);
+ 294:	28 2f       	mov	r18, r24
+ 296:	22 0f       	add	r18, r18
+ 298:	92 2f       	mov	r25, r18
+ 29a:	99 0f       	add	r25, r25
+ 29c:	99 0f       	add	r25, r25
+ 29e:	92 0f       	add	r25, r18
+ 2a0:	e9 1b       	sub	r30, r25
+
+            if (mode == MODE_SETUP && !blink_visible) {
+ 2a2:	33 23       	and	r19, r19
+ 2a4:	09 f4       	brne	.+2      	; 0x2a8 <refresh_display_buffer+0x216>
+ 2a6:	25 cf       	rjmp	.-438    	; 0xf2 <refresh_display_buffer+0x60>
+ 2a8:	2b cf       	rjmp	.-426    	; 0x100 <refresh_display_buffer+0x6e>
+        p2 = (d2 < 10u) ? seg_encode_digit(d2) : SEG_BLANK;
+        p3 = (d3 < 10u) ? (uint8_t)(seg_encode_digit(d3) | SEG_DP) : SEG_BLANK;
+
+        display_store_patterns(p0, p1, p2, p3);
+    }
+}
+ 2aa:	df 91       	pop	r29
+ 2ac:	cf 91       	pop	r28
+ 2ae:	08 95       	ret
+
+000002b0 <button_scan_1ms>:
+ * ============================================================ */
+
+#define DEBOUNCE_MS 20
+
+static void button_scan_1ms(volatile button_state_t *b, uint8_t pin_snapshot, uint32_t now_ms)
+{
+ 2b0:	ef 92       	push	r14
+ 2b2:	ff 92       	push	r15
+ 2b4:	0f 93       	push	r16
+ 2b6:	1f 93       	push	r17
+ 2b8:	fc 01       	movw	r30, r24
+    uint8_t raw_pressed = ((pin_snapshot & b->pin_mask) == 0u) ? 1u : 0u;
+ 2ba:	80 81       	ld	r24, Z
+ 2bc:	68 23       	and	r22, r24
+ 2be:	81 e0       	ldi	r24, 0x01	; 1
+ 2c0:	09 f0       	breq	.+2      	; 0x2c4 <button_scan_1ms+0x14>
+ 2c2:	80 e0       	ldi	r24, 0x00	; 0
+
+    if (raw_pressed != b->raw_prev) {
+ 2c4:	92 81       	ldd	r25, Z+2	; 0x02
+ 2c6:	98 17       	cp	r25, r24
+ 2c8:	19 f0       	breq	.+6      	; 0x2d0 <button_scan_1ms+0x20>
+        b->raw_prev = raw_pressed;
+ 2ca:	82 83       	std	Z+2, r24	; 0x02
+        b->debounce_cnt_ms = 0;
+ 2cc:	13 82       	std	Z+3, r1	; 0x03
+ 2ce:	2e c0       	rjmp	.+92     	; 0x32c <button_scan_1ms+0x7c>
+    } else {
+        if (b->debounce_cnt_ms < DEBOUNCE_MS) {
+ 2d0:	83 81       	ldd	r24, Z+3	; 0x03
+ 2d2:	84 31       	cpi	r24, 0x14	; 20
+ 2d4:	58 f5       	brcc	.+86     	; 0x32c <button_scan_1ms+0x7c>
+            b->debounce_cnt_ms++;
+ 2d6:	83 81       	ldd	r24, Z+3	; 0x03
+ 2d8:	8f 5f       	subi	r24, 0xFF	; 255
+ 2da:	83 83       	std	Z+3, r24	; 0x03
+            if (b->debounce_cnt_ms == DEBOUNCE_MS) {
+ 2dc:	83 81       	ldd	r24, Z+3	; 0x03
+ 2de:	84 31       	cpi	r24, 0x14	; 20
+ 2e0:	29 f5       	brne	.+74     	; 0x32c <button_scan_1ms+0x7c>
+                if (b->stable_pressed != raw_pressed) {
+ 2e2:	81 81       	ldd	r24, Z+1	; 0x01
+ 2e4:	98 17       	cp	r25, r24
+ 2e6:	11 f1       	breq	.+68     	; 0x32c <button_scan_1ms+0x7c>
+                    b->stable_pressed = raw_pressed;
+ 2e8:	91 83       	std	Z+1, r25	; 0x01
+
+                    if (raw_pressed) {
+ 2ea:	99 23       	and	r25, r25
+ 2ec:	f9 f0       	breq	.+62     	; 0x32c <button_scan_1ms+0x7c>
+                        b->press_start_ms = now_ms;
+ 2ee:	24 83       	std	Z+4, r18	; 0x04
+ 2f0:	35 83       	std	Z+5, r19	; 0x05
+ 2f2:	46 83       	std	Z+6, r20	; 0x06
+ 2f4:	57 83       	std	Z+7, r21	; 0x07
+                        b->next_repeat_ms = now_ms + 2000u;
+ 2f6:	da 01       	movw	r26, r20
+ 2f8:	c9 01       	movw	r24, r18
+ 2fa:	80 53       	subi	r24, 0x30	; 48
+ 2fc:	98 4f       	sbci	r25, 0xF8	; 248
+ 2fe:	af 4f       	sbci	r26, 0xFF	; 255
+ 300:	bf 4f       	sbci	r27, 0xFF	; 255
+ 302:	80 87       	std	Z+8, r24	; 0x08
+ 304:	91 87       	std	Z+9, r25	; 0x09
+ 306:	a2 87       	std	Z+10, r26	; 0x0a
+ 308:	b3 87       	std	Z+11, r27	; 0x0b
+                        push_event_isr(b->step_event);
+ 30a:	64 85       	ldd	r22, Z+12	; 0x0c
+static volatile uint8_t evt_head = 0;
+static volatile uint8_t evt_tail = 0;
+
+static inline void push_event_isr(event_t e)
+{
+    uint8_t next = (uint8_t)((evt_head + 1u) % EVT_QUEUE_SIZE);
+ 30c:	80 91 a0 00 	lds	r24, 0x00A0	; 0x8000a0 <evt_head>
+ 310:	8f 5f       	subi	r24, 0xFF	; 255
+ 312:	8f 70       	andi	r24, 0x0F	; 15
+    if (next != evt_tail) {
+ 314:	90 91 9f 00 	lds	r25, 0x009F	; 0x80009f <evt_tail>
+ 318:	89 17       	cp	r24, r25
+ 31a:	41 f0       	breq	.+16     	; 0x32c <button_scan_1ms+0x7c>
+        evt_queue[evt_head] = e;
+ 31c:	a0 91 a0 00 	lds	r26, 0x00A0	; 0x8000a0 <evt_head>
+ 320:	b0 e0       	ldi	r27, 0x00	; 0
+ 322:	af 55       	subi	r26, 0x5F	; 95
+ 324:	bf 4f       	sbci	r27, 0xFF	; 255
+ 326:	6c 93       	st	X, r22
+        evt_head = next;
+ 328:	80 93 a0 00 	sts	0x00A0, r24	; 0x8000a0 <evt_head>
+                }
+            }
+        }
+    }
+
+    if (b->stable_pressed) {
+ 32c:	81 81       	ldd	r24, Z+1	; 0x01
+ 32e:	88 23       	and	r24, r24
+ 330:	09 f4       	brne	.+2      	; 0x334 <button_scan_1ms+0x84>
+ 332:	7f c0       	rjmp	.+254    	; 0x432 <__LOCK_REGION_LENGTH__+0x32>
+        uint32_t held = now_ms - b->press_start_ms;
+ 334:	84 81       	ldd	r24, Z+4	; 0x04
+ 336:	95 81       	ldd	r25, Z+5	; 0x05
+ 338:	a6 81       	ldd	r26, Z+6	; 0x06
+ 33a:	b7 81       	ldd	r27, Z+7	; 0x07
+ 33c:	79 01       	movw	r14, r18
+ 33e:	8a 01       	movw	r16, r20
+ 340:	e8 1a       	sub	r14, r24
+ 342:	f9 0a       	sbc	r15, r25
+ 344:	0a 0b       	sbc	r16, r26
+ 346:	1b 0b       	sbc	r17, r27
+ 348:	d8 01       	movw	r26, r16
+ 34a:	c7 01       	movw	r24, r14
+
+        if (held >= 4000u) {
+ 34c:	80 3a       	cpi	r24, 0xA0	; 160
+ 34e:	0f e0       	ldi	r16, 0x0F	; 15
+ 350:	90 07       	cpc	r25, r16
+ 352:	a1 05       	cpc	r26, r1
+ 354:	b1 05       	cpc	r27, r1
+ 356:	a8 f1       	brcs	.+106    	; 0x3c2 <button_scan_1ms+0x112>
+            while ((int32_t)(now_ms - b->next_repeat_ms) >= 0) {
+ 358:	80 85       	ldd	r24, Z+8	; 0x08
+ 35a:	91 85       	ldd	r25, Z+9	; 0x09
+ 35c:	a2 85       	ldd	r26, Z+10	; 0x0a
+ 35e:	b3 85       	ldd	r27, Z+11	; 0x0b
+ 360:	79 01       	movw	r14, r18
+ 362:	8a 01       	movw	r16, r20
+ 364:	e8 1a       	sub	r14, r24
+ 366:	f9 0a       	sbc	r15, r25
+ 368:	0a 0b       	sbc	r16, r26
+ 36a:	1b 0b       	sbc	r17, r27
+ 36c:	0a f4       	brpl	.+2      	; 0x370 <button_scan_1ms+0xc0>
+ 36e:	61 c0       	rjmp	.+194    	; 0x432 <__LOCK_REGION_LENGTH__+0x32>
+                push_event_isr(b->step_event);
+ 370:	64 85       	ldd	r22, Z+12	; 0x0c
+static volatile uint8_t evt_head = 0;
+static volatile uint8_t evt_tail = 0;
+
+static inline void push_event_isr(event_t e)
+{
+    uint8_t next = (uint8_t)((evt_head + 1u) % EVT_QUEUE_SIZE);
+ 372:	80 91 a0 00 	lds	r24, 0x00A0	; 0x8000a0 <evt_head>
+ 376:	8f 5f       	subi	r24, 0xFF	; 255
+ 378:	8f 70       	andi	r24, 0x0F	; 15
+    if (next != evt_tail) {
+ 37a:	90 91 9f 00 	lds	r25, 0x009F	; 0x80009f <evt_tail>
+ 37e:	89 17       	cp	r24, r25
+ 380:	41 f0       	breq	.+16     	; 0x392 <button_scan_1ms+0xe2>
+        evt_queue[evt_head] = e;
+ 382:	a0 91 a0 00 	lds	r26, 0x00A0	; 0x8000a0 <evt_head>
+ 386:	b0 e0       	ldi	r27, 0x00	; 0
+ 388:	af 55       	subi	r26, 0x5F	; 95
+ 38a:	bf 4f       	sbci	r27, 0xFF	; 255
+ 38c:	6c 93       	st	X, r22
+        evt_head = next;
+ 38e:	80 93 a0 00 	sts	0x00A0, r24	; 0x8000a0 <evt_head>
+        uint32_t held = now_ms - b->press_start_ms;
+
+        if (held >= 4000u) {
+            while ((int32_t)(now_ms - b->next_repeat_ms) >= 0) {
+                push_event_isr(b->step_event);
+                b->next_repeat_ms += 100u;
+ 392:	80 85       	ldd	r24, Z+8	; 0x08
+ 394:	91 85       	ldd	r25, Z+9	; 0x09
+ 396:	a2 85       	ldd	r26, Z+10	; 0x0a
+ 398:	b3 85       	ldd	r27, Z+11	; 0x0b
+ 39a:	8c 59       	subi	r24, 0x9C	; 156
+ 39c:	9f 4f       	sbci	r25, 0xFF	; 255
+ 39e:	af 4f       	sbci	r26, 0xFF	; 255
+ 3a0:	bf 4f       	sbci	r27, 0xFF	; 255
+ 3a2:	80 87       	std	Z+8, r24	; 0x08
+ 3a4:	91 87       	std	Z+9, r25	; 0x09
+ 3a6:	a2 87       	std	Z+10, r26	; 0x0a
+ 3a8:	b3 87       	std	Z+11, r27	; 0x0b
+
+    if (b->stable_pressed) {
+        uint32_t held = now_ms - b->press_start_ms;
+
+        if (held >= 4000u) {
+            while ((int32_t)(now_ms - b->next_repeat_ms) >= 0) {
+ 3aa:	80 85       	ldd	r24, Z+8	; 0x08
+ 3ac:	91 85       	ldd	r25, Z+9	; 0x09
+ 3ae:	a2 85       	ldd	r26, Z+10	; 0x0a
+ 3b0:	b3 85       	ldd	r27, Z+11	; 0x0b
+ 3b2:	79 01       	movw	r14, r18
+ 3b4:	8a 01       	movw	r16, r20
+ 3b6:	e8 1a       	sub	r14, r24
+ 3b8:	f9 0a       	sbc	r15, r25
+ 3ba:	0a 0b       	sbc	r16, r26
+ 3bc:	1b 0b       	sbc	r17, r27
+ 3be:	c2 f6       	brpl	.-80     	; 0x370 <button_scan_1ms+0xc0>
+ 3c0:	38 c0       	rjmp	.+112    	; 0x432 <__LOCK_REGION_LENGTH__+0x32>
+                push_event_isr(b->step_event);
+                b->next_repeat_ms += 100u;
+            }
+        } else if (held >= 2000u) {
+ 3c2:	80 3d       	cpi	r24, 0xD0	; 208
+ 3c4:	97 40       	sbci	r25, 0x07	; 7
+ 3c6:	a1 05       	cpc	r26, r1
+ 3c8:	b1 05       	cpc	r27, r1
+ 3ca:	98 f1       	brcs	.+102    	; 0x432 <__LOCK_REGION_LENGTH__+0x32>
+            while ((int32_t)(now_ms - b->next_repeat_ms) >= 0) {
+ 3cc:	80 85       	ldd	r24, Z+8	; 0x08
+ 3ce:	91 85       	ldd	r25, Z+9	; 0x09
+ 3d0:	a2 85       	ldd	r26, Z+10	; 0x0a
+ 3d2:	b3 85       	ldd	r27, Z+11	; 0x0b
+ 3d4:	79 01       	movw	r14, r18
+ 3d6:	8a 01       	movw	r16, r20
+ 3d8:	e8 1a       	sub	r14, r24
+ 3da:	f9 0a       	sbc	r15, r25
+ 3dc:	0a 0b       	sbc	r16, r26
+ 3de:	1b 0b       	sbc	r17, r27
+ 3e0:	42 f1       	brmi	.+80     	; 0x432 <__LOCK_REGION_LENGTH__+0x32>
+                push_event_isr(b->step_event);
+ 3e2:	64 85       	ldd	r22, Z+12	; 0x0c
+static volatile uint8_t evt_head = 0;
+static volatile uint8_t evt_tail = 0;
+
+static inline void push_event_isr(event_t e)
+{
+    uint8_t next = (uint8_t)((evt_head + 1u) % EVT_QUEUE_SIZE);
+ 3e4:	80 91 a0 00 	lds	r24, 0x00A0	; 0x8000a0 <evt_head>
+ 3e8:	8f 5f       	subi	r24, 0xFF	; 255
+ 3ea:	8f 70       	andi	r24, 0x0F	; 15
+    if (next != evt_tail) {
+ 3ec:	90 91 9f 00 	lds	r25, 0x009F	; 0x80009f <evt_tail>
+ 3f0:	89 17       	cp	r24, r25
+ 3f2:	41 f0       	breq	.+16     	; 0x404 <__LOCK_REGION_LENGTH__+0x4>
+        evt_queue[evt_head] = e;
+ 3f4:	a0 91 a0 00 	lds	r26, 0x00A0	; 0x8000a0 <evt_head>
+ 3f8:	b0 e0       	ldi	r27, 0x00	; 0
+ 3fa:	af 55       	subi	r26, 0x5F	; 95
+ 3fc:	bf 4f       	sbci	r27, 0xFF	; 255
+ 3fe:	6c 93       	st	X, r22
+        evt_head = next;
+ 400:	80 93 a0 00 	sts	0x00A0, r24	; 0x8000a0 <evt_head>
+                b->next_repeat_ms += 100u;
+            }
+        } else if (held >= 2000u) {
+            while ((int32_t)(now_ms - b->next_repeat_ms) >= 0) {
+                push_event_isr(b->step_event);
+                b->next_repeat_ms += 200u;
+ 404:	80 85       	ldd	r24, Z+8	; 0x08
+ 406:	91 85       	ldd	r25, Z+9	; 0x09
+ 408:	a2 85       	ldd	r26, Z+10	; 0x0a
+ 40a:	b3 85       	ldd	r27, Z+11	; 0x0b
+ 40c:	88 53       	subi	r24, 0x38	; 56
+ 40e:	9f 4f       	sbci	r25, 0xFF	; 255
+ 410:	af 4f       	sbci	r26, 0xFF	; 255
+ 412:	bf 4f       	sbci	r27, 0xFF	; 255
+ 414:	80 87       	std	Z+8, r24	; 0x08
+ 416:	91 87       	std	Z+9, r25	; 0x09
+ 418:	a2 87       	std	Z+10, r26	; 0x0a
+ 41a:	b3 87       	std	Z+11, r27	; 0x0b
+            while ((int32_t)(now_ms - b->next_repeat_ms) >= 0) {
+                push_event_isr(b->step_event);
+                b->next_repeat_ms += 100u;
+            }
+        } else if (held >= 2000u) {
+            while ((int32_t)(now_ms - b->next_repeat_ms) >= 0) {
+ 41c:	80 85       	ldd	r24, Z+8	; 0x08
+ 41e:	91 85       	ldd	r25, Z+9	; 0x09
+ 420:	a2 85       	ldd	r26, Z+10	; 0x0a
+ 422:	b3 85       	ldd	r27, Z+11	; 0x0b
+ 424:	79 01       	movw	r14, r18
+ 426:	8a 01       	movw	r16, r20
+ 428:	e8 1a       	sub	r14, r24
+ 42a:	f9 0a       	sbc	r15, r25
+ 42c:	0a 0b       	sbc	r16, r26
+ 42e:	1b 0b       	sbc	r17, r27
+ 430:	c2 f6       	brpl	.-80     	; 0x3e2 <button_scan_1ms+0x132>
+                push_event_isr(b->step_event);
+                b->next_repeat_ms += 200u;
+            }
+        }
+    }
+}
+ 432:	1f 91       	pop	r17
+ 434:	0f 91       	pop	r16
+ 436:	ff 90       	pop	r15
+ 438:	ef 90       	pop	r14
+ 43a:	08 95       	ret
+
+0000043c <__vector_1>:
+/* ============================================================
+ * ISRs
+ * ============================================================ */
+
+ISR(INT0_vect)
+{
+ 43c:	1f 92       	push	r1
+ 43e:	0f 92       	push	r0
+ 440:	0f b6       	in	r0, 0x3f	; 63
+ 442:	0f 92       	push	r0
+ 444:	11 24       	eor	r1, r1
+ 446:	0f 93       	push	r16
+ 448:	1f 93       	push	r17
+ 44a:	2f 93       	push	r18
+ 44c:	3f 93       	push	r19
+ 44e:	4f 93       	push	r20
+ 450:	5f 93       	push	r21
+ 452:	6f 93       	push	r22
+ 454:	7f 93       	push	r23
+ 456:	8f 93       	push	r24
+ 458:	9f 93       	push	r25
+ 45a:	af 93       	push	r26
+ 45c:	bf 93       	push	r27
+ 45e:	ef 93       	push	r30
+ 460:	ff 93       	push	r31
+    uint32_t now = g_ms;
+ 462:	80 91 9b 00 	lds	r24, 0x009B	; 0x80009b <g_ms>
+ 466:	90 91 9c 00 	lds	r25, 0x009C	; 0x80009c <g_ms+0x1>
+ 46a:	a0 91 9d 00 	lds	r26, 0x009D	; 0x80009d <g_ms+0x2>
+ 46e:	b0 91 9e 00 	lds	r27, 0x009E	; 0x80009e <g_ms+0x3>
+    if ((now - g_last_int0_ms) >= 50u) {
+ 472:	40 91 8d 00 	lds	r20, 0x008D	; 0x80008d <g_last_int0_ms>
+ 476:	50 91 8e 00 	lds	r21, 0x008E	; 0x80008e <g_last_int0_ms+0x1>
+ 47a:	60 91 8f 00 	lds	r22, 0x008F	; 0x80008f <g_last_int0_ms+0x2>
+ 47e:	70 91 90 00 	lds	r23, 0x0090	; 0x800090 <g_last_int0_ms+0x3>
+ 482:	8c 01       	movw	r16, r24
+ 484:	9d 01       	movw	r18, r26
+ 486:	04 1b       	sub	r16, r20
+ 488:	15 0b       	sbc	r17, r21
+ 48a:	26 0b       	sbc	r18, r22
+ 48c:	37 0b       	sbc	r19, r23
+ 48e:	02 33       	cpi	r16, 0x32	; 50
+ 490:	11 05       	cpc	r17, r1
+ 492:	21 05       	cpc	r18, r1
+ 494:	31 05       	cpc	r19, r1
+ 496:	c8 f0       	brcs	.+50     	; 0x4ca <__vector_1+0x8e>
+        g_last_int0_ms = now;
+ 498:	80 93 8d 00 	sts	0x008D, r24	; 0x80008d <g_last_int0_ms>
+ 49c:	90 93 8e 00 	sts	0x008E, r25	; 0x80008e <g_last_int0_ms+0x1>
+ 4a0:	a0 93 8f 00 	sts	0x008F, r26	; 0x80008f <g_last_int0_ms+0x2>
+ 4a4:	b0 93 90 00 	sts	0x0090, r27	; 0x800090 <g_last_int0_ms+0x3>
+static volatile uint8_t evt_head = 0;
+static volatile uint8_t evt_tail = 0;
+
+static inline void push_event_isr(event_t e)
+{
+    uint8_t next = (uint8_t)((evt_head + 1u) % EVT_QUEUE_SIZE);
+ 4a8:	80 91 a0 00 	lds	r24, 0x00A0	; 0x8000a0 <evt_head>
+ 4ac:	8f 5f       	subi	r24, 0xFF	; 255
+ 4ae:	8f 70       	andi	r24, 0x0F	; 15
+    if (next != evt_tail) {
+ 4b0:	90 91 9f 00 	lds	r25, 0x009F	; 0x80009f <evt_tail>
+ 4b4:	89 17       	cp	r24, r25
+ 4b6:	49 f0       	breq	.+18     	; 0x4ca <__vector_1+0x8e>
+        evt_queue[evt_head] = e;
+ 4b8:	e0 91 a0 00 	lds	r30, 0x00A0	; 0x8000a0 <evt_head>
+ 4bc:	f0 e0       	ldi	r31, 0x00	; 0
+ 4be:	ef 55       	subi	r30, 0x5F	; 95
+ 4c0:	ff 4f       	sbci	r31, 0xFF	; 255
+ 4c2:	91 e0       	ldi	r25, 0x01	; 1
+ 4c4:	90 83       	st	Z, r25
+        evt_head = next;
+ 4c6:	80 93 a0 00 	sts	0x00A0, r24	; 0x8000a0 <evt_head>
+    uint32_t now = g_ms;
+    if ((now - g_last_int0_ms) >= 50u) {
+        g_last_int0_ms = now;
+        push_event_isr(EVT_TOGGLE_MODE);
+    }
+}
+ 4ca:	ff 91       	pop	r31
+ 4cc:	ef 91       	pop	r30
+ 4ce:	bf 91       	pop	r27
+ 4d0:	af 91       	pop	r26
+ 4d2:	9f 91       	pop	r25
+ 4d4:	8f 91       	pop	r24
+ 4d6:	7f 91       	pop	r23
+ 4d8:	6f 91       	pop	r22
+ 4da:	5f 91       	pop	r21
+ 4dc:	4f 91       	pop	r20
+ 4de:	3f 91       	pop	r19
+ 4e0:	2f 91       	pop	r18
+ 4e2:	1f 91       	pop	r17
+ 4e4:	0f 91       	pop	r16
+ 4e6:	0f 90       	pop	r0
+ 4e8:	0f be       	out	0x3f, r0	; 63
+ 4ea:	0f 90       	pop	r0
+ 4ec:	1f 90       	pop	r1
+ 4ee:	18 95       	reti
+
+000004f0 <__vector_2>:
+
+ISR(INT1_vect)
+{
+ 4f0:	1f 92       	push	r1
+ 4f2:	0f 92       	push	r0
+ 4f4:	0f b6       	in	r0, 0x3f	; 63
+ 4f6:	0f 92       	push	r0
+ 4f8:	11 24       	eor	r1, r1
+ 4fa:	0f 93       	push	r16
+ 4fc:	1f 93       	push	r17
+ 4fe:	2f 93       	push	r18
+ 500:	3f 93       	push	r19
+ 502:	4f 93       	push	r20
+ 504:	5f 93       	push	r21
+ 506:	6f 93       	push	r22
+ 508:	7f 93       	push	r23
+ 50a:	8f 93       	push	r24
+ 50c:	9f 93       	push	r25
+ 50e:	af 93       	push	r26
+ 510:	bf 93       	push	r27
+ 512:	ef 93       	push	r30
+ 514:	ff 93       	push	r31
+    uint32_t now = g_ms;
+ 516:	80 91 9b 00 	lds	r24, 0x009B	; 0x80009b <g_ms>
+ 51a:	90 91 9c 00 	lds	r25, 0x009C	; 0x80009c <g_ms+0x1>
+ 51e:	a0 91 9d 00 	lds	r26, 0x009D	; 0x80009d <g_ms+0x2>
+ 522:	b0 91 9e 00 	lds	r27, 0x009E	; 0x80009e <g_ms+0x3>
+    if ((now - g_last_int1_ms) >= 50u) {
+ 526:	40 91 89 00 	lds	r20, 0x0089	; 0x800089 <g_last_int1_ms>
+ 52a:	50 91 8a 00 	lds	r21, 0x008A	; 0x80008a <g_last_int1_ms+0x1>
+ 52e:	60 91 8b 00 	lds	r22, 0x008B	; 0x80008b <g_last_int1_ms+0x2>
+ 532:	70 91 8c 00 	lds	r23, 0x008C	; 0x80008c <g_last_int1_ms+0x3>
+ 536:	8c 01       	movw	r16, r24
+ 538:	9d 01       	movw	r18, r26
+ 53a:	04 1b       	sub	r16, r20
+ 53c:	15 0b       	sbc	r17, r21
+ 53e:	26 0b       	sbc	r18, r22
+ 540:	37 0b       	sbc	r19, r23
+ 542:	02 33       	cpi	r16, 0x32	; 50
+ 544:	11 05       	cpc	r17, r1
+ 546:	21 05       	cpc	r18, r1
+ 548:	31 05       	cpc	r19, r1
+ 54a:	c8 f0       	brcs	.+50     	; 0x57e <__vector_2+0x8e>
+        g_last_int1_ms = now;
+ 54c:	80 93 89 00 	sts	0x0089, r24	; 0x800089 <g_last_int1_ms>
+ 550:	90 93 8a 00 	sts	0x008A, r25	; 0x80008a <g_last_int1_ms+0x1>
+ 554:	a0 93 8b 00 	sts	0x008B, r26	; 0x80008b <g_last_int1_ms+0x2>
+ 558:	b0 93 8c 00 	sts	0x008C, r27	; 0x80008c <g_last_int1_ms+0x3>
+static volatile uint8_t evt_head = 0;
+static volatile uint8_t evt_tail = 0;
+
+static inline void push_event_isr(event_t e)
+{
+    uint8_t next = (uint8_t)((evt_head + 1u) % EVT_QUEUE_SIZE);
+ 55c:	80 91 a0 00 	lds	r24, 0x00A0	; 0x8000a0 <evt_head>
+ 560:	8f 5f       	subi	r24, 0xFF	; 255
+ 562:	8f 70       	andi	r24, 0x0F	; 15
+    if (next != evt_tail) {
+ 564:	90 91 9f 00 	lds	r25, 0x009F	; 0x80009f <evt_tail>
+ 568:	89 17       	cp	r24, r25
+ 56a:	49 f0       	breq	.+18     	; 0x57e <__vector_2+0x8e>
+        evt_queue[evt_head] = e;
+ 56c:	e0 91 a0 00 	lds	r30, 0x00A0	; 0x8000a0 <evt_head>
+ 570:	f0 e0       	ldi	r31, 0x00	; 0
+ 572:	ef 55       	subi	r30, 0x5F	; 95
+ 574:	ff 4f       	sbci	r31, 0xFF	; 255
+ 576:	92 e0       	ldi	r25, 0x02	; 2
+ 578:	90 83       	st	Z, r25
+        evt_head = next;
+ 57a:	80 93 a0 00 	sts	0x00A0, r24	; 0x8000a0 <evt_head>
+    uint32_t now = g_ms;
+    if ((now - g_last_int1_ms) >= 50u) {
+        g_last_int1_ms = now;
+        push_event_isr(EVT_SWITCH_VIEW_OR_FIELD);
+    }
+}
+ 57e:	ff 91       	pop	r31
+ 580:	ef 91       	pop	r30
+ 582:	bf 91       	pop	r27
+ 584:	af 91       	pop	r26
+ 586:	9f 91       	pop	r25
+ 588:	8f 91       	pop	r24
+ 58a:	7f 91       	pop	r23
+ 58c:	6f 91       	pop	r22
+ 58e:	5f 91       	pop	r21
+ 590:	4f 91       	pop	r20
+ 592:	3f 91       	pop	r19
+ 594:	2f 91       	pop	r18
+ 596:	1f 91       	pop	r17
+ 598:	0f 91       	pop	r16
+ 59a:	0f 90       	pop	r0
+ 59c:	0f be       	out	0x3f, r0	; 63
+ 59e:	0f 90       	pop	r0
+ 5a0:	1f 90       	pop	r1
+ 5a2:	18 95       	reti
+
+000005a4 <__vector_10>:
+
+ISR(TIMER0_COMP_vect)
+{
+ 5a4:	1f 92       	push	r1
+ 5a6:	0f 92       	push	r0
+ 5a8:	0f b6       	in	r0, 0x3f	; 63
+ 5aa:	0f 92       	push	r0
+ 5ac:	11 24       	eor	r1, r1
+ 5ae:	2f 93       	push	r18
+ 5b0:	3f 93       	push	r19
+ 5b2:	4f 93       	push	r20
+ 5b4:	5f 93       	push	r21
+ 5b6:	6f 93       	push	r22
+ 5b8:	7f 93       	push	r23
+ 5ba:	8f 93       	push	r24
+ 5bc:	9f 93       	push	r25
+ 5be:	af 93       	push	r26
+ 5c0:	bf 93       	push	r27
+ 5c2:	cf 93       	push	r28
+ 5c4:	ef 93       	push	r30
+ 5c6:	ff 93       	push	r31
+    static uint16_t ms_div_1s = 0;
+    static uint8_t mux_digit = 0;
+
+    g_ms++;
+ 5c8:	80 91 9b 00 	lds	r24, 0x009B	; 0x80009b <g_ms>
+ 5cc:	90 91 9c 00 	lds	r25, 0x009C	; 0x80009c <g_ms+0x1>
+ 5d0:	a0 91 9d 00 	lds	r26, 0x009D	; 0x80009d <g_ms+0x2>
+ 5d4:	b0 91 9e 00 	lds	r27, 0x009E	; 0x80009e <g_ms+0x3>
+ 5d8:	01 96       	adiw	r24, 0x01	; 1
+ 5da:	a1 1d       	adc	r26, r1
+ 5dc:	b1 1d       	adc	r27, r1
+ 5de:	80 93 9b 00 	sts	0x009B, r24	; 0x80009b <g_ms>
+ 5e2:	90 93 9c 00 	sts	0x009C, r25	; 0x80009c <g_ms+0x1>
+ 5e6:	a0 93 9d 00 	sts	0x009D, r26	; 0x80009d <g_ms+0x2>
+ 5ea:	b0 93 9e 00 	sts	0x009E, r27	; 0x80009e <g_ms+0x3>
+
+    /* blink state for setup mode */
+    g_blink_visible = (((g_ms / 250u) & 1u) == 0u) ? 1u : 0u;
+ 5ee:	60 91 9b 00 	lds	r22, 0x009B	; 0x80009b <g_ms>
+ 5f2:	70 91 9c 00 	lds	r23, 0x009C	; 0x80009c <g_ms+0x1>
+ 5f6:	80 91 9d 00 	lds	r24, 0x009D	; 0x80009d <g_ms+0x2>
+ 5fa:	90 91 9e 00 	lds	r25, 0x009E	; 0x80009e <g_ms+0x3>
+ 5fe:	2a ef       	ldi	r18, 0xFA	; 250
+ 600:	30 e0       	ldi	r19, 0x00	; 0
+ 602:	40 e0       	ldi	r20, 0x00	; 0
+ 604:	50 e0       	ldi	r21, 0x00	; 0
+ 606:	0e 94 5a 04 	call	0x8b4	; 0x8b4 <__udivmodsi4>
+ 60a:	da 01       	movw	r26, r20
+ 60c:	c9 01       	movw	r24, r18
+ 60e:	61 e0       	ldi	r22, 0x01	; 1
+ 610:	86 27       	eor	r24, r22
+ 612:	28 2f       	mov	r18, r24
+ 614:	21 70       	andi	r18, 0x01	; 1
+ 616:	20 93 7a 00 	sts	0x007A, r18	; 0x80007a <g_blink_visible>
+
+    /* time base */
+    ms_div_1s++;
+ 61a:	80 91 87 00 	lds	r24, 0x0087	; 0x800087 <ms_div_1s.1789>
+ 61e:	90 91 88 00 	lds	r25, 0x0088	; 0x800088 <ms_div_1s.1789+0x1>
+ 622:	01 96       	adiw	r24, 0x01	; 1
+    if (ms_div_1s >= 1000u) {
+ 624:	88 3e       	cpi	r24, 0xE8	; 232
+ 626:	23 e0       	ldi	r18, 0x03	; 3
+ 628:	92 07       	cpc	r25, r18
+ 62a:	28 f4       	brcc	.+10     	; 0x636 <__vector_10+0x92>
+
+    /* blink state for setup mode */
+    g_blink_visible = (((g_ms / 250u) & 1u) == 0u) ? 1u : 0u;
+
+    /* time base */
+    ms_div_1s++;
+ 62c:	90 93 88 00 	sts	0x0088, r25	; 0x800088 <ms_div_1s.1789+0x1>
+ 630:	80 93 87 00 	sts	0x0087, r24	; 0x800087 <ms_div_1s.1789>
+ 634:	25 c0       	rjmp	.+74     	; 0x680 <__vector_10+0xdc>
+    if (ms_div_1s >= 1000u) {
+        ms_div_1s = 0;
+ 636:	10 92 88 00 	sts	0x0088, r1	; 0x800088 <ms_div_1s.1789+0x1>
+ 63a:	10 92 87 00 	sts	0x0087, r1	; 0x800087 <ms_div_1s.1789>
+ * Time helpers
+ * ============================================================ */
+
+static void time_tick_1s(void)
+{
+    g_seconds++;
+ 63e:	80 91 94 00 	lds	r24, 0x0094	; 0x800094 <g_seconds>
+ 642:	8f 5f       	subi	r24, 0xFF	; 255
+ 644:	80 93 94 00 	sts	0x0094, r24	; 0x800094 <g_seconds>
+    if (g_seconds >= 60u) {
+ 648:	80 91 94 00 	lds	r24, 0x0094	; 0x800094 <g_seconds>
+ 64c:	8c 33       	cpi	r24, 0x3C	; 60
+ 64e:	c0 f0       	brcs	.+48     	; 0x680 <__vector_10+0xdc>
+        g_seconds = 0;
+ 650:	10 92 94 00 	sts	0x0094, r1	; 0x800094 <g_seconds>
+        g_minutes++;
+ 654:	80 91 95 00 	lds	r24, 0x0095	; 0x800095 <g_minutes>
+ 658:	8f 5f       	subi	r24, 0xFF	; 255
+ 65a:	80 93 95 00 	sts	0x0095, r24	; 0x800095 <g_minutes>
+        if (g_minutes >= 60u) {
+ 65e:	80 91 95 00 	lds	r24, 0x0095	; 0x800095 <g_minutes>
+ 662:	8c 33       	cpi	r24, 0x3C	; 60
+ 664:	68 f0       	brcs	.+26     	; 0x680 <__vector_10+0xdc>
+            g_minutes = 0;
+ 666:	10 92 95 00 	sts	0x0095, r1	; 0x800095 <g_minutes>
+            g_hours++;
+ 66a:	80 91 96 00 	lds	r24, 0x0096	; 0x800096 <g_hours>
+ 66e:	8f 5f       	subi	r24, 0xFF	; 255
+ 670:	80 93 96 00 	sts	0x0096, r24	; 0x800096 <g_hours>
+            if (g_hours >= 24u) {
+ 674:	80 91 96 00 	lds	r24, 0x0096	; 0x800096 <g_hours>
+ 678:	88 31       	cpi	r24, 0x18	; 24
+ 67a:	10 f0       	brcs	.+4      	; 0x680 <__vector_10+0xdc>
+                g_hours = 0;
+ 67c:	10 92 96 00 	sts	0x0096, r1	; 0x800096 <g_hours>
+        time_tick_1s();
+    }
+
+    /* scan PD0 / PD1 */
+    {
+        uint8_t pins = BTN_PIN;
+ 680:	c0 b3       	in	r28, 0x10	; 16
+        button_scan_1ms(&g_btn_inc, pins, g_ms);
+ 682:	20 91 9b 00 	lds	r18, 0x009B	; 0x80009b <g_ms>
+ 686:	30 91 9c 00 	lds	r19, 0x009C	; 0x80009c <g_ms+0x1>
+ 68a:	40 91 9d 00 	lds	r20, 0x009D	; 0x80009d <g_ms+0x2>
+ 68e:	50 91 9e 00 	lds	r21, 0x009E	; 0x80009e <g_ms+0x3>
+ 692:	6c 2f       	mov	r22, r28
+ 694:	8d e6       	ldi	r24, 0x6D	; 109
+ 696:	90 e0       	ldi	r25, 0x00	; 0
+ 698:	0e 94 58 01 	call	0x2b0	; 0x2b0 <button_scan_1ms>
+        button_scan_1ms(&g_btn_dec, pins, g_ms);
+ 69c:	20 91 9b 00 	lds	r18, 0x009B	; 0x80009b <g_ms>
+ 6a0:	30 91 9c 00 	lds	r19, 0x009C	; 0x80009c <g_ms+0x1>
+ 6a4:	40 91 9d 00 	lds	r20, 0x009D	; 0x80009d <g_ms+0x2>
+ 6a8:	50 91 9e 00 	lds	r21, 0x009E	; 0x80009e <g_ms+0x3>
+ 6ac:	6c 2f       	mov	r22, r28
+ 6ae:	80 e6       	ldi	r24, 0x60	; 96
+ 6b0:	90 e0       	ldi	r25, 0x00	; 0
+ 6b2:	0e 94 58 01 	call	0x2b0	; 0x2b0 <button_scan_1ms>
+ * If you get mirrored output 4321 instead of 1234,
+ * swap only the masks in digit_on().
+ */
+static inline void digits_all_off(void)
+{
+    DIG_PORT &= (uint8_t)~DIG_MASK;
+ 6b6:	8b b3       	in	r24, 0x1b	; 27
+ 6b8:	80 7f       	andi	r24, 0xF0	; 240
+ 6ba:	8b bb       	out	0x1b, r24	; 27
+        button_scan_1ms(&g_btn_dec, pins, g_ms);
+    }
+
+    /* multiplex display */
+    digits_all_off();
+    SEG_PORT = seg_hw_prepare(g_disp[mux_digit]);
+ 6bc:	e0 91 86 00 	lds	r30, 0x0086	; 0x800086 <__data_end>
+ 6c0:	f0 e0       	ldi	r31, 0x00	; 0
+ 6c2:	e9 56       	subi	r30, 0x69	; 105
+ 6c4:	ff 4f       	sbci	r31, 0xFF	; 255
+ 6c6:	80 81       	ld	r24, Z
+ 6c8:	85 bb       	out	0x15, r24	; 21
+
+static inline void digit_on(uint8_t idx)
+{
+    uint8_t mask = 0;
+
+    switch (idx) {
+ 6ca:	80 91 86 00 	lds	r24, 0x0086	; 0x800086 <__data_end>
+ 6ce:	81 30       	cpi	r24, 0x01	; 1
+ 6d0:	31 f0       	breq	.+12     	; 0x6de <__vector_10+0x13a>
+ 6d2:	68 f0       	brcs	.+26     	; 0x6ee <__vector_10+0x14a>
+ 6d4:	82 30       	cpi	r24, 0x02	; 2
+ 6d6:	29 f0       	breq	.+10     	; 0x6e2 <__vector_10+0x13e>
+ 6d8:	83 30       	cpi	r24, 0x03	; 3
+ 6da:	29 f0       	breq	.+10     	; 0x6e6 <__vector_10+0x142>
+ 6dc:	06 c0       	rjmp	.+12     	; 0x6ea <__vector_10+0x146>
+        case 0: mask = (1u << PA3); break; /* leftmost  */
+        case 1: mask = (1u << PA2); break;
+ 6de:	94 e0       	ldi	r25, 0x04	; 4
+ 6e0:	07 c0       	rjmp	.+14     	; 0x6f0 <__vector_10+0x14c>
+        case 2: mask = (1u << PA1); break;
+ 6e2:	92 e0       	ldi	r25, 0x02	; 2
+ 6e4:	05 c0       	rjmp	.+10     	; 0x6f0 <__vector_10+0x14c>
+        case 3: mask = (1u << PA0); break; /* rightmost */
+ 6e6:	91 e0       	ldi	r25, 0x01	; 1
+ 6e8:	03 c0       	rjmp	.+6      	; 0x6f0 <__vector_10+0x14c>
+        default: mask = 0; break;
+ 6ea:	90 e0       	ldi	r25, 0x00	; 0
+ 6ec:	01 c0       	rjmp	.+2      	; 0x6f0 <__vector_10+0x14c>
+static inline void digit_on(uint8_t idx)
+{
+    uint8_t mask = 0;
+
+    switch (idx) {
+        case 0: mask = (1u << PA3); break; /* leftmost  */
+ 6ee:	98 e0       	ldi	r25, 0x08	; 8
+        case 2: mask = (1u << PA1); break;
+        case 3: mask = (1u << PA0); break; /* rightmost */
+        default: mask = 0; break;
+    }
+
+    DIG_PORT = (DIG_PORT & (uint8_t)~DIG_MASK) | mask;
+ 6f0:	8b b3       	in	r24, 0x1b	; 27
+ 6f2:	80 7f       	andi	r24, 0xF0	; 240
+ 6f4:	89 2b       	or	r24, r25
+ 6f6:	8b bb       	out	0x1b, r24	; 27
+    /* multiplex display */
+    digits_all_off();
+    SEG_PORT = seg_hw_prepare(g_disp[mux_digit]);
+    digit_on(mux_digit);
+
+    mux_digit++;
+ 6f8:	80 91 86 00 	lds	r24, 0x0086	; 0x800086 <__data_end>
+ 6fc:	8f 5f       	subi	r24, 0xFF	; 255
+    if (mux_digit >= 4u) {
+ 6fe:	84 30       	cpi	r24, 0x04	; 4
+ 700:	18 f4       	brcc	.+6      	; 0x708 <__vector_10+0x164>
+    /* multiplex display */
+    digits_all_off();
+    SEG_PORT = seg_hw_prepare(g_disp[mux_digit]);
+    digit_on(mux_digit);
+
+    mux_digit++;
+ 702:	80 93 86 00 	sts	0x0086, r24	; 0x800086 <__data_end>
+ 706:	02 c0       	rjmp	.+4      	; 0x70c <__vector_10+0x168>
+    if (mux_digit >= 4u) {
+        mux_digit = 0u;
+ 708:	10 92 86 00 	sts	0x0086, r1	; 0x800086 <__data_end>
+    }
+}
+ 70c:	ff 91       	pop	r31
+ 70e:	ef 91       	pop	r30
+ 710:	cf 91       	pop	r28
+ 712:	bf 91       	pop	r27
+ 714:	af 91       	pop	r26
+ 716:	9f 91       	pop	r25
+ 718:	8f 91       	pop	r24
+ 71a:	7f 91       	pop	r23
+ 71c:	6f 91       	pop	r22
+ 71e:	5f 91       	pop	r21
+ 720:	4f 91       	pop	r20
+ 722:	3f 91       	pop	r19
+ 724:	2f 91       	pop	r18
+ 726:	0f 90       	pop	r0
+ 728:	0f be       	out	0x3f, r0	; 63
+ 72a:	0f 90       	pop	r0
+ 72c:	1f 90       	pop	r1
+ 72e:	18 95       	reti
+
+00000730 <main>:
+ * ============================================================ */
+
+static void jtag_disable(void)
+{
+#ifdef JTD
+    MCUCSR |= (1u << JTD);
+ 730:	84 b7       	in	r24, 0x34	; 52
+ 732:	80 68       	ori	r24, 0x80	; 128
+ 734:	84 bf       	out	0x34, r24	; 52
+    MCUCSR |= (1u << JTD);
+ 736:	84 b7       	in	r24, 0x34	; 52
+ 738:	80 68       	ori	r24, 0x80	; 128
+ 73a:	84 bf       	out	0x34, r24	; 52
+ * ============================================================ */
+
+static void gpio_init(void)
+{
+    /* Segments */
+    SEG_DDR  = 0xFF;
+ 73c:	8f ef       	ldi	r24, 0xFF	; 255
+ 73e:	84 bb       	out	0x14, r24	; 20
+    SEG_PORT = seg_hw_prepare(SEG_BLANK);
+ 740:	15 ba       	out	0x15, r1	; 21
+
+    /* Digits */
+    DIG_DDR  |= DIG_MASK;
+ 742:	8a b3       	in	r24, 0x1a	; 26
+ 744:	8f 60       	ori	r24, 0x0F	; 15
+ 746:	8a bb       	out	0x1a, r24	; 26
+ * If you get mirrored output 4321 instead of 1234,
+ * swap only the masks in digit_on().
+ */
+static inline void digits_all_off(void)
+{
+    DIG_PORT &= (uint8_t)~DIG_MASK;
+ 748:	8b b3       	in	r24, 0x1b	; 27
+ 74a:	80 7f       	andi	r24, 0xF0	; 240
+ 74c:	8b bb       	out	0x1b, r24	; 27
+    /* Digits */
+    DIG_DDR  |= DIG_MASK;
+    digits_all_off();
+
+    /* Buttons PD0..PD3 as input with pull-ups */
+    BTN_DDR  &= (uint8_t)~((1u << BTN_INC) | (1u << BTN_DEC) | (1u << BTN_INT0) | (1u << BTN_INT1));
+ 74e:	81 b3       	in	r24, 0x11	; 17
+ 750:	80 7f       	andi	r24, 0xF0	; 240
+ 752:	81 bb       	out	0x11, r24	; 17
+    BTN_PORT |= (1u << BTN_INC) | (1u << BTN_DEC) | (1u << BTN_INT0) | (1u << BTN_INT1);
+ 754:	82 b3       	in	r24, 0x12	; 18
+ 756:	8f 60       	ori	r24, 0x0F	; 15
+ 758:	82 bb       	out	0x12, r24	; 18
+}
+
+static void exti_init(void)
+{
+    /* INT0: falling edge */
+    MCUCR |= (1u << ISC01);
+ 75a:	85 b7       	in	r24, 0x35	; 53
+ 75c:	82 60       	ori	r24, 0x02	; 2
+ 75e:	85 bf       	out	0x35, r24	; 53
+    MCUCR &= (uint8_t)~(1u << ISC00);
+ 760:	85 b7       	in	r24, 0x35	; 53
+ 762:	8e 7f       	andi	r24, 0xFE	; 254
+ 764:	85 bf       	out	0x35, r24	; 53
+
+    /* INT1: falling edge */
+    MCUCR |= (1u << ISC11);
+ 766:	85 b7       	in	r24, 0x35	; 53
+ 768:	88 60       	ori	r24, 0x08	; 8
+ 76a:	85 bf       	out	0x35, r24	; 53
+    MCUCR &= (uint8_t)~(1u << ISC10);
+ 76c:	85 b7       	in	r24, 0x35	; 53
+ 76e:	8b 7f       	andi	r24, 0xFB	; 251
+ 770:	85 bf       	out	0x35, r24	; 53
+
+    /* Clear pending flags */
+    GIFR |= (1u << INTF0) | (1u << INTF1);
+ 772:	8a b7       	in	r24, 0x3a	; 58
+ 774:	80 6c       	ori	r24, 0xC0	; 192
+ 776:	8a bf       	out	0x3a, r24	; 58
+
+    /* Enable INT0, INT1 */
+    GICR |= (1u << INT0) | (1u << INT1);
+ 778:	8b b7       	in	r24, 0x3b	; 59
+ 77a:	80 6c       	ori	r24, 0xC0	; 192
+ 77c:	8b bf       	out	0x3b, r24	; 59
+     * F_CPU = 8 MHz
+     * prescaler = 64
+     * 8,000,000 / 64 = 125,000 Hz
+     * OCR0 = 124 => 125 counts => 1 ms
+     */
+    TCCR0 = 0;
+ 77e:	13 be       	out	0x33, r1	; 51
+    TCNT0 = 0;
+ 780:	12 be       	out	0x32, r1	; 50
+    OCR0  = 124;
+ 782:	8c e7       	ldi	r24, 0x7C	; 124
+ 784:	8c bf       	out	0x3c, r24	; 60
+
+    TCCR0 |= (1u << WGM01);              /* CTC */
+ 786:	83 b7       	in	r24, 0x33	; 51
+ 788:	88 60       	ori	r24, 0x08	; 8
+ 78a:	83 bf       	out	0x33, r24	; 51
+    TCCR0 |= (1u << CS01) | (1u << CS00);/* prescaler 64 */
+ 78c:	83 b7       	in	r24, 0x33	; 51
+ 78e:	83 60       	ori	r24, 0x03	; 3
+ 790:	83 bf       	out	0x33, r24	; 51
+
+    TIMSK |= (1u << OCIE0);
+ 792:	89 b7       	in	r24, 0x39	; 57
+ 794:	82 60       	ori	r24, 0x02	; 2
+ 796:	89 bf       	out	0x39, r24	; 57
+    jtag_disable();
+    gpio_init();
+    exti_init();
+    timer0_init();
+
+    refresh_display_buffer();
+ 798:	0e 94 49 00 	call	0x92	; 0x92 <refresh_display_buffer>
+    sei();
+ 79c:	78 94       	sei
+    }
+}
+
+static bool pop_event(event_t *e)
+{
+    bool ok = false;
+ 79e:	f1 2c       	mov	r15, r1
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        if (evt_tail != evt_head) {
+            *e = evt_queue[evt_tail];
+            evt_tail = (uint8_t)((evt_tail + 1u) % EVT_QUEUE_SIZE);
+            ok = true;
+ 7a0:	c1 e0       	ldi	r28, 0x01	; 1
+ * ============================================================ */
+
+static void display_store_patterns(uint8_t p0, uint8_t p1, uint8_t p2, uint8_t p3)
+{
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        g_disp[0] = p0;
+ 7a2:	07 e9       	ldi	r16, 0x97	; 151
+ 7a4:	10 e0       	ldi	r17, 0x00	; 0
+ 7a6:	d6 e0       	ldi	r29, 0x06	; 6
+        g_disp[1] = p1;
+ 7a8:	0f 2e       	mov	r0, r31
+ 7aa:	ff ec       	ldi	r31, 0xCF	; 207
+ 7ac:	9f 2e       	mov	r9, r31
+ 7ae:	f0 2d       	mov	r31, r0
+        g_disp[2] = p2;
+ 7b0:	0f 2e       	mov	r0, r31
+ 7b2:	ff e4       	ldi	r31, 0x4F	; 79
+ 7b4:	af 2e       	mov	r10, r31
+ 7b6:	f0 2d       	mov	r31, r0
+        g_disp[3] = p3;
+ 7b8:	0f 2e       	mov	r0, r31
+ 7ba:	f7 e8       	ldi	r31, 0x87	; 135
+ 7bc:	bf 2e       	mov	r11, r31
+ 7be:	f0 2d       	mov	r31, r0
+		case EVT_INC_STEP:
+		g_hours = (uint8_t)((g_hours + 1u) % 24u);
+		break;
+
+		case EVT_DEC_STEP:
+		g_hours = (g_hours == 0u) ? 23u : (uint8_t)(g_hours - 1u);
+ 7c0:	0f 2e       	mov	r0, r31
+ 7c2:	f7 e1       	ldi	r31, 0x17	; 23
+ 7c4:	7f 2e       	mov	r7, r31
+ 7c6:	f0 2d       	mov	r31, r0
+
+static void display_store_patterns(uint8_t p0, uint8_t p1, uint8_t p2, uint8_t p3)
+{
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        g_disp[0] = p0;
+        g_disp[1] = p1;
+ 7c8:	0f 2e       	mov	r0, r31
+ 7ca:	f6 ee       	ldi	r31, 0xE6	; 230
+ 7cc:	cf 2e       	mov	r12, r31
+ 7ce:	f0 2d       	mov	r31, r0
+        g_disp[2] = p2;
+ 7d0:	0f 2e       	mov	r0, r31
+ 7d2:	ff e7       	ldi	r31, 0x7F	; 127
+ 7d4:	df 2e       	mov	r13, r31
+ 7d6:	f0 2d       	mov	r31, r0
+        g_disp[3] = p3;
+ 7d8:	ee 24       	eor	r14, r14
+ 7da:	ea 94       	dec	r14
+ 7dc:	4d c0       	rjmp	.+154    	; 0x878 <__stack+0x19>
+/* ============================================================
+ * Event processing
+ * ============================================================ */
+static void process_event(event_t e)
+{
+	switch (e) {
+ 7de:	82 e0       	ldi	r24, 0x02	; 2
+ 7e0:	88 16       	cp	r8, r24
+ 7e2:	b1 f0       	breq	.+44     	; 0x810 <main+0xe0>
+ 7e4:	88 15       	cp	r24, r8
+ 7e6:	20 f0       	brcs	.+8      	; 0x7f0 <main+0xc0>
+ 7e8:	e1 e0       	ldi	r30, 0x01	; 1
+ 7ea:	8e 16       	cp	r8, r30
+ 7ec:	41 f0       	breq	.+16     	; 0x7fe <main+0xce>
+ 7ee:	44 c0       	rjmp	.+136    	; 0x878 <__stack+0x19>
+ 7f0:	f3 e0       	ldi	r31, 0x03	; 3
+ 7f2:	8f 16       	cp	r8, r31
+ 7f4:	b1 f0       	breq	.+44     	; 0x822 <main+0xf2>
+ 7f6:	84 e0       	ldi	r24, 0x04	; 4
+ 7f8:	88 16       	cp	r8, r24
+ 7fa:	99 f1       	breq	.+102    	; 0x862 <__stack+0x3>
+ 7fc:	3d c0       	rjmp	.+122    	; 0x878 <__stack+0x19>
+ * Display preparation
+ * ============================================================ */
+
+static void display_store_patterns(uint8_t p0, uint8_t p1, uint8_t p2, uint8_t p3)
+{
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+ 7fe:	8f b7       	in	r24, 0x3f	; 63
+    return 1;
+}
+
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+ 800:	f8 94       	cli
+        g_disp[0] = p0;
+ 802:	f8 01       	movw	r30, r16
+ 804:	d0 83       	st	Z, r29
+        g_disp[1] = p1;
+ 806:	c1 82       	std	Z+1, r12	; 0x01
+        g_disp[2] = p2;
+ 808:	d2 82       	std	Z+2, r13	; 0x02
+        g_disp[3] = p3;
+ 80a:	e3 82       	std	Z+3, r14	; 0x03
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+ 80c:	8f bf       	out	0x3f, r24	; 63
+    __asm__ volatile ("" ::: "memory");
+ 80e:	34 c0       	rjmp	.+104    	; 0x878 <__stack+0x19>
+ * Display preparation
+ * ============================================================ */
+
+static void display_store_patterns(uint8_t p0, uint8_t p1, uint8_t p2, uint8_t p3)
+{
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+ 810:	8f b7       	in	r24, 0x3f	; 63
+    return 1;
+}
+
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+ 812:	f8 94       	cli
+        g_disp[0] = p0;
+ 814:	f8 01       	movw	r30, r16
+ 816:	d0 83       	st	Z, r29
+        g_disp[1] = p1;
+ 818:	91 82       	std	Z+1, r9	; 0x01
+        g_disp[2] = p2;
+ 81a:	a2 82       	std	Z+2, r10	; 0x02
+        g_disp[3] = p3;
+ 81c:	b3 82       	std	Z+3, r11	; 0x03
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+ 81e:	8f bf       	out	0x3f, r24	; 63
+    __asm__ volatile ("" ::: "memory");
+ 820:	2b c0       	rjmp	.+86     	; 0x878 <__stack+0x19>
+				seg_encode_digit(3),
+				seg_encode_digit(7) | SEG_DP);
+		break;
+
+		case EVT_INC_STEP:
+		g_hours = (uint8_t)((g_hours + 1u) % 24u);
+ 822:	40 91 96 00 	lds	r20, 0x0096	; 0x800096 <g_hours>
+ 826:	50 e0       	ldi	r21, 0x00	; 0
+ 828:	4f 5f       	subi	r20, 0xFF	; 255
+ 82a:	5f 4f       	sbci	r21, 0xFF	; 255
+ 82c:	9a 01       	movw	r18, r20
+ 82e:	ab ea       	ldi	r26, 0xAB	; 171
+ 830:	ba ea       	ldi	r27, 0xAA	; 170
+ 832:	0e 94 7c 04 	call	0x8f8	; 0x8f8 <__umulhisi3>
+ 836:	92 95       	swap	r25
+ 838:	82 95       	swap	r24
+ 83a:	8f 70       	andi	r24, 0x0F	; 15
+ 83c:	89 27       	eor	r24, r25
+ 83e:	9f 70       	andi	r25, 0x0F	; 15
+ 840:	89 27       	eor	r24, r25
+ 842:	9c 01       	movw	r18, r24
+ 844:	22 0f       	add	r18, r18
+ 846:	33 1f       	adc	r19, r19
+ 848:	82 0f       	add	r24, r18
+ 84a:	93 1f       	adc	r25, r19
+ 84c:	88 0f       	add	r24, r24
+ 84e:	99 1f       	adc	r25, r25
+ 850:	88 0f       	add	r24, r24
+ 852:	99 1f       	adc	r25, r25
+ 854:	88 0f       	add	r24, r24
+ 856:	99 1f       	adc	r25, r25
+ 858:	48 1b       	sub	r20, r24
+ 85a:	59 0b       	sbc	r21, r25
+ 85c:	40 93 96 00 	sts	0x0096, r20	; 0x800096 <g_hours>
+ 860:	0b c0       	rjmp	.+22     	; 0x878 <__stack+0x19>
+		break;
+
+		case EVT_DEC_STEP:
+		g_hours = (g_hours == 0u) ? 23u : (uint8_t)(g_hours - 1u);
+ 862:	80 91 96 00 	lds	r24, 0x0096	; 0x800096 <g_hours>
+ 866:	88 23       	and	r24, r24
+ 868:	21 f0       	breq	.+8      	; 0x872 <__stack+0x13>
+ 86a:	80 91 96 00 	lds	r24, 0x0096	; 0x800096 <g_hours>
+ 86e:	81 50       	subi	r24, 0x01	; 1
+ 870:	01 c0       	rjmp	.+2      	; 0x874 <__stack+0x15>
+ 872:	87 2d       	mov	r24, r7
+ 874:	80 93 96 00 	sts	0x0096, r24	; 0x800096 <g_hours>
+
+static bool pop_event(event_t *e)
+{
+    bool ok = false;
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+ 878:	2f b7       	in	r18, 0x3f	; 63
+    return 1;
+}
+
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+ 87a:	f8 94       	cli
+        if (evt_tail != evt_head) {
+ 87c:	90 91 9f 00 	lds	r25, 0x009F	; 0x80009f <evt_tail>
+ 880:	80 91 a0 00 	lds	r24, 0x00A0	; 0x8000a0 <evt_head>
+ 884:	98 17       	cp	r25, r24
+ 886:	79 f0       	breq	.+30     	; 0x8a6 <__stack+0x47>
+            *e = evt_queue[evt_tail];
+ 888:	e0 91 9f 00 	lds	r30, 0x009F	; 0x80009f <evt_tail>
+ 88c:	f0 e0       	ldi	r31, 0x00	; 0
+ 88e:	ef 55       	subi	r30, 0x5F	; 95
+ 890:	ff 4f       	sbci	r31, 0xFF	; 255
+ 892:	90 81       	ld	r25, Z
+            evt_tail = (uint8_t)((evt_tail + 1u) % EVT_QUEUE_SIZE);
+ 894:	80 91 9f 00 	lds	r24, 0x009F	; 0x80009f <evt_tail>
+ 898:	8f 5f       	subi	r24, 0xFF	; 255
+ 89a:	8f 70       	andi	r24, 0x0F	; 15
+ 89c:	80 93 9f 00 	sts	0x009F, r24	; 0x80009f <evt_tail>
+{
+    bool ok = false;
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        if (evt_tail != evt_head) {
+            *e = evt_queue[evt_tail];
+ 8a0:	89 2e       	mov	r8, r25
+            evt_tail = (uint8_t)((evt_tail + 1u) % EVT_QUEUE_SIZE);
+            ok = true;
+ 8a2:	8c 2f       	mov	r24, r28
+ 8a4:	01 c0       	rjmp	.+2      	; 0x8a8 <__stack+0x49>
+    }
+}
+
+static bool pop_event(event_t *e)
+{
+    bool ok = false;
+ 8a6:	8f 2d       	mov	r24, r15
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+ 8a8:	2f bf       	out	0x3f, r18	; 63
+    sei();
+
+    while (1) {
+	    event_t e;
+
+	    while (pop_event(&e)) {
+ 8aa:	81 11       	cpse	r24, r1
+ 8ac:	98 cf       	rjmp	.-208    	; 0x7de <main+0xae>
+		    process_event(e);
+	    }
+
+	    refresh_display_buffer();
+ 8ae:	0e 94 49 00 	call	0x92	; 0x92 <refresh_display_buffer>
+    }
+ 8b2:	e2 cf       	rjmp	.-60     	; 0x878 <__stack+0x19>
+
+000008b4 <__udivmodsi4>:
+ 8b4:	a1 e2       	ldi	r26, 0x21	; 33
+ 8b6:	1a 2e       	mov	r1, r26
+ 8b8:	aa 1b       	sub	r26, r26
+ 8ba:	bb 1b       	sub	r27, r27
+ 8bc:	fd 01       	movw	r30, r26
+ 8be:	0d c0       	rjmp	.+26     	; 0x8da <__udivmodsi4_ep>
+
+000008c0 <__udivmodsi4_loop>:
+ 8c0:	aa 1f       	adc	r26, r26
+ 8c2:	bb 1f       	adc	r27, r27
+ 8c4:	ee 1f       	adc	r30, r30
+ 8c6:	ff 1f       	adc	r31, r31
+ 8c8:	a2 17       	cp	r26, r18
+ 8ca:	b3 07       	cpc	r27, r19
+ 8cc:	e4 07       	cpc	r30, r20
+ 8ce:	f5 07       	cpc	r31, r21
+ 8d0:	20 f0       	brcs	.+8      	; 0x8da <__udivmodsi4_ep>
+ 8d2:	a2 1b       	sub	r26, r18
+ 8d4:	b3 0b       	sbc	r27, r19
+ 8d6:	e4 0b       	sbc	r30, r20
+ 8d8:	f5 0b       	sbc	r31, r21
+
+000008da <__udivmodsi4_ep>:
+ 8da:	66 1f       	adc	r22, r22
+ 8dc:	77 1f       	adc	r23, r23
+ 8de:	88 1f       	adc	r24, r24
+ 8e0:	99 1f       	adc	r25, r25
+ 8e2:	1a 94       	dec	r1
+ 8e4:	69 f7       	brne	.-38     	; 0x8c0 <__udivmodsi4_loop>
+ 8e6:	60 95       	com	r22
+ 8e8:	70 95       	com	r23
+ 8ea:	80 95       	com	r24
+ 8ec:	90 95       	com	r25
+ 8ee:	9b 01       	movw	r18, r22
+ 8f0:	ac 01       	movw	r20, r24
+ 8f2:	bd 01       	movw	r22, r26
+ 8f4:	cf 01       	movw	r24, r30
+ 8f6:	08 95       	ret
+
+000008f8 <__umulhisi3>:
+ 8f8:	a2 9f       	mul	r26, r18
+ 8fa:	b0 01       	movw	r22, r0
+ 8fc:	b3 9f       	mul	r27, r19
+ 8fe:	c0 01       	movw	r24, r0
+ 900:	a3 9f       	mul	r26, r19
+ 902:	70 0d       	add	r23, r0
+ 904:	81 1d       	adc	r24, r1
+ 906:	11 24       	eor	r1, r1
+ 908:	91 1d       	adc	r25, r1
+ 90a:	b2 9f       	mul	r27, r18
+ 90c:	70 0d       	add	r23, r0
+ 90e:	81 1d       	adc	r24, r1
+ 910:	11 24       	eor	r1, r1
+ 912:	91 1d       	adc	r25, r1
+ 914:	08 95       	ret
+
+00000916 <_exit>:
+ 916:	f8 94       	cli
+
+00000918 <__stop_program>:
+ 918:	ff cf       	rjmp	.-2      	; 0x918 <__stop_program>

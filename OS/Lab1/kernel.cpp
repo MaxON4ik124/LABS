@@ -630,6 +630,7 @@ static void handle_command(char* line, unsigned char boot_color) {
     {
         char res[64];
         argv[1][strlen(argv[1])-7] = '\0';
+    
         get_time(argv[1], 1, res);
         console.println(res);
         return;
