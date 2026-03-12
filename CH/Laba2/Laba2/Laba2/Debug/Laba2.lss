@@ -1,10 +1,12 @@
 
-AVRASM ver. 2.2.7  C:\Labs\LABS\CH\Laba2\Laba2\Laba2\main.asm Fri Feb 27 16:07:26 2026
+AVRASM ver. 2.2.7  C:\Labs\LABS\CH\Laba2\Laba2\Laba2\main.asm Fri Mar 06 15:06:11 2026
 
 [builtin](2): Including file 'D:/AtmelStudio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m32def.inc'
+C:\Labs\LABS\CH\Laba2\Laba2\Laba2\main.asm(1): Including file 'D:/AtmelStudio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m32def.inc'
 [builtin](2): Including file 'D:/AtmelStudio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m32def.inc'
+C:\Labs\LABS\CH\Laba2\Laba2\Laba2\main.asm(1): Including file 'D:/AtmelStudio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m32def.inc'
                                  
-                                 .def TMP = R20
+                                 .include "m32def.inc"
                                  
                                  ;***** Created: 2011-02-09 12:03 ******* Source: ATmega32.xml ************
                                  ;*************************************************************************
@@ -820,372 +822,535 @@ AVRASM ver. 2.2.7  C:\Labs\LABS\CH\Laba2\Laba2\Laba2\main.asm Fri Feb 27 16:07:2
                                  #endif  /* _M32DEF_INC_ */
                                  
                                  
-                                 .def ONE = R21
-                                 .equ F_CPU = 8000000
-                                 .equ PRESC = 1024
+                                 
+                                 ;***** Created: 2011-02-09 12:03 ******* Source: ATmega32.xml ************
+                                 ;*************************************************************************
+                                 ;* A P P L I C A T I O N   N O T E   F O R   T H E   A V R   F A M I L Y
+                                 ;* 
+                                 ;* Number            : AVR000
+                                 ;* File Name         : "m32def.inc"
+                                 ;* Title             : Register/Bit Definitions for the ATmega32
+                                 ;* Date              : 2011-02-09
+                                 ;* Version           : 2.35
+                                 ;* Support E-mail    : avr@atmel.com
+                                 ;* Target MCU        : ATmega32
+                                 ;* 
+                                 ;* DESCRIPTION
+                                 ;* When including this file in the assembly program file, all I/O register 
+                                 ;* names and I/O register bit names appearing in the data book can be used.
+                                 ;* In addition, the six registers forming the three data pointers X, Y and 
+                                 ;* Z have been assigned names XL - ZH. Highest RAM address for Internal 
+                                 ;* SRAM is also defined 
+                                 ;* 
+                                 ;* The Register names are represented by their hexadecimal address.
+                                 ;* 
+                                 ;* The Register Bit names are represented by their bit number (0-7).
+                                 ;* 
+                                 ;* Please observe the difference in using the bit names with instructions
+                                 ;* such as "sbr"/"cbr" (set/clear bit in register) and "sbrs"/"sbrc"
+                                 ;* (skip if bit in register set/cleared). The following example illustrates
+                                 ;* this:
+                                 ;* 
+                                 ;* in    r16,PORTB             ;read PORTB latch
+                                 ;* sbr   r16,(1<<PB6)+(1<<PB5) ;set PB6 and PB5 (use masks, not bit#)
+                                 ;* out   PORTB,r16             ;output to PORTB
+                                 ;* 
+                                 ;* in    r16,TIFR              ;read the Timer Interrupt Flag Register
+                                 ;* sbrc  r16,TOV0              ;test the overflow flag (use bit#)
+                                 ;* rjmp  TOV0_is_set           ;jump if set
+                                 ;* ...                         ;otherwise do something else
+                                 ;*************************************************************************
+                                 
+                                 #ifndef _M32DEF_INC_
+                                 
+                                 #endif  /* _M32DEF_INC_ */
+                                 
+                                 
+                                 .def TMP     = R16
+                                 .def R_MODE  = R17
+                                 .def R_VAL1  = R18
+                                 .def R_VAL2  = R19
+                                 .def EE_ADDR = R24
+                                 .def EE_DATA = R25
+                                 .def R_BLANK = R23
                                  
                                  .equ EE_MODE = 0
-                                 .equ EE_X = 1
-                                 .equ EE_Y = 2
+                                 .equ EE_X    = 1
+                                 .equ EE_Y    = 2
                                  
                                  .dseg
-000060                           mode: .byte 1   ; PD4 (0/1)
-000061                           phase: .byte 1  ; PD5 (0/1)
-000062                           x_freq: .byte 1  ; PD3 (0/1/2)
-000063                           y_val: .byte 1   ; y
+000060                           mode:   .byte 1
+000061                           phase:  .byte 1
+000062                           x_freq: .byte 1
+000063                           y_val:  .byte 1
+                                 
                                  .cseg
                                  
-                                 
-                                 .org $000
-000000 c00e                      RJMP reset
+                                 .org 0x0000
+000000 c00e                          rjmp reset
                                  
                                  .org INT0addr
-000002 c083                      RJMP ISR_INT0
+000002 c066                          rjmp ISR_INT0
                                  
                                  .org INT1addr
-000004 c09d                      RJMP ISR_INT1
+000004 c07a                          rjmp ISR_INT1
                                  
                                  .org OC1Aaddr
-00000e c04c                      RJMP ISR_T1_COMPA
-                                 
-                                 
+00000e c048                          rjmp ISR_T1_COMPA
                                  
                                  
                                  reset:
-00000f 94f8                          CLI
-000010 2411                          CLR R1
-000011 e041                      	LDI TMP, 0x01
-000012 e051                      	LDI ONE, 0x01
-000013 2e04                      	MOV R0, TMP
-000014 2744                      	CLR TMP
+00000f 94f8                          cli
+000010 2411                          clr r1
                                  
-                                     ; Инициализируем Стек
-000015 e048                          LDI TMP, HIGH(RAMEND) ; Старшие разряды адреса
-000016 bf4e                      	OUT SPH, TMP
-000017 e54f                      	LDI TMP, LOW(RAMEND) ; Младшие разряды адреса
-000018 bf4d                      	OUT SPL, TMP
+                                     ; стек
+000011 e008                          ldi TMP, HIGH(RAMEND)
+000012 bf0e                          out SPH, TMP
+000013 e50f                          ldi TMP, LOW(RAMEND)
+000014 bf0d                          out SPL, TMP
                                  
-                                     ; Выставляем порты
-000019 ef4f                          SER TMP
-00001a bb4a                          OUT DDRA, TMP   ; Вывод
-00001b bb47                          OUT DDRB, TMP   ; Вывод
-00001c e040                          LDI TMP, 0x00
-00001d bb44                          OUT DDRC, TMP   ; Ввод
-00001e ef4f                      	SER TMP
-00001f bb45                      	OUT PORTC, TMP
-000020 e343                          LDI TMP, (1<<PD0)|(1<<PD1)|(1<<PD4)|(1<<PD5)    ;0b00110011 
-000021 bb41                          OUT DDRD, TMP
-                                     
-000022 e84c                          LDI TMP, (1<<PD2)|(1<<PD3)|(1<<PD7)		;0b10001100
-000023 bb42                          OUT PORTD, TMP
-000024 e000                      	LDI R16, 0x00
-000025 bb0b                      	OUT PORTA, R16
-000026 ef0f                      	LDI R16, 0xFF
-000027 bb08                      	out PORTB, R16
+                                     ; PORTA, PORTB - выходы
+000015 ef0f                          ser TMP
+000016 bb0a                          out DDRA, TMP
+000017 bb07                          out DDRB, TMP
                                  
+                                     ; PORTC - вход
+000018 2700                          clr TMP
+000019 bb04                          out DDRC, TMP
                                  
-                                     ; Режим работы
+                                     ; PORTD:
+                                     ; PD0, PD1, PD4, PD5 - output
+                                     ; PD2, PD3, PD7 - input
+00001a e303                          ldi TMP, (1<<PD0)|(1<<PD1)|(1<<PD4)|(1<<PD5)
+00001b bb01                          out DDRD, TMP
                                  
-000028 e080                          LDI R24, EE_MODE
-000029 d0c9                          RCALL EEPROM_READ
-00002a 9380 0060                     STS mode, R24
+                                     ; подтяжки выключены
+00001c 2700                          clr TMP
+00001d bb0b                          out PORTA, TMP
+00001e bb08                          out PORTB, TMP
+00001f bb05                          out PORTC, TMP
+000020 bb02                          out PORTD, TMP
                                  
-                                     ; Частота X
-00002c e081                          LDI R24, EE_X
-00002d d0c5                          RCALL EEPROM_READ
-00002e 9380 0062                     STS x_freq, R24	
+                                     ; начальные значения
+000021 2700                          clr TMP
+000022 9300 0060                     sts mode, TMP
                                  
-                                     ; Y
-000030 e082                          LDI R24, EE_Y
-000031 d0c1                          RCALL EEPROM_READ
-000032 9380 0063                     STS y_val, R24
+000024 2700                          clr TMP
+000025 9300 0061                     sts phase, TMP
                                  
-                                     ; Начальные значения (Выставляем режим)
+000027 e505                          ldi TMP, 0x55
+000028 9300 0063                     sts y_val, TMP
                                  
-000034 9100 0060                     LDS R16, mode
-000036 3f0f                          CPI R16, 0xFF
-000037 f419                          BRNE _chk_x
-000038 2700                          CLR R16
-000039 9300 0060                     STS mode, R16
+                                     ; x читаем из EEPROM
+00002a e081                          ldi EE_ADDR, EE_X
+00002b d0d1                          rcall EEPROM_READ
+00002c 2f08                          mov TMP, EE_ADDR
+00002d 3003                          cpi TMP, 3
+00002e f008                          brlo X_OK
+00002f 2700                          clr TMP
+                                 X_OK:
+000030 9300 0062                     sts x_freq, TMP
                                  
-                                 ; Выставляем X
-                                 _chk_x:
-00003b 9100 0062                     LDS R16, x_freq
-00003d 3f0f                          CPI R16, 0xFF
-00003e f419                          BRNE _chk_y
-00003f e002                          LDI R16, 2
-000040 9300 0062                     STS x_freq, R16
-                                 ; Выставляем Y
-                                 _chk_y:
-000042 9100 0063                     LDS R16, y_val
-000044 3f0f                          CPI R16, 0xFF
-000045 f419                          BRNE _set_phase
-000046 e505                          LDI R16, 0x55
-000047 9300 0063                     STS y_val, R16
-                                 ; Выставляем ссостояние
-                                 _set_phase:
-000049 2700                          CLR R16
-00004a 9300 0061                     STS phase, R16
-00004c d06a                          RCALL UPDATE_PORTD
-00004d d080                          RCALL APPLY_XCODE_TO_TIMER1
+                                     ; INT0/INT1 по фронту 0->1
+000032 e00f                          ldi TMP, (1<<ISC01)|(1<<ISC00)|(1<<ISC11)|(1<<ISC10)
+000033 bf05                          out MCUCR, TMP
                                  
-00004e e00a                          LDI R16, (1<<ISC01)|(1<<ISC11)
-00004f bf05                          OUT MCUCR, R16
+                                     ; сброс флагов
+000034 ec00                          ldi TMP, (1<<INTF0)|(1<<INTF1)
+000035 bf0a                          out GIFR, TMP
                                  
-000050 ec00                          LDI R16, (1<<INT0)|(1<<INT1)
-000051 bf0b                          OUT GICR, R16
+                                     ; разрешить INT0, INT1
+000036 ec00                          ldi TMP, (1<<INT0)|(1<<INT1)
+000037 bf0b                          out GICR, TMP
                                  
-000052 9478                          SEI
+                                     ; таймер
+000038 d0a0                          rcall APPLY_X_TO_TIMER1
                                  
+                                     ; начальный вывод
+000039 d05e                          rcall APPLY_OUTPUT
+                                 
+00003a 9478                          sei
                                  
                                  MAIN:
-                                     ; Проверяем, нажата ли PD7, если нажата, ждем отжатия
-000053 b300                          IN R16, PIND
-000054 ff07                          SBRS R16, PD7
-000055 d001                          RCALL READ_Y_FROM_PORTC
-000056 cffc                          RJMP MAIN
+                                     ; если PD7 = 1 -> режим ввода y
+00003b 9987                          sbic PIND, PD7
+00003c d001                          rcall READ_Y_FROM_PORTC
                                  
+00003d cffd                          rjmp MAIN
+                                 
+                                 
+                                 ; ============================================================
+                                 ; Чтение Y
+                                 ; ============================================================
                                  READ_Y_FROM_PORTC:
-000057 b313                          IN  R17, PINC
-000058 9310 0063                     STS y_val, R17
-00005a 9508                          RET
+00003e 930f                          push TMP
+00003f 932f                          push R_VAL1
                                  
+                                     ; гасим PORTA/PORTB
+000040 2700                          clr TMP
+000041 bb0b                          out PORTA, TMP
+000042 bb08                          out PORTB, TMP
+000043 d07b                          rcall UPDATE_PORTD
+                                 
+                                 READ_LOOP:
+                                     ; если PD7 отпущена -> выйти
+000044 9987                          sbic PIND, PD7
+000045 c001                          rjmp PD7_STILL_PRESSED
+000046 c008                          rjmp READ_DONE
+                                 
+                                 PD7_STILL_PRESSED:
+000047 b303                          in TMP, PINC
+                                 
+                                     ; если все кнопки PORTC отпущены -> выходим из чтения
+000048 2300                          tst TMP
+000049 f019                          breq WAIT_PD7_RELEASE
+                                 
+                                     ; сохраняем y
+00004a 9300 0063                     sts y_val, TMP
+00004c cff7                          rjmp READ_LOOP
+                                 
+                                 WAIT_PD7_RELEASE:
+                                     ; ждем отпускания PD7, чтобы MAIN не вошел сюда снова сразу
+00004d 9987                          sbic PIND, PD7
+00004e cffe                          rjmp WAIT_PD7_RELEASE
+                                 
+                                 READ_DONE:
+                                     ; сохранить y в EEPROM
+00004f 9190 0063                     lds EE_DATA, y_val
+000051 e082                          ldi EE_ADDR, EE_Y
+000052 d0b4                          rcall EEPROM_WRITE
+                                 
+                                     ; восстановить вывод
+000053 d044                          rcall APPLY_OUTPUT
+                                 
+000054 912f                          pop R_VAL1
+000055 910f                          pop TMP
+000056 9508                          ret
+                                 
+                                 
+                                 ; ============================================================
+                                 ; TIMER1 COMPA
+                                 ; ============================================================
                                  ISR_T1_COMPA:
-00005b 930f                          PUSH R16
-00005c 931f                          PUSH R17
-00005d 932f                          PUSH R18
-00005e 933f                      	PUSH R19
+000057 930f                          push TMP
+000058 b70f                          in TMP, SREG
+000059 930f                          push TMP
+00005a 931f                          push R_MODE
                                  
-                                     ;IN R16, PIND
-                                     ;SBRS R16, PD7
-                                     ;RJMP _only_inds
+                                     ; если PD7 нажата -> не трогаем вывод
+00005b 9987                          sbic PIND, PD7
+00005c c007                          rjmp T1_EXIT
                                  
-                                     ; Переключение состояний
+                                     ; phase ^= 1
+00005d 9100 0061                     lds TMP, phase
+00005f e011                          ldi R_MODE, 1
+000060 2701                          eor TMP, R_MODE
+000061 9300 0061                     sts phase, TMP
                                  
-00005f 9100 0061                     LDS R16, phase
-000061 2705                          EOR R16, ONE
-000062 9300 0061                     STS phase, R16
+000063 d034                          rcall APPLY_OUTPUT
                                  
-000064 9120 0060                     LDS R18, mode
-000066 2322                          TST R18
-000067 f451                          BRNE _mode1
+                                 T1_EXIT:
+000064 911f                          pop R_MODE
+000065 910f                          pop TMP
+000066 bf0f                          out SREG, TMP
+000067 910f                          pop TMP
+000068 9518                          reti
                                  
-                                 _mode0:
-                                     ; Режим 0x00, 0xFF
-000068 9100 0061                     LDS R16, phase
-00006a 2300                          TST R16
-00006b f019                          BREQ _out00
-00006c ef1f                          LDI R17, 0xFF
-00006d e030                      	LDI R19, 0x00
-00006e c00f                          RJMP _do_out
-                                 _out00:
-00006f e010                          LDI R17, 0x00
-000070 ef3f                      	LDI R19, 0xFF
-000071 c00c                          RJMP _do_out
                                  
-                                 ; Режим y, -y
-                                 _mode1:
-000072 9100 0061                     LDS R16, phase
-000074 9110 0063                     LDS R17, y_val		;y
-000076 771f                      	ANDI R17, 0x7F
-000077 2f31                      	MOV R19, R17
-                                     
-000078 6830                          ORI R19, 0x80       ;-y
-000079 2300                      	TST R16
-00007a f019                      	BREQ _do_out
-00007b 2f43                      	MOV TMP, R19
-00007c 2f31                      	MOV R19, R17
-00007d 2f14                      	MOV R17, TMP      
-                                 
-                                 _do_out:
-                                 	;COM R17
-                                 	;COM R19
-00007e bb1b                          OUT PORTA, R17
-00007f bb38                          OUT PORTB, R19
-000080 d036                          RCALL UPDATE_PORTD
-000081 913f                      	POP R19
-000082 912f                          POP R18
-000083 911f                          POP R17
-000084 910f                          POP R16
-000085 9518                          RETI
-                                 
-                                 ; Прерывания при смене режима
+                                 ; ============================================================
+                                 ; INT0 - смена режима
+                                 ; ============================================================
                                  ISR_INT0:
-000086 930f                          PUSH R16
-000087 938f                          PUSH R24
-000088 939f                          PUSH R25
-000089 9100 0060                     LDS R16, mode
-00008b 2705                          EOR R16, ONE
-00008c 9300 0060                     STS mode, R16
+000069 930f                          push TMP
+00006a b70f                          in TMP, SREG
+00006b 930f                          push TMP
+00006c 931f                          push R_MODE
                                  
-                                     ; Сброс состояния при смене режима
+00006d 9110 0060                     lds R_MODE, mode
+00006f e001                          ldi TMP, 1
+000070 2710                          eor R_MODE, TMP
+000071 9310 0060                     sts mode, R_MODE
                                  
-00008e 2700                          CLR R16
-00008f 9300 0061                     STS phase, R16
-000091 d025                          RCALL UPDATE_PORTD
+000073 d024                          rcall APPLY_OUTPUT
                                  
-                                     ; Грузим режим в память
-000092 9190 0060                     LDS R25, mode
-000094 e080                          LDI R24, EE_MODE
-000095 d065                          RCALL EEPROM_WRITE
+000074 9190 0060                     lds EE_DATA, mode
+000076 e080                          ldi EE_ADDR, EE_MODE
+000077 d08f                          rcall EEPROM_WRITE
                                  
-                                     ; Грузим Х
-000096 9190 0062                     LDS R25, x_freq
-000098 e081                          LDI R24, EE_X
-000099 d061                          RCALL EEPROM_WRITE
+                                 WAIT_PD2_RELEASE:
+000078 9982                          sbic PIND, PD2
+000079 cffe                          rjmp WAIT_PD2_RELEASE
                                  
-                                     ; Грузим Y
-00009a 9190 0063                     LDS R25, y_val
-00009c e082                          LDI R24, EE_Y
-00009d d05d                          RCALL EEPROM_WRITE
+00007a 911f                          pop R_MODE
+00007b 910f                          pop TMP
+00007c bf0f                          out SREG, TMP
+00007d 910f                          pop TMP
+00007e 9518                          reti
                                  
-00009e 919f                          POP R25
-00009f 918f                          POP R24
-0000a0 910f                          POP R16
-0000a1 9518                          RETI
                                  
-                                 ; Вторые прерывания на x
-                                 
+                                 ; ============================================================
+                                 ; INT1 - смена частоты
+                                 ; 0 -> 1 -> 2 -> 0
+                                 ; ============================================================
                                  ISR_INT1:
-0000a2 930f                          PUSH R16
-0000a3 938f                          PUSH R24
-0000a4 939f                          PUSH R25
+00007f 930f                          push TMP
+000080 b70f                          in TMP, SREG
+000081 930f                          push TMP
+000082 931f                          push R_MODE
                                  
-0000a5 9100 0062                     LDS R16, x_freq
-0000a7 9503                          INC R16
-0000a8 3003                          CPI R16, 3
-0000a9 f008                          BRLO _x_ok
-0000aa 2700                          CLR R16
-                                 _x_ok:
-0000ab 9300 0062                     STS x_freq, R16
-0000ad d020                          RCALL APPLY_XCODE_TO_TIMER1
-0000ae d008                          RCALL UPDATE_PORTD
+                                     ; x_freq = (x_freq + 1) mod 3
+000083 9110 0062                     lds R_MODE, x_freq
+000085 9513                          inc R_MODE
+000086 3013                          cpi R_MODE, 3
+000087 f008                          brlo X_OK_ISR
+000088 2711                          clr R_MODE
+                                 X_OK_ISR:
+000089 9310 0062                     sts x_freq, R_MODE
                                  
-0000af 9190 0062                     LDS R25, x_freq
-0000b1 e081                          LDI R24, EE_X
-0000b2 d048                          RCALL EEPROM_WRITE
+                                     ; применить новую частоту таймера
+00008b d04d                          rcall APPLY_X_TO_TIMER1
                                  
-0000b3 919f                          POP R25
-0000b4 918f                          POP R24
-0000b5 910f                          POP R16
-0000b6 9518                          RETI
+                                     ; сразу обновить индикацию на PD0-PD1, PD4, PD5
+00008c d032                          rcall UPDATE_PORTD
                                  
+                                     ; сохранить x в EEPROM
+00008d 9190 0062                     lds EE_DATA, x_freq
+00008f e081                          ldi EE_ADDR, EE_X
+000090 d076                          rcall EEPROM_WRITE
+                                 
+                                 WAIT_PD3_RELEASE:
+                                     ; ждем, пока кнопка PD3 будет отпущена
+000091 9983                          sbic PIND, PD3
+000092 cffe                          rjmp WAIT_PD3_RELEASE
+                                 
+000093 911f                          pop R_MODE
+000094 910f                          pop TMP
+000095 bf0f                          out SREG, TMP
+000096 910f                          pop TMP
+000097 9518                          reti
+                                 
+                                 
+                                 
+                                 ; ============================================================
+                                 ; Вывод на A/B
+                                 ; mode=0:
+                                 ;   phase=0 -> FF,FF
+                                 ;   phase=1 -> 00,00
+                                 ; mode=1:
+                                 ;   phase=0 -> y,y
+                                 ;   phase=1 -> -y*,-y*
+                                 ; ============================================================
+                                 APPLY_OUTPUT:
+000098 930f                          push TMP
+000099 931f                          push R_MODE
+00009a 932f                          push R_VAL1
+00009b 933f                          push R_VAL2
+                                 
+00009c 9110 0060                     lds R_MODE, mode
+00009e 2311                          tst R_MODE
+00009f f451                          brne MODE_1
+                                 
+                                 MODE_0:
+0000a0 9100 0061                     lds TMP, phase
+0000a2 2300                          tst TMP
+0000a3 f419                          brne MODE0_STATE1
+                                 
+0000a4 ef2f                          ldi R_VAL1, 0xFF
+0000a5 ef3f                          ldi R_VAL2, 0xFF
+0000a6 c010                          rjmp WRITE_OUTPUT
+                                 
+                                 MODE0_STATE1:
+0000a7 2722                          clr R_VAL1
+0000a8 2733                          clr R_VAL2
+0000a9 c00d                          rjmp WRITE_OUTPUT
+                                 
+                                 MODE_1:
+0000aa 9100 0061                     lds TMP, phase
+0000ac 2300                          tst TMP
+0000ad f421                          brne MODE1_STATE1
+                                 
+0000ae 9120 0063                     lds R_VAL1, y_val
+0000b0 2f32                          mov R_VAL2, R_VAL1
+0000b1 c005                          rjmp WRITE_OUTPUT
+                                 
+                                 MODE1_STATE1:
+                                     ; вариант 3а: прямой код
+0000b2 9120 0063                     lds R_VAL1, y_val
+                                     ;andi R_VAL1, 0x7F
+                                     ;mov R_VAL2, R_VAL1
+                                     ;ori R_VAL2, 0x80
+                                     ;mov R_VAL1, R_VAL2
+0000b4 ef7f                      	ldi R_BLANK, 0xFF
+0000b5 2727                      	eor R_VAL1, R_BLANK
+0000b6 2f32                      	mov R_VAL2, R_VAL1
+                                 
+                                 WRITE_OUTPUT:
+0000b7 bb2b                          out PORTA, R_VAL1
+0000b8 bb38                          out PORTB, R_VAL2
+0000b9 d005                          rcall UPDATE_PORTD
+                                 
+0000ba 913f                          pop R_VAL2
+0000bb 912f                          pop R_VAL1
+0000bc 911f                          pop R_MODE
+0000bd 910f                          pop TMP
+0000be 9508                          ret
+                                 
+                                 
+                                 ; ============================================================
+                                 ; UPDATE_PORTD
+                                 ; PD0-PD1 = x_freq
+                                 ; PD4     = mode
+                                 ; PD5     = phase
+                                 ; ============================================================
                                  UPDATE_PORTD:
-0000b7 930f                          PUSH R16
-0000b8 931f                          PUSH R17
+0000bf 930f                          push TMP
+0000c0 931f                          push R_MODE
                                  
-0000b9 b302                          IN R16, PORTD
-0000ba ec1c                          LDI R17, ~((1<<PD0)|(1<<PD1)|(1<<PD4)|(1<<PD5))
-0000bb 2301                          AND R16, R17
+0000c1 2700                          clr TMP
                                  
-                                     ; Выставляем режим
+                                     ; x_freq -> PD0..PD1
+0000c2 9110 0062                     lds R_MODE, x_freq
+0000c4 3010                          cpi R_MODE, 0
+0000c5 f029                          breq X_BITS_DONE          ; 00
                                  
-0000bc 9110 0060                     LDS R17, mode
-0000be 2311                          TST R17
-0000bf f009                          BREQ _no_modebit
-0000c0 6100                          ORI R16, (1<<PD4)
-                                 _no_modebit:
-                                     ; Выставляем состояние
-0000c1 9110 0061                     LDS R17, phase
-0000c3 2311                          TST R17
-0000c4 f009                          BREQ _no_phasebit
-0000c5 6200                          ORI R16, (1<<PD5)
-                                 _no_phasebit:
-                                     ; Меняем Частоту
-0000c6 9110 0062                     LDS R17, x_freq
-0000c8 7013                          ANDI R17, 0x03
-0000c9 2b01                          OR R16, R17
+0000c6 3011                          cpi R_MODE, 1
+0000c7 f011                          breq X_IS_1
                                  
-0000ca bb02                          OUT PORTD, R16
+                                     ; x_freq = 2 -> 10
+0000c8 6002                          ori TMP, (1<<PD1)
+0000c9 c001                          rjmp X_BITS_DONE
                                  
-0000cb 911f                          POP R17
-0000cc 910f                          POP R16
-0000cd 9508                          RET
-                                 APPLY_XCODE_TO_TIMER1:
-                                 ; Выставляем частоту
-0000ce 930f                          PUSH R16
-0000cf 931f                          PUSH R17
+                                 X_IS_1:
+                                     ; x_freq = 1 -> 01
+0000ca 6001                          ori TMP, (1<<PD0)
                                  
-0000d0 e000                          LDI R16, 0
-0000d1 bd0e                          OUT TCCR1B, R16
+                                 X_BITS_DONE:
+                                     ; mode -> PD4
+0000cb 9110 0060                     lds R_MODE, mode
+0000cd 2311                          tst R_MODE
+0000ce f009                          breq NO_MODE_BIT
+0000cf 6100                          ori TMP, (1<<PD4)
+                                 NO_MODE_BIT:
                                  
-0000d2 e008                          LDI R16, (1<<WGM12)
-0000d3 bd0e                          OUT TCCR1B, R16
+                                     ; phase -> PD5
+0000d0 9110 0061                     lds R_MODE, phase
+0000d2 2311                          tst R_MODE
+0000d3 f009                          breq NO_PHASE_BIT
+0000d4 6200                          ori TMP, (1<<PD5)
+                                 NO_PHASE_BIT:
                                  
-0000d4 9100 0062                     LDS R16, x_freq
-0000d6 3000                          CPI R16, 0
-0000d7 f061                          BREQ _ocr_025
-0000d8 3001                          CPI R16, 1
-0000d9 f029                          BREQ _ocr_05
-                                 _ocr_1:
-0000da e401                          LDI R16, LOW(3905)
-0000db bd0a                          OUT OCR1AL, R16
-0000dc e00f                          LDI R16, HIGH(3905)
-0000dd bd0b                          OUT OCR1AH, R16
-0000de c009                          RJMP _timer_start
-                                 _ocr_05:
-0000df e803                          LDI R16, LOW(7811)
-0000e0 bd0a                          OUT OCR1AL, R16
-0000e1 e10e                          LDI R16, HIGH(7811)
-0000e2 bd0b                          OUT OCR1AH, R16
-0000e3 c004                          RJMP _timer_start
-                                 _ocr_025:
-0000e4 e008                          LDI R16, LOW(15624)
-0000e5 bd0a                          OUT OCR1AL, R16
-0000e6 e30d                          LDI R16, HIGH(15624)
-0000e7 bd0b                          OUT OCR1AH, R16
+0000d5 bb02                          out PORTD, TMP
                                  
-                                 _timer_start:
-0000e8 2700                          CLR R16
-0000e9 bd0d                          OUT TCNT1H, R16
-0000ea bd0c                          OUT TCNT1L, R16
+0000d6 911f                          pop R_MODE
+0000d7 910f                          pop TMP
+0000d8 9508                          ret
+                                 ; ============================================================
+                                 ; Таймер1 CTC
+                                 ; x_freq:
+                                 ; 0 -> 0.25 Hz
+                                 ; 1 -> 0.5  Hz
+                                 ; 2 -> 1 Hz
+                                 ; ============================================================
+                                 APPLY_X_TO_TIMER1:
+0000d9 930f                          push TMP
+0000da 931f                          push R_MODE
                                  
-0000eb e100                          LDI R16, (1<<OCIE1A)
-0000ec bf09                          OUT TIMSK, R16
+                                     ; стоп таймера
+0000db 2700                          clr TMP
+0000dc bd0f                          out TCCR1A, TMP
+0000dd bd0e                          out TCCR1B, TMP
                                  
-0000ed b50e                          IN R16, TCCR1B
-0000ee 6005                          ORI R16, (1<<CS12)|(1<<CS10)
-0000ef bd0e                          OUT TCCR1B, R16
+                                     ; сброс счетчика
+0000de bd0d                          out TCNT1H, TMP
+0000df bd0c                          out TCNT1L, TMP
                                  
-0000f0 911f                          POP R17
-0000f1 910f                          POP R16
-0000f2 9508                          ret
+0000e0 9100 0062                     lds TMP, x_freq
+0000e2 3000                          cpi TMP, 0
+0000e3 f061                          breq SET_025HZ
+0000e4 3001                          cpi TMP, 1
+0000e5 f029                          breq SET_05HZ
                                  
+                                 SET_1HZ:
+0000e6 e01f                          ldi R_MODE, HIGH(3905)
+0000e7 bd1b                          out OCR1AH, R_MODE
+0000e8 e411                          ldi R_MODE, LOW(3905)
+0000e9 bd1a                          out OCR1AL, R_MODE
+0000ea c009                          rjmp TIMER1_START
+                                 
+                                 SET_05HZ:
+0000eb e11e                          ldi R_MODE, HIGH(7811)
+0000ec bd1b                          out OCR1AH, R_MODE
+0000ed e813                          ldi R_MODE, LOW(7811)
+0000ee bd1a                          out OCR1AL, R_MODE
+0000ef c004                          rjmp TIMER1_START
+                                 
+                                 SET_025HZ:
+0000f0 e31d                          ldi R_MODE, HIGH(15624)
+0000f1 bd1b                          out OCR1AH, R_MODE
+0000f2 e018                          ldi R_MODE, LOW(15624)
+0000f3 bd1a                          out OCR1AL, R_MODE
+                                 
+                                 TIMER1_START:
+0000f4 e100                          ldi TMP, (1<<OCF1A)
+0000f5 bf08                          out TIFR, TMP
+                                 
+0000f6 e100                          ldi TMP, (1<<OCIE1A)
+0000f7 bf09                          out TIMSK, TMP
+                                 
+0000f8 e00d                          ldi TMP, (1<<WGM12)|(1<<CS12)|(1<<CS10)
+0000f9 bd0e                          out TCCR1B, TMP
+                                 
+0000fa 911f                          pop R_MODE
+0000fb 910f                          pop TMP
+0000fc 9508                          ret
+                                 
+                                 
+                                 ; ============================================================
+                                 ; EEPROM READ
+                                 ; ============================================================
                                  EEPROM_READ:
-0000f3 930f                          PUSH R16
+0000fd 930f                          push TMP
                                  
-                                 _wait_er:
-0000f4 99e1                          sbic EECR, EEWE
-0000f5 cffe                          RJMP _wait_er
+                                 EE_R_WAIT:
+0000fe 99e1                          sbic EECR, EEWE
+0000ff cffe                          rjmp EE_R_WAIT
                                  
-0000f6 bb8e                          OUT EEARL, R24
-0000f7 9ae0                          SBI EECR, EERE
-0000f8 b38d                          IN R24, EEDR
+000100 2700                          clr TMP
+000101 bb0f                          out EEARH, TMP
+000102 bb8e                          out EEARL, EE_ADDR
                                  
-0000f9 910f                          POP R16
-0000fa 9508                          RET
+000103 9ae0                          sbi EECR, EERE
+000104 b38d                          in EE_ADDR, EEDR
                                  
+000105 910f                          pop TMP
+000106 9508                          ret
+                                 
+                                 
+                                 ; ============================================================
+                                 ; EEPROM WRITE
+                                 ; ============================================================
                                  EEPROM_WRITE:
-0000fb 930f                          PUSH R16
+000107 930f                          push TMP
+000108 b70f                          in TMP, SREG
+000109 930f                          push TMP
                                  
-                                 _wait_ew:
-0000fc 99e1                          SBIC EECR, EEWE
-0000fd cffe                          RJMP _wait_ew
-0000fe bb8e                          OUT EEARL, R24
+00010a 94f8                          cli
                                  
-0000ff bb9d                          OUT EEDR, R25
+                                 EE_W_WAIT:
+00010b 99e1                          sbic EECR, EEWE
+00010c cffe                          rjmp EE_W_WAIT
                                  
-000100 9ae2                          SBI EECR, EEMWE
-000101 9ae1                          SBI EECR, EEWE
+00010d 2700                          clr TMP
+00010e bb0f                          out EEARH, TMP
+00010f bb8e                          out EEARL, EE_ADDR
+000110 bb9d                          out EEDR, EE_DATA
                                  
-000102 910f                          POP R16
-000103 9508                          RET
+000111 9ae2                          sbi EECR, EEMWE
+000112 9ae1                          sbi EECR, EEWE
                                  
-                                 
-                                 
-                                 
-                                 
-                                 
+000113 910f                          pop TMP
+000114 bf0f                          out SREG, TMP
+000115 910f                          pop TMP
 
 
 RESOURCE USE INFORMATION
@@ -1203,39 +1368,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega32" register use summary:
-x  :   0 y  :   0 z  :   0 r0 :   1 r1 :   1 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   1 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  88 r17:  25 r18:   4 r19:   9 r20:  20 
-r21:   3 r22:   0 r23:   0 r24:  17 r25:   9 r26:   0 r27:   0 r28:   0 
+r13:   0 r14:   0 r15:   0 r16: 105 r17:  43 r18:  12 r19:   7 r20:   0 
+r21:   0 r22:   0 r23:   2 r24:   8 r25:   4 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   0 r31:   0 
-Registers used: 10 out of 35 (28.6%)
+Registers used: 8 out of 35 (22.9%)
 
 "ATmega32" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   1 
-andi  :   2 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :   6 brge  :   0 brhc  :   0 
-brhs  :   0 brid  :   0 brie  :   0 brlo  :   1 brlt  :   0 brmi  :   0 
-brne  :   4 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+.lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
+andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :   7 brge  :   0 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   2 brlt  :   0 brmi  :   0 
+brne  :   3 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
 brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   0 cbr   :   0 
-clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   7 cls   :   0 
+clc   :   0 clh   :   0 cli   :   2 cln   :   0 clr   :  14 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :   6 cpse  :   0 dec   :   0 eor   :   2 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   5 inc   :   1 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  34 lds   :  18 lpm   :   0 lsl   :   0 
-lsr   :   0 mov   :   5 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   1 ori   :   4 out   :  30 pop   :  16 
-push  :  16 rcall :  14 ret   :   5 reti  :   3 rjmp  :  11 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :   3 sbic  :   2 sbis  :   0 
-sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   1 sec   :   0 seh   :   0 
-sei   :   1 sen   :   0 ser   :   2 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  12 
-sub   :   0 subi  :   0 swap  :   0 tst   :   5 wdr   :   0 
-Instructions used: 30 out of 113 (26.5%)
+cpi   :   6 cpse  :   0 dec   :   0 eor   :   3 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   6 inc   :   1 jmp   :   0 
+ld    :   0 ldd   :   0 ldi   :  25 lds   :  15 lpm   :   0 lsl   :   0 
+lsr   :   0 mov   :   3 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   4 out   :  40 pop   :  22 
+push  :  22 rcall :  14 ret   :   6 reti  :   3 rjmp  :  20 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   3 sbic  :   8 sbis  :   0 
+sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
+sei   :   1 sen   :   0 ser   :   1 ses   :   0 set   :   0 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   8 
+sub   :   0 subi  :   0 swap  :   0 tst   :   6 wdr   :   0 
+Instructions used: 26 out of 113 (23.0%)
 
 "ATmega32" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000208    498      0    498   32768   1.5%
+[.cseg] 0x000000 0x00022e    536      0    536   32768   1.6%
 [.dseg] 0x000060 0x000064      0      4      4    2048   0.2%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
