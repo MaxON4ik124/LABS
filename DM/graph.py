@@ -2,7 +2,7 @@ from random import randint
 import numpy as np
 import matplotlib.pyplot as ml
 import networkx as nx
-n = 15
+n = 5
 A = []
 
 for i in range(n):
@@ -16,5 +16,5 @@ for i in range(n):
         A[v][i] = 1
 G = np.array(A) 
 G = nx.from_numpy_array(G)
-nx.draw(G, with_labels=True, node_color='lightblue', edge_color='gray', node_size=1000)
+nx.draw(G, with_labels=True, node_color='lightblue', edge_color='gray', node_size=800)
 ml.show()
