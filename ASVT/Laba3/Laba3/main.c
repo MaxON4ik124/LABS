@@ -1,28 +1,3 @@
-/*
- * Clock for EasyAVR v7 + ATmega32 (8 MHz)
- * ---------------------------------------
- * Real EasyAVR v7 onboard 4-digit display wiring:
- *   SEGMENTS: PORTC (PC0=a, PC1=b, PC2=c, PC3=d, PC4=e, PC5=f, PC6=g, PC7=dp)
- *   DIGITS:   PORTA (PA0..PA3 via SW8.1..SW8.4)
- *
- * Buttons:
- *   PD2 / INT0 : toggle display/setup mode
- *   PD3 / INT1 : display mode -> switch HH.MM / MM.SS
- *                setup mode   -> select HH -> MM -> SS -> HH
- *   PD0        : increment selected value
- *   PD1        : decrement selected value
- *
- * Features:
- * - Timer0 CTC, 1 ms tick (TCCR0 / TCNT0 / OCR0)
- * - 4-digit multiplexing
- * - blink selected field at 2 Hz in setup mode
- * - auto-repeat:
- *     press        -> immediate +/-1
- *     hold > 2 s   -> every 200 ms
- *     hold > 4 s   -> every 100 ms
- * - initial time: 00:00:00
- */
-
 #define F_CPU 8000000UL
 
 #include <avr/io.h>
@@ -31,86 +6,57 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* ============================================================
- * Hardware configuration
- * ============================================================ */
+#define RINGBUF_SIZE 32
 
-/* EasyAVR v7 onboard 4-digit display */
-#define SEG_PORT   PORTC
-#define SEG_DDR    DDRC
+#define SEG_PORT    PORTC
+#define SEG_DDR     DDRC
 
-#define DIG_PORT   PORTA
-#define DIG_DDR    DDRA
-#define DIG_MASK   0x0F
+#define DIG_PORT    PORTA
+#define DIG_DDR     DDRA
 
-/* Buttons */
-#define BTN_PIN    PIND
-#define BTN_PORT   PORTD
-#define BTN_DDR    DDRD
+#define BTN_INC_PIN     PD0
+#define BTN_DEC_PIN     PD1
+#define BTN_MODE_PIN    PD2
+#define BTN_NEXT_PIN    PD3
 
-#define BTN_INC    PD0
-#define BTN_DEC    PD1
-#define BTN_INT0   PD2
-#define BTN_INT1   PD3
+#define BTN_PIN_REG     PIND
+#define BTN_PORT_REG    PORTD
+#define BTN_DDR_REG     DDRD
 
-/* For EasyAVR v7 onboard 7-seg this should stay 0 */
-#define COMMON_ANODE 0
-
-/* ============================================================
- * Application types
- * ============================================================ */
-
-typedef enum {
-    MODE_DISPLAY = 0,
-    MODE_SETUP   = 1
-} app_mode_t;
-
-typedef enum {
-    VIEW_HHMM = 0,
-    VIEW_MMSS = 1
-} view_mode_t;
-
-typedef enum {
-    SEL_HH = 0,
-    SEL_MM = 1,
-    SEL_SS = 2
-} setup_sel_t;
-
-typedef enum {
-    EVT_NONE = 0,
-    EVT_TOGGLE_MODE = 1,
-    EVT_SWITCH_VIEW_OR_FIELD = 2,
-    EVT_INC_STEP = 3,
-    EVT_DEC_STEP  = 4
-} event_t;
-
-/* ============================================================
- * Ring buffer for events
- * ============================================================ */
-
-#define EVT_QUEUE_SIZE 16
-
-static volatile event_t evt_queue[EVT_QUEUE_SIZE];
-static volatile uint8_t evt_head = 0;
-static volatile uint8_t evt_tail = 0;
-
-static inline void push_event_isr(event_t e)
+typedef enum
 {
-    uint8_t next = (uint8_t)((evt_head + 1u) % EVT_QUEUE_SIZE);
-    if (next != evt_tail) {
-        evt_queue[evt_head] = e;
-        evt_head = next;
-    }
+    EV_NONE = 0,
+    EV_TICK_1S,
+    EV_MODE_TOGGLE,
+    EV_NEXT_FIELD_OR_FORMAT,
+    EV_INC,
+    EV_DEC
+} event;
+
+typedef struct
+{
+    volatile event buffer[RINGBUF_SIZE];
+    volatile uint8_t head:5;
+    volatile uint8_t tail:5;
+} RingBuffer;
+
+static inline void RB_Init(RingBuffer *rb)
+{
+    rb->head = 0;
+    rb->tail = 0;
 }
 
-static bool pop_event(event_t *e)
+static bool RB_Push(RingBuffer *rb, event e)
 {
     bool ok = false;
 
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        if (evt_tail != evt_head) {
-            *e = evt_queue[evt_tail];
-            evt_tail = (uint8_t)((evt_tail + 1u) % EVT_QUEUE_SIZE);
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+        uint8_t next = (uint8_t)((rb->head + 1u) % RINGBUF_SIZE);
+        if (next != rb->tail)
+        {
+            rb->buffer[rb->head] = e;
+            rb->head = next;
             ok = true;
         }
     }
@@ -118,507 +64,540 @@ static bool pop_event(event_t *e)
     return ok;
 }
 
-/* ============================================================
- * Global state
- * ============================================================ */
-
-static volatile uint32_t g_ms = 0;
-
-/* Here we store already ENCODED segment patterns */
-static volatile uint8_t g_disp[4] = {0, 0, 0, 0};
-
-/* Current time */
-static volatile uint8_t g_hours   = 0;
-static volatile uint8_t g_minutes = 0;
-static volatile uint8_t g_seconds = 0;
-
-/* UI state */
-static volatile app_mode_t  g_mode     = MODE_DISPLAY;
-static volatile view_mode_t g_view     = VIEW_HHMM;
-static volatile setup_sel_t g_selected = SEL_HH;
-
-/* Blink 2 Hz => toggle every 250 ms */
-static volatile uint8_t g_blink_visible = 1;
-
-/* Debounce timestamps for INT0 / INT1 */
-static volatile uint32_t g_last_int0_ms = 0;
-static volatile uint32_t g_last_int1_ms = 0;
-
-/* ============================================================
- * Button state machine for PD0 / PD1
- * ============================================================ */
-
-typedef struct {
-    uint8_t pin_mask;
-
-    uint8_t stable_pressed;
-    uint8_t raw_prev;
-    uint8_t debounce_cnt_ms;
-
-    uint32_t press_start_ms;
-    uint32_t next_repeat_ms;
-
-    event_t step_event;
-} button_state_t;
-
-static volatile button_state_t g_btn_inc = {
-    .pin_mask = (1u << BTN_INC),
-    .stable_pressed = 0,
-    .raw_prev = 0,
-    .debounce_cnt_ms = 0,
-    .press_start_ms = 0,
-    .next_repeat_ms = 0,
-    .step_event = EVT_INC_STEP
-};
-
-static volatile button_state_t g_btn_dec = {
-    .pin_mask = (1u << BTN_DEC),
-    .stable_pressed = 0,
-    .raw_prev = 0,
-    .debounce_cnt_ms = 0,
-    .press_start_ms = 0,
-    .next_repeat_ms = 0,
-    .step_event = EVT_DEC_STEP
-};
-
-/* ============================================================
- * 7-segment encoding
- * bit0=a bit1=b bit2=c bit3=d bit4=e bit5=f bit6=g bit7=dp
- * ============================================================ */
-
-static const uint8_t seg_digits[10] = {
-    0b00111111, /* 0 */
-    0b00000110, /* 1 */
-    0b01011011, /* 2 */
-    0b01001111, /* 3 */
-    0b01100110, /* 4 */
-    0b01101101, /* 5 */
-    0b01111101, /* 6 */
-    0b00000111, /* 7 */
-    0b01111111, /* 8 */
-    0b01101111  /* 9 */
-};
-
-#define SEG_DP    0x80
-#define SEG_BLANK 0x00
-
-static inline uint8_t seg_encode_digit(uint8_t d)
+static bool RB_Pop(RingBuffer *rb, event *e)
 {
-    if (d < 10u) return seg_digits[d];
-    return SEG_BLANK;
-}
+    bool ok = false;
 
-/* EasyAVR v7 uses direct mapping on PORTC */
-static inline uint8_t seg_hw_prepare(uint8_t logical_pattern)
-{
-#if COMMON_ANODE
-    return (uint8_t)~logical_pattern;
-#else
-    return logical_pattern;
-#endif
-}
-
-/*
- * Physical digit order on board is usually:
- * leftmost  -> PA3
- * next      -> PA2
- * next      -> PA1
- * rightmost -> PA0
- *
- * If you get mirrored output 4321 instead of 1234,
- * swap only the masks in digit_on().
- */
-static inline void digits_all_off(void)
-{
-    DIG_PORT &= (uint8_t)~DIG_MASK;
-}
-
-static inline void digit_on(uint8_t idx)
-{
-    uint8_t mask = 0;
-
-    switch (idx) {
-        case 0: mask = (1u << PA3); break; /* leftmost  */
-        case 1: mask = (1u << PA2); break;
-        case 2: mask = (1u << PA1); break;
-        case 3: mask = (1u << PA0); break; /* rightmost */
-        default: mask = 0; break;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+        if (rb->tail != rb->head)
+        {
+            *e = rb->buffer[rb->tail];
+            rb->tail = (uint8_t)((rb->tail + 1u) % RINGBUF_SIZE);
+            ok = true;
+        }
     }
 
-    DIG_PORT = (DIG_PORT & (uint8_t)~DIG_MASK) | mask;
+    return ok;
 }
 
-/* ============================================================
- * JTAG disable for PORTC normal I/O
- * ============================================================ */
 
-static void jtag_disable(void)
+
+
+typedef enum
 {
-#ifdef JTD
-    MCUCSR |= (1u << JTD);
-    MCUCSR |= (1u << JTD);
-#endif
+    MODE_DISPLAY = 0,
+    MODE_SET
+} ClockMode;
+
+typedef enum
+{
+    VIEW_HH_MM = 0,
+    VIEW_MM_SS
+} DisplayFormat;
+
+typedef enum
+{
+    FIELD_HH = 0,
+    FIELD_MM,
+    FIELD_SS
+} SetField;
+
+typedef struct
+{
+    uint8_t hh;
+    uint8_t mm;
+    uint8_t ss;
+} ClockTime;
+
+static uint8_t Dec2_FromStr(const char *s)
+{
+	return (uint8_t)((s[0] - '0') * 10u + (s[1] - '0'));
 }
 
-/* ============================================================
- * Time helpers
- * ============================================================ */
-
-static void time_tick_1s(void)
+static ClockTime ClockTime_FromBuildTime(void)
 {
-    g_seconds++;
-    if (g_seconds >= 60u) {
-        g_seconds = 0;
-        g_minutes++;
-        if (g_minutes >= 60u) {
-            g_minutes = 0;
-            g_hours++;
-            if (g_hours >= 24u) {
-                g_hours = 0;
+	ClockTime t;
+
+	t.hh = Dec2_FromStr(&__TIME__[0]);
+	t.mm = Dec2_FromStr(&__TIME__[3]);
+	t.ss = Dec2_FromStr(&__TIME__[6]);
+
+	return t;
+}
+
+static volatile RingBuffer g_queue;
+
+static volatile ClockMode g_mode = MODE_DISPLAY;
+static volatile DisplayFormat g_format = VIEW_HH_MM;
+static volatile SetField g_set_field = FIELD_HH;
+static volatile ClockTime g_time = {0, 0, 0};
+
+static volatile uint8_t g_blink_visible = 1;
+static volatile uint16_t g_blink_ms = 0;
+
+static volatile uint8_t g_disp_digits[4] = {0, 0, 0, 0};
+static volatile uint8_t g_disp_dp[4]     = {0, 0, 1, 0};
+static volatile uint8_t g_scan_pos = 0;
+
+static const uint8_t seg_lut[10] =
+{
+    0b00111111,
+    0b00000110,
+    0b01011011,
+    0b01001111,
+    0b01100110,
+    0b01101101,
+    0b01111101,
+    0b00000111,
+    0b01111111,
+    0b01101111
+};
+
+#define SEG_BLANK 0x00
+#define DISP_BLANK 10
+
+static void Clock_Normalize(ClockTime *t)
+{
+    if (t->ss >= 60) t->ss = 0;
+    if (t->mm >= 60) t->mm = 0;
+    if (t->hh >= 24) t->hh = 0;
+}
+
+static void Clock_Tick1s(ClockTime *t)
+{
+    t->ss++;
+    if (t->ss >= 60)
+    {
+        t->ss = 0;
+        t->mm++;
+        if (t->mm >= 60)
+        {
+            t->mm = 0;
+            t->hh++;
+            if (t->hh >= 24)
+            {
+                t->hh = 0;
             }
         }
     }
 }
 
-static void inc_selected_value(void)
+static void Clock_IncField(ClockTime *t, SetField field)
 {
-    switch (g_selected) {
-        case SEL_HH:
-            g_hours = (uint8_t)((g_hours + 1u) % 24u);
-            break;
-        case SEL_MM:
-            g_minutes = (uint8_t)((g_minutes + 1u) % 60u);
-            break;
-        case SEL_SS:
-            g_seconds = (uint8_t)((g_seconds + 1u) % 60u);
-            break;
+    switch (field)
+    {
+        case FIELD_HH: t->hh = (uint8_t)((t->hh + 1u) % 24u); break;
+        case FIELD_MM: t->mm = (uint8_t)((t->mm + 1u) % 60u); break;
+        case FIELD_SS: t->ss = (uint8_t)((t->ss + 1u) % 60u); break;
+        default: break;
     }
 }
 
-static void dec_selected_value(void)
+static void Clock_DecField(ClockTime *t, SetField field)
 {
-    switch (g_selected) {
-        case SEL_HH:
-            g_hours = (g_hours == 0u) ? 23u : (uint8_t)(g_hours - 1u);
-            break;
-        case SEL_MM:
-            g_minutes = (g_minutes == 0u) ? 59u : (uint8_t)(g_minutes - 1u);
-            break;
-        case SEL_SS:
-            g_seconds = (g_seconds == 0u) ? 59u : (uint8_t)(g_seconds - 1u);
-            break;
+    switch (field)
+    {
+        case FIELD_HH: t->hh = (t->hh == 0) ? 23 : (uint8_t)(t->hh - 1u); break;
+        case FIELD_MM: t->mm = (t->mm == 0) ? 59 : (uint8_t)(t->mm - 1u); break;
+        case FIELD_SS: t->ss = (t->ss == 0) ? 59 : (uint8_t)(t->ss - 1u); break;
+        default: break;
     }
 }
 
-/* ============================================================
- * Display preparation
- * ============================================================ */
-
-static void display_store_patterns(uint8_t p0, uint8_t p1, uint8_t p2, uint8_t p3)
-{
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        g_disp[0] = p0;
-        g_disp[1] = p1;
-        g_disp[2] = p2;
-        g_disp[3] = p3;
-    }
-}
-
-static view_mode_t get_effective_view_for_setup(void)
-{
-    if (g_selected == SEL_HH) return VIEW_HHMM;
-    if (g_selected == SEL_SS) return VIEW_MMSS;
-    return g_view;
-}
-
-static void refresh_display_buffer(void)
+static void Display_UpdateBuffer(void)
 {
     uint8_t hh, mm, ss;
-    app_mode_t mode;
-    view_mode_t view;
-    setup_sel_t selected;
-    uint8_t blink_visible;
+    uint8_t blank_hh = 0;
+    uint8_t blank_mm = 0;
+    uint8_t blank_ss = 0;
 
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        hh = g_hours;
-        mm = g_minutes;
-        ss = g_seconds;
-        mode = g_mode;
-        view = g_view;
-        selected = g_selected;
-        blink_visible = g_blink_visible;
-    }
-
-    if (mode == MODE_SETUP) {
-        view = get_effective_view_for_setup();
-    }
-
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
-        uint8_t d0, d1, d2, d3;
-        uint8_t p0, p1, p2, p3;
+        hh = g_time.hh;
+        mm = g_time.mm;
+        ss = g_time.ss;
 
-        if (view == VIEW_HHMM) {
-            d0 = (uint8_t)(hh / 10u);
-            d1 = (uint8_t)(hh % 10u);
-            d2 = (uint8_t)(mm / 10u);
-            d3 = (uint8_t)(mm % 10u);
-
-            if (mode == MODE_SETUP && !blink_visible) {
-                if (selected == SEL_HH) {
-                    d0 = 255u;
-                    d1 = 255u;
-                } else if (selected == SEL_MM) {
-                    d2 = 255u;
-                    d3 = 255u;
-                }
-            }
-        } else {
-            d0 = (uint8_t)(mm / 10u);
-            d1 = (uint8_t)(mm % 10u);
-            d2 = (uint8_t)(ss / 10u);
-            d3 = (uint8_t)(ss % 10u);
-
-            if (mode == MODE_SETUP && !blink_visible) {
-                if (selected == SEL_MM) {
-                    d0 = 255u;
-                    d1 = 255u;
-                } else if (selected == SEL_SS) {
-                    d2 = 255u;
-                    d3 = 255u;
-                }
+        if ((g_mode == MODE_SET) && (g_blink_visible == 0))
+        {
+            switch (g_set_field)
+            {
+                case FIELD_HH: blank_hh = 1; break;
+                case FIELD_MM: blank_mm = 1; break;
+                case FIELD_SS: blank_ss = 1; break;
+                default: break;
             }
         }
+    }
 
-        p0 = (d0 < 10u) ? seg_encode_digit(d0) : SEG_BLANK;
-        p1 = (d1 < 10u) ? (uint8_t)(seg_encode_digit(d1) | SEG_DP) : SEG_BLANK;
-        p2 = (d2 < 10u) ? seg_encode_digit(d2) : SEG_BLANK;
-        p3 = (d3 < 10u) ? (uint8_t)(seg_encode_digit(d3) | SEG_DP) : SEG_BLANK;
+    g_disp_dp[0] = 0;
+    g_disp_dp[1] = 0;
+    g_disp_dp[2] = 1;
+    g_disp_dp[3] = 0;
 
-        display_store_patterns(p0, p1, p2, p3);
+    if (g_format == VIEW_HH_MM)
+    {
+        if (blank_hh)
+        {
+            g_disp_digits[3] = DISP_BLANK;
+            g_disp_digits[2] = DISP_BLANK;
+            g_disp_digits[1] = mm / 10;
+            g_disp_digits[0] = mm % 10;
+        }
+        else if (blank_mm)
+        {
+            g_disp_digits[3] = hh / 10;
+            g_disp_digits[2] = hh % 10;
+            g_disp_digits[1] = DISP_BLANK;
+            g_disp_digits[0] = DISP_BLANK;
+        }
+        else
+        {
+            g_disp_digits[3] = hh / 10;
+            g_disp_digits[2] = hh % 10;
+            g_disp_digits[1] = mm / 10;
+            g_disp_digits[0] = mm % 10;
+        }
+    }
+    else
+    {
+        if (blank_mm)
+        {
+            g_disp_digits[3] = DISP_BLANK;
+            g_disp_digits[2] = DISP_BLANK;
+            g_disp_digits[1] = ss / 10;
+            g_disp_digits[0] = ss % 10;
+        }
+        else if (blank_ss)
+        {
+            g_disp_digits[3] = mm / 10;
+            g_disp_digits[2] = mm % 10;
+            g_disp_digits[1] = DISP_BLANK;
+            g_disp_digits[0] = DISP_BLANK;
+        }
+        else
+        {
+            g_disp_digits[3] = mm / 10;
+            g_disp_digits[2] = mm % 10;
+            g_disp_digits[1] = ss / 10;
+            g_disp_digits[0] = ss % 10;
+        }
     }
 }
 
-/* ============================================================
- * Button handling (called every 1 ms from timer ISR)
- * ============================================================ */
-
-#define DEBOUNCE_MS 20
-
-static void button_scan_1ms(volatile button_state_t *b, uint8_t pin_snapshot, uint32_t now_ms)
+static uint8_t Display_EncodeDigit(uint8_t d, uint8_t dp)
 {
-    uint8_t raw_pressed = ((pin_snapshot & b->pin_mask) == 0u) ? 1u : 0u;
+    uint8_t code = (d <= 9) ? seg_lut[d] : SEG_BLANK;
+    if (dp) code |= (1u << 7);
+    return code;
+}
 
-    if (raw_pressed != b->raw_prev) {
+static void Display_AllDigitsOff(void)
+{
+    DIG_PORT &= (uint8_t)~0x0F;
+}
+
+static void Display_EnableDigit(uint8_t pos)
+{
+    DIG_PORT = (DIG_PORT & (uint8_t)~0x0F) | (1u << pos);
+}
+
+static void Display_ScanStep(void)
+{
+    uint8_t d = g_disp_digits[g_scan_pos];
+    uint8_t code;
+
+    Display_AllDigitsOff();
+
+    code = Display_EncodeDigit(d, g_disp_dp[g_scan_pos]);
+    SEG_PORT = code;
+    Display_EnableDigit(g_scan_pos);
+
+    g_scan_pos++;
+    if (g_scan_pos >= 4)
+    {
+        g_scan_pos = 0;
+    }
+}
+
+typedef struct
+{
+    uint8_t stable_pressed;
+    uint8_t raw_prev;
+    uint8_t debounce_cnt;
+    uint16_t hold_ms;
+    uint16_t repeat_ms;
+} ButtonState;
+
+static volatile ButtonState g_btn_inc = {0, 0, 0, 0, 0};
+static volatile ButtonState g_btn_dec = {0, 0, 0, 0, 0};
+
+static void Button_ProcessOne(volatile ButtonState *b, uint8_t raw_pressed, event ev)
+{
+    if (raw_pressed == b->raw_prev)
+    {
+        if (b->debounce_cnt < 3) b->debounce_cnt++;
+    }
+    else
+    {
+        b->debounce_cnt = 0;
         b->raw_prev = raw_pressed;
-        b->debounce_cnt_ms = 0;
-    } else {
-        if (b->debounce_cnt_ms < DEBOUNCE_MS) {
-            b->debounce_cnt_ms++;
-            if (b->debounce_cnt_ms == DEBOUNCE_MS) {
-                if (b->stable_pressed != raw_pressed) {
-                    b->stable_pressed = raw_pressed;
+    }
 
-                    if (raw_pressed) {
-                        b->press_start_ms = now_ms;
-                        b->next_repeat_ms = now_ms + 2000u;
-                        push_event_isr(b->step_event);
-                    }
+    if (b->debounce_cnt >= 3)
+    {
+        if (b->stable_pressed != raw_pressed)
+        {
+            b->stable_pressed = raw_pressed;
+
+            if (raw_pressed)
+            {
+                b->hold_ms = 0;
+                b->repeat_ms = 0;
+                RB_Push((RingBuffer *)&g_queue, ev);
+            }
+            else
+            {
+                b->hold_ms = 0;
+                b->repeat_ms = 0;
+            }
+        }
+    }
+
+    if (b->stable_pressed)
+    {
+        b->hold_ms += 10;
+
+        if (b->hold_ms >= 2000)
+        {
+            b->repeat_ms += 10;
+
+            if (b->hold_ms < 4000)
+            {
+                if (b->repeat_ms >= 200)
+                {
+                    b->repeat_ms = 0;
+                    RB_Push((RingBuffer *)&g_queue, ev);
+                }
+            }
+            else
+            {
+                if (b->repeat_ms >= 100)
+                {
+                    b->repeat_ms = 0;
+                    RB_Push((RingBuffer *)&g_queue, ev);
                 }
             }
         }
     }
+}
 
-    if (b->stable_pressed) {
-        uint32_t held = now_ms - b->press_start_ms;
+static void Buttons_Poll10ms(void)
+{
+    uint8_t pin = BTN_PIN_REG;
+    uint8_t inc_pressed = ((pin & (1u << BTN_INC_PIN)) != 0u) ? 1u : 0u;
+    uint8_t dec_pressed = ((pin & (1u << BTN_DEC_PIN)) != 0u) ? 1u : 0u;
 
-        if (held >= 4000u) {
-            while ((int32_t)(now_ms - b->next_repeat_ms) >= 0) {
-                push_event_isr(b->step_event);
-                b->next_repeat_ms += 100u;
+    Button_ProcessOne(&g_btn_inc, inc_pressed, EV_INC);
+    Button_ProcessOne(&g_btn_dec, dec_pressed, EV_DEC);
+}
+
+static void App_HandleEvent(event e)
+{
+    switch (e)
+    {
+        case EV_TICK_1S:
+            if (g_mode == MODE_DISPLAY)
+            {
+                ClockTime tmp;
+
+                ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+                {
+                    tmp = g_time;
+                }
+
+                Clock_Tick1s(&tmp);
+
+                ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+                {
+                    g_time = tmp;
+                }
             }
-        } else if (held >= 2000u) {
-            while ((int32_t)(now_ms - b->next_repeat_ms) >= 0) {
-                push_event_isr(b->step_event);
-                b->next_repeat_ms += 200u;
+            break;
+
+        case EV_MODE_TOGGLE:
+            if (g_mode == MODE_DISPLAY)
+            {
+                g_mode = MODE_SET;
+                g_set_field = FIELD_HH;
+                g_blink_visible = 1;
+                g_blink_ms = 0;
             }
-        }
+            else
+            {
+                g_mode = MODE_DISPLAY;
+                g_blink_visible = 1;
+            }
+            break;
+
+        case EV_NEXT_FIELD_OR_FORMAT:
+            if (g_mode == MODE_DISPLAY)
+            {
+                g_format = (g_format == VIEW_HH_MM) ? VIEW_MM_SS : VIEW_HH_MM;
+            }
+            else
+            {
+                g_set_field = (g_set_field == FIELD_SS) ? FIELD_HH : (SetField)(g_set_field + 1);
+                g_blink_visible = 1;
+                g_blink_ms = 0;
+            }
+            break;
+
+        case EV_INC:
+            if (g_mode == MODE_SET)
+            {
+                ClockTime tmp;
+                ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { tmp = g_time; }
+                Clock_IncField(&tmp, g_set_field);
+                Clock_Normalize(&tmp);
+                ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { g_time = tmp; }
+                g_blink_visible = 1;
+                g_blink_ms = 0;
+            }
+            break;
+
+        case EV_DEC:
+            if (g_mode == MODE_SET)
+            {
+                ClockTime tmp;
+                ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { tmp = g_time; }
+                Clock_DecField(&tmp, g_set_field);
+                Clock_Normalize(&tmp);
+                ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { g_time = tmp; }
+                g_blink_visible = 1;
+                g_blink_ms = 0;
+            }
+            break;
+
+        default:
+            break;
     }
 }
 
-/* ============================================================
- * Initialization
- * ============================================================ */
-
-static void gpio_init(void)
+static void GPIO_Init(void)
 {
-    /* Segments */
-    SEG_DDR  = 0xFF;
-    SEG_PORT = seg_hw_prepare(SEG_BLANK);
+    SEG_DDR = 0xFF;
+    SEG_PORT = 0x00;
 
-    /* Digits */
-    DIG_DDR  |= DIG_MASK;
-    digits_all_off();
+    DIG_DDR |= 0x0F;
+    DIG_PORT &= (uint8_t)~0x0F;
 
-    /* Buttons PD0..PD3 as input with pull-ups */
-    BTN_DDR  &= (uint8_t)~((1u << BTN_INC) | (1u << BTN_DEC) | (1u << BTN_INT0) | (1u << BTN_INT1));
-    BTN_PORT |= (1u << BTN_INC) | (1u << BTN_DEC) | (1u << BTN_INT0) | (1u << BTN_INT1);
+    BTN_DDR_REG &= (uint8_t)~((1u << BTN_INC_PIN) |
+                              (1u << BTN_DEC_PIN) |
+                              (1u << BTN_MODE_PIN) |
+                              (1u << BTN_NEXT_PIN));
+
+    BTN_PORT_REG &= (uint8_t)~((1u << BTN_INC_PIN) |
+                               (1u << BTN_DEC_PIN) |
+                               (1u << BTN_MODE_PIN) |
+                               (1u << BTN_NEXT_PIN));
 }
 
-static void exti_init(void)
+static void Timer0_Init_1ms(void)
 {
-    /* INT0: falling edge */
-    MCUCR |= (1u << ISC01);
-    MCUCR &= (uint8_t)~(1u << ISC00);
-
-    /* INT1: falling edge */
-    MCUCR |= (1u << ISC11);
-    MCUCR &= (uint8_t)~(1u << ISC10);
-
-    /* Clear pending flags */
-    GIFR |= (1u << INTF0) | (1u << INTF1);
-
-    /* Enable INT0, INT1 */
-    GICR |= (1u << INT0) | (1u << INT1);
-}
-
-static void timer0_init(void)
-{
-    /*
-     * Timer0 CTC, 1 ms tick
-     * F_CPU = 8 MHz
-     * prescaler = 64
-     * 8,000,000 / 64 = 125,000 Hz
-     * OCR0 = 124 => 125 counts => 1 ms
-     */
-    TCCR0 = 0;
-    TCNT0 = 0;
-    OCR0  = 124;
-
-    TCCR0 |= (1u << WGM01);              /* CTC */
-    TCCR0 |= (1u << CS01) | (1u << CS00);/* prescaler 64 */
-
+    TCCR0 = (1u << WGM01) | (1u << CS01) | (1u << CS00);
+    OCR0 = 124;
     TIMSK |= (1u << OCIE0);
 }
 
-/* ============================================================
- * ISRs
- * ============================================================ */
-
-ISR(INT0_vect)
+static void Timer1_Init_1Hz(void)
 {
-    uint32_t now = g_ms;
-    if ((now - g_last_int0_ms) >= 50u) {
-        g_last_int0_ms = now;
-        push_event_isr(EVT_TOGGLE_MODE);
-    }
+    TCCR1A = 0x00;
+    TCCR1B = (1u << WGM12) | (1u << CS12);
+    OCR1A = 31249;
+    TIMSK |= (1u << OCIE1A);
 }
 
-ISR(INT1_vect)
+static void ExtInterrupts_Init(void)
 {
-    uint32_t now = g_ms;
-    if ((now - g_last_int1_ms) >= 50u) {
-        g_last_int1_ms = now;
-        push_event_isr(EVT_SWITCH_VIEW_OR_FIELD);
-    }
+    MCUCR |= (1u << ISC01);
+    MCUCR &= (uint8_t)~(1u << ISC00);
+
+    MCUCR |= (1u << ISC11);
+    MCUCR &= (uint8_t)~(1u << ISC10);
+
+    GICR |= (1u << INT0) | (1u << INT1);
 }
 
 ISR(TIMER0_COMP_vect)
 {
-    static uint16_t ms_div_1s = 0;
-    static uint8_t mux_digit = 0;
+    static uint8_t cnt10ms = 0;
 
-    g_ms++;
+    Display_ScanStep();
 
-    /* blink state for setup mode */
-    g_blink_visible = (((g_ms / 250u) & 1u) == 0u) ? 1u : 0u;
-
-    /* time base */
-    ms_div_1s++;
-    if (ms_div_1s >= 1000u) {
-        ms_div_1s = 0;
-        time_tick_1s();
-    }
-
-    /* scan PD0 / PD1 */
+    if (g_mode == MODE_SET)
     {
-        uint8_t pins = BTN_PIN;
-        button_scan_1ms(&g_btn_inc, pins, g_ms);
-        button_scan_1ms(&g_btn_dec, pins, g_ms);
+        g_blink_ms++;
+        if (g_blink_ms >= 250)
+        {
+            g_blink_ms = 0;
+            g_blink_visible ^= 1u;
+        }
+    }
+    else
+    {
+        g_blink_visible = 1;
+        g_blink_ms = 0;
     }
 
-    /* multiplex display */
-    digits_all_off();
-    SEG_PORT = seg_hw_prepare(g_disp[mux_digit]);
-    digit_on(mux_digit);
-
-    mux_digit++;
-    if (mux_digit >= 4u) {
-        mux_digit = 0u;
+    cnt10ms++;
+    if (cnt10ms >= 10)
+    {
+        cnt10ms = 0;
+        Buttons_Poll10ms();
     }
 }
 
-/* ============================================================
- * Event processing
- * ============================================================ */
-static void process_event(event_t e)
+ISR(TIMER1_COMPA_vect)
 {
-	switch (e) {
-		case EVT_TOGGLE_MODE:
-		//g_seconds = (g_seconds == 0) ? 55 : 0;
-		display_store_patterns(
-		seg_encode_digit(1),
-		seg_encode_digit(4) | SEG_DP,
-		seg_encode_digit(8),
-		seg_encode_digit(8) | SEG_DP);
-		break;
-
-		case EVT_SWITCH_VIEW_OR_FIELD:
-		//g_minutes = (g_minutes == 0) ? 44 : 0;
-		display_store_patterns(
-				seg_encode_digit(1),
-				seg_encode_digit(3) | SEG_DP,
-				seg_encode_digit(3),
-				seg_encode_digit(7) | SEG_DP);
-		break;
-
-		case EVT_INC_STEP:
-		g_hours = (uint8_t)((g_hours + 1u) % 24u);
-		break;
-
-		case EVT_DEC_STEP:
-		g_hours = (g_hours == 0u) ? 23u : (uint8_t)(g_hours - 1u);
-		break;
-
-		default:
-		break;
-	}
+    RB_Push((RingBuffer *)&g_queue, EV_TICK_1S);
 }
 
-/* ============================================================
- * Main
- * ============================================================ */
+ISR(INT0_vect)
+{
+    RB_Push((RingBuffer *)&g_queue, EV_MODE_TOGGLE);
+}
+
+ISR(INT1_vect)
+{
+    RB_Push((RingBuffer *)&g_queue, EV_NEXT_FIELD_OR_FORMAT);
+}
 
 int main(void)
 {
-    jtag_disable();
-    gpio_init();
-    exti_init();
-    timer0_init();
-
-    refresh_display_buffer();
+    event e;
+	ClockTime start_time;
+    RB_Init((RingBuffer *)&g_queue);
+    GPIO_Init();
+    Timer0_Init_1ms();
+    Timer1_Init_1Hz();
+    ExtInterrupts_Init();
+	start_time = ClockTime_FromBuildTime();
+    Display_UpdateBuffer();
+	
     sei();
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		g_time = start_time;
+	}
 
-    while (1) {
-	    event_t e;
+    while (1)
+    {
+        if (RB_Pop((RingBuffer *)&g_queue, &e))
+        {
+            App_HandleEvent(e);
+        }
 
-	    while (pop_event(&e)) {
-		    process_event(e);
-	    }
-
-	    refresh_display_buffer();
+        Display_UpdateBuffer();
     }
-	//g_disp[0] = seg_encode_digit(1);
-	//g_disp[1] = seg_encode_digit(4);
-	//g_disp[2] = seg_encode_digit(8);
-	//g_disp[3] = seg_encode_digit(8);
 }

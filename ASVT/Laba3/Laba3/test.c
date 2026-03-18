@@ -77,6 +77,7 @@ typedef struct
     volatile uint8_t head;
     volatile uint8_t tail;
 } RingBuffer;
+
 static void RB_Push(RingBuffer *ring_buffer, event e)
 {
     uint8_t next = (ring_buffer->head + 1u) % RINGBUF_SIZE;
@@ -86,6 +87,7 @@ static void RB_Push(RingBuffer *ring_buffer, event e)
         rb->head = next
     }
 }
+
 static void RB_Pop(RingBuffer* ring_buffer, event *e)
 {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
@@ -97,3 +99,15 @@ static void RB_Pop(RingBuffer* ring_buffer, event *e)
         }
     }
 }
+
+typedef struct 
+{
+    uint8_t pin_mask;
+    uint8_t pressed;
+    uint8_t pressed_2s;
+    uint8_t pressed_4s;
+    uint8_t delay_ms;
+    event cur_event;
+
+    uint8_t 
+}   button_state;
