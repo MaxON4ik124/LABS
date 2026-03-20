@@ -1,0 +1,3557 @@
+
+Laba8.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00001206  00000000  00000000  000000b4  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         0000000c  00800060  00001206  000012ba  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000224  0080006c  0080006c  000012c6  2**0
+                  ALLOC
+  3 .eeprom       00000042  00810000  00810000  000012c6  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  4 .comment      00000030  00000000  00000000  00001308  2**0
+                  CONTENTS, READONLY
+  5 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  00001338  2**2
+                  CONTENTS, READONLY
+  6 .debug_aranges 00000258  00000000  00000000  00001378  2**3
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_info   00002f5a  00000000  00000000  000015d0  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_abbrev 00000f26  00000000  00000000  0000452a  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_line   000013da  00000000  00000000  00005450  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_frame  00000568  00000000  00000000  0000682c  2**2
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_str    00000a4f  00000000  00000000  00006d94  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 12 .debug_loc    00001c91  00000000  00000000  000077e3  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 13 .debug_ranges 000001c8  00000000  00000000  00009474  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+       0:	0c 94 57 00 	jmp	0xae	; 0xae <__ctors_end>
+       4:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+       8:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+       c:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      10:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      14:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      18:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      1c:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      20:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      24:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      28:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      2c:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      30:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      34:	0c 94 f8 07 	jmp	0xff0	; 0xff0 <__vector_13>
+      38:	0c 94 1f 08 	jmp	0x103e	; 0x103e <__vector_14>
+      3c:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      40:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      44:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      48:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      4c:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      50:	0c 94 74 00 	jmp	0xe8	; 0xe8 <__bad_interrupt>
+      54:	e1 03       	fmuls	r22, r17
+      56:	e8 03       	fmulsu	r22, r16
+      58:	f2 03       	fmuls	r23, r18
+      5a:	f8 03       	fmulsu	r23, r16
+      5c:	00 04       	cpc	r0, r0
+      5e:	08 04       	cpc	r0, r8
+      60:	2c 04       	cpc	r2, r12
+      62:	45 04       	cpc	r4, r5
+      64:	5f 04       	cpc	r5, r15
+      66:	67 04       	cpc	r6, r7
+      68:	74 04       	cpc	r7, r4
+      6a:	3a 07       	cpc	r19, r26
+      6c:	3a 07       	cpc	r19, r26
+      6e:	3a 07       	cpc	r19, r26
+      70:	3a 07       	cpc	r19, r26
+      72:	3a 07       	cpc	r19, r26
+      74:	3a 07       	cpc	r19, r26
+      76:	3a 07       	cpc	r19, r26
+      78:	3a 07       	cpc	r19, r26
+      7a:	3a 07       	cpc	r19, r26
+      7c:	3a 07       	cpc	r19, r26
+      7e:	3a 07       	cpc	r19, r26
+      80:	3a 07       	cpc	r19, r26
+      82:	9c 04       	cpc	r9, r12
+      84:	d7 04       	cpc	r13, r7
+      86:	f2 04       	cpc	r15, r2
+      88:	3a 07       	cpc	r19, r26
+      8a:	3a 07       	cpc	r19, r26
+      8c:	3a 07       	cpc	r19, r26
+      8e:	3a 07       	cpc	r19, r26
+      90:	3a 07       	cpc	r19, r26
+      92:	3a 07       	cpc	r19, r26
+      94:	3a 07       	cpc	r19, r26
+      96:	3a 07       	cpc	r19, r26
+      98:	3a 07       	cpc	r19, r26
+      9a:	3a 07       	cpc	r19, r26
+      9c:	3a 07       	cpc	r19, r26
+      9e:	3a 07       	cpc	r19, r26
+      a0:	3a 07       	cpc	r19, r26
+      a2:	43 05       	cpc	r20, r3
+      a4:	bc 05       	cpc	r27, r12
+      a6:	28 06       	cpc	r2, r24
+      a8:	39 06       	cpc	r3, r25
+      aa:	a5 06       	cpc	r10, r21
+      ac:	29 07       	cpc	r18, r25
+
+000000ae <__ctors_end>:
+      ae:	11 24       	eor	r1, r1
+      b0:	1f be       	out	0x3f, r1	; 63
+      b2:	cf e5       	ldi	r28, 0x5F	; 95
+      b4:	d8 e0       	ldi	r29, 0x08	; 8
+      b6:	de bf       	out	0x3e, r29	; 62
+      b8:	cd bf       	out	0x3d, r28	; 61
+
+000000ba <__do_copy_data>:
+      ba:	10 e0       	ldi	r17, 0x00	; 0
+      bc:	a0 e6       	ldi	r26, 0x60	; 96
+      be:	b0 e0       	ldi	r27, 0x00	; 0
+      c0:	e6 e0       	ldi	r30, 0x06	; 6
+      c2:	f2 e1       	ldi	r31, 0x12	; 18
+      c4:	02 c0       	rjmp	.+4      	; 0xca <__do_copy_data+0x10>
+      c6:	05 90       	lpm	r0, Z+
+      c8:	0d 92       	st	X+, r0
+      ca:	ac 36       	cpi	r26, 0x6C	; 108
+      cc:	b1 07       	cpc	r27, r17
+      ce:	d9 f7       	brne	.-10     	; 0xc6 <__do_copy_data+0xc>
+
+000000d0 <__do_clear_bss>:
+      d0:	22 e0       	ldi	r18, 0x02	; 2
+      d2:	ac e6       	ldi	r26, 0x6C	; 108
+      d4:	b0 e0       	ldi	r27, 0x00	; 0
+      d6:	01 c0       	rjmp	.+2      	; 0xda <.do_clear_bss_start>
+
+000000d8 <.do_clear_bss_loop>:
+      d8:	1d 92       	st	X+, r1
+
+000000da <.do_clear_bss_start>:
+      da:	a0 39       	cpi	r26, 0x90	; 144
+      dc:	b2 07       	cpc	r27, r18
+      de:	e1 f7       	brne	.-8      	; 0xd8 <.do_clear_bss_loop>
+      e0:	0e 94 ee 02 	call	0x5dc	; 0x5dc <main>
+      e4:	0c 94 01 09 	jmp	0x1202	; 0x1202 <_exit>
+
+000000e8 <__bad_interrupt>:
+      e8:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+000000ec <crypto_mod_pow_u16>:
+#include "crypto_elgamal.h"
+
+uint16_t crypto_mod_pow_u16(uint16_t base, uint16_t exp, uint16_t mod)
+{
+      ec:	4f 92       	push	r4
+      ee:	5f 92       	push	r5
+      f0:	6f 92       	push	r6
+      f2:	7f 92       	push	r7
+      f4:	8f 92       	push	r8
+      f6:	9f 92       	push	r9
+      f8:	af 92       	push	r10
+      fa:	bf 92       	push	r11
+      fc:	cf 92       	push	r12
+      fe:	df 92       	push	r13
+     100:	ef 92       	push	r14
+     102:	ff 92       	push	r15
+     104:	cf 93       	push	r28
+     106:	df 93       	push	r29
+     108:	eb 01       	movw	r28, r22
+     10a:	4a 01       	movw	r8, r20
+    uint32_t result = 1u;
+    uint32_t cur = (uint32_t)(base % mod);
+     10c:	ba 01       	movw	r22, r20
+     10e:	0e 94 66 08 	call	0x10cc	; 0x10cc <__udivmodhi4>
+     112:	6c 01       	movw	r12, r24
+     114:	e1 2c       	mov	r14, r1
+     116:	f1 2c       	mov	r15, r1
+
+    while (exp != 0u)
+     118:	20 97       	sbiw	r28, 0x00	; 0
+     11a:	29 f1       	breq	.+74     	; 0x166 <crypto_mod_pow_u16+0x7a>
+     11c:	41 2c       	mov	r4, r1
+     11e:	51 2c       	mov	r5, r1
+     120:	32 01       	movw	r6, r4
+     122:	43 94       	inc	r4
+    {
+        if ((exp & 1u) != 0u)
+        {
+            result = (result * cur) % mod;
+     124:	a1 2c       	mov	r10, r1
+     126:	b1 2c       	mov	r11, r1
+    uint32_t result = 1u;
+    uint32_t cur = (uint32_t)(base % mod);
+
+    while (exp != 0u)
+    {
+        if ((exp & 1u) != 0u)
+     128:	c0 ff       	sbrs	r28, 0
+     12a:	0c c0       	rjmp	.+24     	; 0x144 <crypto_mod_pow_u16+0x58>
+        {
+            result = (result * cur) % mod;
+     12c:	a3 01       	movw	r20, r6
+     12e:	92 01       	movw	r18, r4
+     130:	c7 01       	movw	r24, r14
+     132:	b6 01       	movw	r22, r12
+     134:	0e 94 56 08 	call	0x10ac	; 0x10ac <__mulsi3>
+     138:	a5 01       	movw	r20, r10
+     13a:	94 01       	movw	r18, r8
+     13c:	0e 94 7a 08 	call	0x10f4	; 0x10f4 <__udivmodsi4>
+     140:	2b 01       	movw	r4, r22
+     142:	3c 01       	movw	r6, r24
+        }
+        cur = (cur * cur) % mod;
+     144:	a7 01       	movw	r20, r14
+     146:	96 01       	movw	r18, r12
+     148:	c7 01       	movw	r24, r14
+     14a:	b6 01       	movw	r22, r12
+     14c:	0e 94 56 08 	call	0x10ac	; 0x10ac <__mulsi3>
+     150:	a5 01       	movw	r20, r10
+     152:	94 01       	movw	r18, r8
+     154:	0e 94 7a 08 	call	0x10f4	; 0x10f4 <__udivmodsi4>
+     158:	6b 01       	movw	r12, r22
+     15a:	7c 01       	movw	r14, r24
+        exp >>= 1u;
+     15c:	d6 95       	lsr	r29
+     15e:	c7 95       	ror	r28
+uint16_t crypto_mod_pow_u16(uint16_t base, uint16_t exp, uint16_t mod)
+{
+    uint32_t result = 1u;
+    uint32_t cur = (uint32_t)(base % mod);
+
+    while (exp != 0u)
+     160:	20 97       	sbiw	r28, 0x00	; 0
+     162:	11 f7       	brne	.-60     	; 0x128 <crypto_mod_pow_u16+0x3c>
+     164:	04 c0       	rjmp	.+8      	; 0x16e <crypto_mod_pow_u16+0x82>
+#include "crypto_elgamal.h"
+
+uint16_t crypto_mod_pow_u16(uint16_t base, uint16_t exp, uint16_t mod)
+{
+    uint32_t result = 1u;
+     166:	41 2c       	mov	r4, r1
+     168:	51 2c       	mov	r5, r1
+     16a:	32 01       	movw	r6, r4
+     16c:	43 94       	inc	r4
+        cur = (cur * cur) % mod;
+        exp >>= 1u;
+    }
+
+    return (uint16_t)result;
+}
+     16e:	c2 01       	movw	r24, r4
+     170:	df 91       	pop	r29
+     172:	cf 91       	pop	r28
+     174:	ff 90       	pop	r15
+     176:	ef 90       	pop	r14
+     178:	df 90       	pop	r13
+     17a:	cf 90       	pop	r12
+     17c:	bf 90       	pop	r11
+     17e:	af 90       	pop	r10
+     180:	9f 90       	pop	r9
+     182:	8f 90       	pop	r8
+     184:	7f 90       	pop	r7
+     186:	6f 90       	pop	r6
+     188:	5f 90       	pop	r5
+     18a:	4f 90       	pop	r4
+     18c:	08 95       	ret
+
+0000018e <crypto_encrypt_byte>:
+
+uint16_t crypto_encrypt_byte(uint8_t plain, uint16_t shared_secret, uint16_t mod_p)
+{
+     18e:	38 2f       	mov	r19, r24
+     190:	cb 01       	movw	r24, r22
+     192:	fa 01       	movw	r30, r20
+    return (uint16_t)(((uint32_t)plain + (uint32_t)(shared_secret % mod_p)) % mod_p);
+     194:	ba 01       	movw	r22, r20
+     196:	0e 94 66 08 	call	0x10cc	; 0x10cc <__udivmodhi4>
+     19a:	ac 01       	movw	r20, r24
+     19c:	83 2f       	mov	r24, r19
+     19e:	90 e0       	ldi	r25, 0x00	; 0
+     1a0:	a0 e0       	ldi	r26, 0x00	; 0
+     1a2:	b0 e0       	ldi	r27, 0x00	; 0
+     1a4:	bc 01       	movw	r22, r24
+     1a6:	cd 01       	movw	r24, r26
+     1a8:	64 0f       	add	r22, r20
+     1aa:	75 1f       	adc	r23, r21
+     1ac:	81 1d       	adc	r24, r1
+     1ae:	91 1d       	adc	r25, r1
+     1b0:	9f 01       	movw	r18, r30
+     1b2:	40 e0       	ldi	r20, 0x00	; 0
+     1b4:	50 e0       	ldi	r21, 0x00	; 0
+     1b6:	0e 94 7a 08 	call	0x10f4	; 0x10f4 <__udivmodsi4>
+}
+     1ba:	cb 01       	movw	r24, r22
+     1bc:	08 95       	ret
+
+000001be <crypto_decrypt_word>:
+
+bool crypto_decrypt_word(uint16_t cipher, uint16_t shared_secret, uint16_t mod_p, uint8_t *plain_out)
+{
+     1be:	cf 93       	push	r28
+     1c0:	df 93       	push	r29
+     1c2:	fa 01       	movw	r30, r20
+    uint16_t value;
+
+    value = (uint16_t)((cipher + mod_p - (shared_secret % mod_p)) % mod_p);
+     1c4:	ec 01       	movw	r28, r24
+     1c6:	c4 0f       	add	r28, r20
+     1c8:	d5 1f       	adc	r29, r21
+     1ca:	cb 01       	movw	r24, r22
+     1cc:	ba 01       	movw	r22, r20
+     1ce:	0e 94 66 08 	call	0x10cc	; 0x10cc <__udivmodhi4>
+     1d2:	ae 01       	movw	r20, r28
+     1d4:	48 1b       	sub	r20, r24
+     1d6:	59 0b       	sbc	r21, r25
+     1d8:	ca 01       	movw	r24, r20
+     1da:	bf 01       	movw	r22, r30
+     1dc:	0e 94 66 08 	call	0x10cc	; 0x10cc <__udivmodhi4>
+    if (value > 255u)
+     1e0:	8f 3f       	cpi	r24, 0xFF	; 255
+     1e2:	91 05       	cpc	r25, r1
+     1e4:	09 f0       	breq	.+2      	; 0x1e8 <crypto_decrypt_word+0x2a>
+     1e6:	20 f4       	brcc	.+8      	; 0x1f0 <crypto_decrypt_word+0x32>
+    {
+        return false;
+    }
+
+    *plain_out = (uint8_t)value;
+     1e8:	f9 01       	movw	r30, r18
+     1ea:	80 83       	st	Z, r24
+    return true;
+     1ec:	81 e0       	ldi	r24, 0x01	; 1
+     1ee:	01 c0       	rjmp	.+2      	; 0x1f2 <crypto_decrypt_word+0x34>
+    uint16_t value;
+
+    value = (uint16_t)((cipher + mod_p - (shared_secret % mod_p)) % mod_p);
+    if (value > 255u)
+    {
+        return false;
+     1f0:	80 e0       	ldi	r24, 0x00	; 0
+    }
+
+    *plain_out = (uint8_t)value;
+    return true;
+}
+     1f2:	df 91       	pop	r29
+     1f4:	cf 91       	pop	r28
+     1f6:	08 95       	ret
+
+000001f8 <store_init>:
+
+    eeprom_update_block((const void *)&layout, (void *)&g_store, sizeof(layout));
+}
+
+void store_init(void)
+{
+     1f8:	0f 93       	push	r16
+     1fa:	1f 93       	push	r17
+     1fc:	cf 93       	push	r28
+     1fe:	df 93       	push	r29
+     200:	cd b7       	in	r28, 0x3d	; 61
+     202:	de b7       	in	r29, 0x3e	; 62
+     204:	c2 54       	subi	r28, 0x42	; 66
+     206:	d1 09       	sbc	r29, r1
+     208:	0f b6       	in	r0, 0x3f	; 63
+     20a:	f8 94       	cli
+     20c:	de bf       	out	0x3e, r29	; 62
+     20e:	0f be       	out	0x3f, r0	; 63
+     210:	cd bf       	out	0x3d, r28	; 61
+    uint16_t magic = eeprom_read_word(&g_store.magic);
+     212:	80 e0       	ldi	r24, 0x00	; 0
+     214:	90 e0       	ldi	r25, 0x00	; 0
+     216:	0e 94 d4 08 	call	0x11a8	; 0x11a8 <eeprom_read_word>
+     21a:	8c 01       	movw	r16, r24
+    uint16_t version = eeprom_read_word(&g_store.version);
+     21c:	82 e0       	ldi	r24, 0x02	; 2
+     21e:	90 e0       	ldi	r25, 0x00	; 0
+     220:	0e 94 d4 08 	call	0x11a8	; 0x11a8 <eeprom_read_word>
+    uint16_t block_size;
+
+    if ((magic != EEPROM_MAGIC) || (version != EEPROM_VERSION))
+     224:	03 3a       	cpi	r16, 0xA3	; 163
+     226:	13 4e       	sbci	r17, 0xE3	; 227
+     228:	11 f4       	brne	.+4      	; 0x22e <store_init+0x36>
+     22a:	01 97       	sbiw	r24, 0x01	; 1
+     22c:	19 f1       	breq	.+70     	; 0x274 <store_init+0x7c>
+static void write_default_layout(void)
+{
+    eeprom_layout_t layout;
+    uint8_t i;
+
+    memset(&layout, 0, sizeof(layout));
+     22e:	fe 01       	movw	r30, r28
+     230:	31 96       	adiw	r30, 0x01	; 1
+     232:	82 e4       	ldi	r24, 0x42	; 66
+     234:	df 01       	movw	r26, r30
+     236:	1d 92       	st	X+, r1
+     238:	8a 95       	dec	r24
+     23a:	e9 f7       	brne	.-6      	; 0x236 <store_init+0x3e>
+    layout.magic = EEPROM_MAGIC;
+     23c:	83 ea       	ldi	r24, 0xA3	; 163
+     23e:	93 ee       	ldi	r25, 0xE3	; 227
+     240:	9a 83       	std	Y+2, r25	; 0x02
+     242:	89 83       	std	Y+1, r24	; 0x01
+    layout.version = EEPROM_VERSION;
+     244:	81 e0       	ldi	r24, 0x01	; 1
+     246:	90 e0       	ldi	r25, 0x00	; 0
+     248:	9c 83       	std	Y+4, r25	; 0x04
+     24a:	8b 83       	std	Y+3, r24	; 0x03
+    layout.block_size = DEFAULT_BLOCK_SIZE;
+     24c:	80 e1       	ldi	r24, 0x10	; 16
+     24e:	90 e0       	ldi	r25, 0x00	; 0
+     250:	9e 83       	std	Y+6, r25	; 0x06
+     252:	8d 83       	std	Y+5, r24	; 0x05
+     254:	ce 01       	movw	r24, r28
+     256:	c9 96       	adiw	r24, 0x39	; 57
+    layout.next_y_index = 0u;
+
+    for (i = 0u; i < MAX_KEYS; ++i)
+    {
+        layout.keys[i].flags_raw = 0u;
+     258:	10 8a       	std	Z+16, r1	; 0x10
+     25a:	37 96       	adiw	r30, 0x07	; 7
+    layout.magic = EEPROM_MAGIC;
+    layout.version = EEPROM_VERSION;
+    layout.block_size = DEFAULT_BLOCK_SIZE;
+    layout.next_y_index = 0u;
+
+    for (i = 0u; i < MAX_KEYS; ++i)
+     25c:	e8 17       	cp	r30, r24
+     25e:	f9 07       	cpc	r31, r25
+     260:	d9 f7       	brne	.-10     	; 0x258 <store_init+0x60>
+    {
+        layout.keys[i].flags_raw = 0u;
+    }
+
+    eeprom_update_block((const void *)&layout, (void *)&g_store, sizeof(layout));
+     262:	42 e4       	ldi	r20, 0x42	; 66
+     264:	50 e0       	ldi	r21, 0x00	; 0
+     266:	60 e0       	ldi	r22, 0x00	; 0
+     268:	70 e0       	ldi	r23, 0x00	; 0
+     26a:	ce 01       	movw	r24, r28
+     26c:	01 96       	adiw	r24, 0x01	; 1
+     26e:	0e 94 da 08 	call	0x11b4	; 0x11b4 <eeprom_update_block>
+     272:	13 c0       	rjmp	.+38     	; 0x29a <store_init+0xa2>
+    {
+        write_default_layout();
+        return;
+    }
+
+    block_size = eeprom_read_word(&g_store.block_size);
+     274:	84 e0       	ldi	r24, 0x04	; 4
+     276:	90 e0       	ldi	r25, 0x00	; 0
+     278:	0e 94 d4 08 	call	0x11a8	; 0x11a8 <eeprom_read_word>
+
+static eeprom_layout_t EEMEM g_store;
+
+static uint16_t clamp_block_size(uint16_t size)
+{
+    if (size < MIN_BLOCK_SIZE)
+     27c:	00 97       	sbiw	r24, 0x00	; 0
+     27e:	39 f0       	breq	.+14     	; 0x28e <store_init+0x96>
+     280:	bc 01       	movw	r22, r24
+     282:	81 34       	cpi	r24, 0x41	; 65
+     284:	91 05       	cpc	r25, r1
+     286:	28 f0       	brcs	.+10     	; 0x292 <store_init+0x9a>
+     288:	60 e4       	ldi	r22, 0x40	; 64
+     28a:	70 e0       	ldi	r23, 0x00	; 0
+     28c:	02 c0       	rjmp	.+4      	; 0x292 <store_init+0x9a>
+    {
+        return MIN_BLOCK_SIZE;
+     28e:	61 e0       	ldi	r22, 0x01	; 1
+     290:	70 e0       	ldi	r23, 0x00	; 0
+        return;
+    }
+
+    block_size = eeprom_read_word(&g_store.block_size);
+    block_size = clamp_block_size(block_size);
+    eeprom_update_word(&g_store.block_size, block_size);
+     292:	84 e0       	ldi	r24, 0x04	; 4
+     294:	90 e0       	ldi	r25, 0x00	; 0
+     296:	0e 94 fb 08 	call	0x11f6	; 0x11f6 <eeprom_update_word>
+}
+     29a:	ce 5b       	subi	r28, 0xBE	; 190
+     29c:	df 4f       	sbci	r29, 0xFF	; 255
+     29e:	0f b6       	in	r0, 0x3f	; 63
+     2a0:	f8 94       	cli
+     2a2:	de bf       	out	0x3e, r29	; 62
+     2a4:	0f be       	out	0x3f, r0	; 63
+     2a6:	cd bf       	out	0x3d, r28	; 61
+     2a8:	df 91       	pop	r29
+     2aa:	cf 91       	pop	r28
+     2ac:	1f 91       	pop	r17
+     2ae:	0f 91       	pop	r16
+     2b0:	08 95       	ret
+
+000002b2 <store_get_block_size>:
+
+uint16_t store_get_block_size(void)
+{
+    return clamp_block_size(eeprom_read_word(&g_store.block_size));
+     2b2:	84 e0       	ldi	r24, 0x04	; 4
+     2b4:	90 e0       	ldi	r25, 0x00	; 0
+     2b6:	0e 94 d4 08 	call	0x11a8	; 0x11a8 <eeprom_read_word>
+
+static eeprom_layout_t EEMEM g_store;
+
+static uint16_t clamp_block_size(uint16_t size)
+{
+    if (size < MIN_BLOCK_SIZE)
+     2ba:	00 97       	sbiw	r24, 0x00	; 0
+     2bc:	31 f0       	breq	.+12     	; 0x2ca <store_get_block_size+0x18>
+     2be:	81 34       	cpi	r24, 0x41	; 65
+     2c0:	91 05       	cpc	r25, r1
+     2c2:	28 f0       	brcs	.+10     	; 0x2ce <store_get_block_size+0x1c>
+     2c4:	80 e4       	ldi	r24, 0x40	; 64
+     2c6:	90 e0       	ldi	r25, 0x00	; 0
+     2c8:	08 95       	ret
+    {
+        return MIN_BLOCK_SIZE;
+     2ca:	81 e0       	ldi	r24, 0x01	; 1
+     2cc:	90 e0       	ldi	r25, 0x00	; 0
+}
+
+uint16_t store_get_block_size(void)
+{
+    return clamp_block_size(eeprom_read_word(&g_store.block_size));
+}
+     2ce:	08 95       	ret
+
+000002d0 <store_set_block_size>:
+
+static eeprom_layout_t EEMEM g_store;
+
+static uint16_t clamp_block_size(uint16_t size)
+{
+    if (size < MIN_BLOCK_SIZE)
+     2d0:	00 97       	sbiw	r24, 0x00	; 0
+     2d2:	39 f0       	breq	.+14     	; 0x2e2 <store_set_block_size+0x12>
+     2d4:	bc 01       	movw	r22, r24
+     2d6:	81 34       	cpi	r24, 0x41	; 65
+     2d8:	91 05       	cpc	r25, r1
+     2da:	28 f0       	brcs	.+10     	; 0x2e6 <store_set_block_size+0x16>
+     2dc:	60 e4       	ldi	r22, 0x40	; 64
+     2de:	70 e0       	ldi	r23, 0x00	; 0
+     2e0:	02 c0       	rjmp	.+4      	; 0x2e6 <store_set_block_size+0x16>
+    {
+        return MIN_BLOCK_SIZE;
+     2e2:	61 e0       	ldi	r22, 0x01	; 1
+     2e4:	70 e0       	ldi	r23, 0x00	; 0
+}
+
+void store_set_block_size(uint16_t block_size)
+{
+    block_size = clamp_block_size(block_size);
+    eeprom_update_word(&g_store.block_size, block_size);
+     2e6:	84 e0       	ldi	r24, 0x04	; 4
+     2e8:	90 e0       	ldi	r25, 0x00	; 0
+     2ea:	0e 94 fb 08 	call	0x11f6	; 0x11f6 <eeprom_update_word>
+     2ee:	08 95       	ret
+
+000002f0 <store_add_key>:
+}
+
+int8_t store_add_key(uint16_t a, uint16_t p, uint16_t x)
+{
+     2f0:	5f 92       	push	r5
+     2f2:	6f 92       	push	r6
+     2f4:	7f 92       	push	r7
+     2f6:	8f 92       	push	r8
+     2f8:	9f 92       	push	r9
+     2fa:	af 92       	push	r10
+     2fc:	bf 92       	push	r11
+     2fe:	cf 92       	push	r12
+     300:	df 92       	push	r13
+     302:	ef 92       	push	r14
+     304:	ff 92       	push	r15
+     306:	0f 93       	push	r16
+     308:	1f 93       	push	r17
+     30a:	cf 93       	push	r28
+     30c:	df 93       	push	r29
+     30e:	cd b7       	in	r28, 0x3d	; 61
+     310:	de b7       	in	r29, 0x3e	; 62
+     312:	27 97       	sbiw	r28, 0x07	; 7
+     314:	0f b6       	in	r0, 0x3f	; 63
+     316:	f8 94       	cli
+     318:	de bf       	out	0x3e, r29	; 62
+     31a:	0f be       	out	0x3f, r0	; 63
+     31c:	cd bf       	out	0x3d, r28	; 61
+     31e:	6c 01       	movw	r12, r24
+     320:	5b 01       	movw	r10, r22
+     322:	4a 01       	movw	r8, r20
+     324:	0f 2e       	mov	r0, r31
+     326:	fa e0       	ldi	r31, 0x0A	; 10
+     328:	ef 2e       	mov	r14, r31
+     32a:	f0 e0       	ldi	r31, 0x00	; 0
+     32c:	ff 2e       	mov	r15, r31
+     32e:	f0 2d       	mov	r31, r0
+     330:	87 01       	movw	r16, r14
+    uint8_t i;
+    key_record_t record;
+    key_flags_t flags;
+
+    /* Replace existing record with the same (a, p). */
+    for (i = 0u; i < MAX_KEYS; ++i)
+     332:	71 2c       	mov	r7, r1
+    {
+        eeprom_read_block((void *)&record, (const void *)&g_store.keys[i], sizeof(record));
+     334:	47 e0       	ldi	r20, 0x07	; 7
+     336:	50 e0       	ldi	r21, 0x00	; 0
+     338:	b8 01       	movw	r22, r16
+     33a:	ce 01       	movw	r24, r28
+     33c:	01 96       	adiw	r24, 0x01	; 1
+     33e:	0e 94 bc 08 	call	0x1178	; 0x1178 <eeprom_read_block>
+        flags.raw = record.flags_raw;
+     342:	8f 81       	ldd	r24, Y+7	; 0x07
+        if ((flags.bits.used != 0u) && (record.a == a) && (record.p == p))
+     344:	80 ff       	sbrs	r24, 0
+     346:	16 c0       	rjmp	.+44     	; 0x374 <store_add_key+0x84>
+     348:	89 81       	ldd	r24, Y+1	; 0x01
+     34a:	9a 81       	ldd	r25, Y+2	; 0x02
+     34c:	8c 15       	cp	r24, r12
+     34e:	9d 05       	cpc	r25, r13
+     350:	89 f4       	brne	.+34     	; 0x374 <store_add_key+0x84>
+     352:	8b 81       	ldd	r24, Y+3	; 0x03
+     354:	9c 81       	ldd	r25, Y+4	; 0x04
+     356:	8a 15       	cp	r24, r10
+     358:	9b 05       	cpc	r25, r11
+     35a:	61 f4       	brne	.+24     	; 0x374 <store_add_key+0x84>
+        {
+            record.x = x;
+     35c:	9e 82       	std	Y+6, r9	; 0x06
+     35e:	8d 82       	std	Y+5, r8	; 0x05
+            eeprom_update_block((const void *)&record, (void *)&g_store.keys[i], sizeof(record));
+     360:	47 e0       	ldi	r20, 0x07	; 7
+     362:	50 e0       	ldi	r21, 0x00	; 0
+     364:	60 2f       	mov	r22, r16
+     366:	71 2f       	mov	r23, r17
+     368:	ce 01       	movw	r24, r28
+     36a:	01 96       	adiw	r24, 0x01	; 1
+     36c:	0e 94 da 08 	call	0x11b4	; 0x11b4 <eeprom_update_block>
+            return (int8_t)i;
+     370:	87 2d       	mov	r24, r7
+     372:	2a c0       	rjmp	.+84     	; 0x3c8 <store_add_key+0xd8>
+    uint8_t i;
+    key_record_t record;
+    key_flags_t flags;
+
+    /* Replace existing record with the same (a, p). */
+    for (i = 0u; i < MAX_KEYS; ++i)
+     374:	73 94       	inc	r7
+     376:	09 5f       	subi	r16, 0xF9	; 249
+     378:	1f 4f       	sbci	r17, 0xFF	; 255
+     37a:	88 e0       	ldi	r24, 0x08	; 8
+     37c:	78 12       	cpse	r7, r24
+     37e:	da cf       	rjmp	.-76     	; 0x334 <store_add_key+0x44>
+     380:	10 e0       	ldi	r17, 0x00	; 0
+        }
+    }
+
+    for (i = 0u; i < MAX_KEYS; ++i)
+    {
+        eeprom_read_block((void *)&record, (const void *)&g_store.keys[i], sizeof(record));
+     382:	47 e0       	ldi	r20, 0x07	; 7
+     384:	50 e0       	ldi	r21, 0x00	; 0
+     386:	b7 01       	movw	r22, r14
+     388:	ce 01       	movw	r24, r28
+     38a:	01 96       	adiw	r24, 0x01	; 1
+     38c:	0e 94 bc 08 	call	0x1178	; 0x1178 <eeprom_read_block>
+        flags.raw = record.flags_raw;
+     390:	8f 81       	ldd	r24, Y+7	; 0x07
+        if (flags.bits.used == 0u)
+     392:	80 fd       	sbrc	r24, 0
+     394:	12 c0       	rjmp	.+36     	; 0x3ba <store_add_key+0xca>
+        {
+            record.a = a;
+     396:	da 82       	std	Y+2, r13	; 0x02
+     398:	c9 82       	std	Y+1, r12	; 0x01
+            record.p = p;
+     39a:	bc 82       	std	Y+4, r11	; 0x04
+     39c:	ab 82       	std	Y+3, r10	; 0x03
+            record.x = x;
+     39e:	9e 82       	std	Y+6, r9	; 0x06
+     3a0:	8d 82       	std	Y+5, r8	; 0x05
+            flags.raw = 0u;
+            flags.bits.used = 1u;
+     3a2:	81 e0       	ldi	r24, 0x01	; 1
+            record.flags_raw = flags.raw;
+     3a4:	8f 83       	std	Y+7, r24	; 0x07
+            eeprom_update_block((const void *)&record, (void *)&g_store.keys[i], sizeof(record));
+     3a6:	47 e0       	ldi	r20, 0x07	; 7
+     3a8:	50 e0       	ldi	r21, 0x00	; 0
+     3aa:	6e 2d       	mov	r22, r14
+     3ac:	7f 2d       	mov	r23, r15
+     3ae:	ce 01       	movw	r24, r28
+     3b0:	01 96       	adiw	r24, 0x01	; 1
+     3b2:	0e 94 da 08 	call	0x11b4	; 0x11b4 <eeprom_update_block>
+            return (int8_t)i;
+     3b6:	81 2f       	mov	r24, r17
+     3b8:	07 c0       	rjmp	.+14     	; 0x3c8 <store_add_key+0xd8>
+            eeprom_update_block((const void *)&record, (void *)&g_store.keys[i], sizeof(record));
+            return (int8_t)i;
+        }
+    }
+
+    for (i = 0u; i < MAX_KEYS; ++i)
+     3ba:	1f 5f       	subi	r17, 0xFF	; 255
+     3bc:	87 e0       	ldi	r24, 0x07	; 7
+     3be:	e8 0e       	add	r14, r24
+     3c0:	f1 1c       	adc	r15, r1
+     3c2:	18 30       	cpi	r17, 0x08	; 8
+     3c4:	f1 f6       	brne	.-68     	; 0x382 <store_add_key+0x92>
+            eeprom_update_block((const void *)&record, (void *)&g_store.keys[i], sizeof(record));
+            return (int8_t)i;
+        }
+    }
+
+    return -1;
+     3c6:	8f ef       	ldi	r24, 0xFF	; 255
+}
+     3c8:	27 96       	adiw	r28, 0x07	; 7
+     3ca:	0f b6       	in	r0, 0x3f	; 63
+     3cc:	f8 94       	cli
+     3ce:	de bf       	out	0x3e, r29	; 62
+     3d0:	0f be       	out	0x3f, r0	; 63
+     3d2:	cd bf       	out	0x3d, r28	; 61
+     3d4:	df 91       	pop	r29
+     3d6:	cf 91       	pop	r28
+     3d8:	1f 91       	pop	r17
+     3da:	0f 91       	pop	r16
+     3dc:	ff 90       	pop	r15
+     3de:	ef 90       	pop	r14
+     3e0:	df 90       	pop	r13
+     3e2:	cf 90       	pop	r12
+     3e4:	bf 90       	pop	r11
+     3e6:	af 90       	pop	r10
+     3e8:	9f 90       	pop	r9
+     3ea:	8f 90       	pop	r8
+     3ec:	7f 90       	pop	r7
+     3ee:	6f 90       	pop	r6
+     3f0:	5f 90       	pop	r5
+     3f2:	08 95       	ret
+
+000003f4 <store_delete_key>:
+
+bool store_delete_key(uint8_t index)
+{
+     3f4:	cf 93       	push	r28
+     3f6:	df 93       	push	r29
+     3f8:	cd b7       	in	r28, 0x3d	; 61
+     3fa:	de b7       	in	r29, 0x3e	; 62
+     3fc:	27 97       	sbiw	r28, 0x07	; 7
+     3fe:	0f b6       	in	r0, 0x3f	; 63
+     400:	f8 94       	cli
+     402:	de bf       	out	0x3e, r29	; 62
+     404:	0f be       	out	0x3f, r0	; 63
+     406:	cd bf       	out	0x3d, r28	; 61
+    key_record_t record;
+
+    if (index >= MAX_KEYS)
+     408:	88 30       	cpi	r24, 0x08	; 8
+     40a:	a0 f4       	brcc	.+40     	; 0x434 <__LOCK_REGION_LENGTH__+0x34>
+     40c:	68 2f       	mov	r22, r24
+    {
+        return false;
+    }
+
+    memset(&record, 0, sizeof(record));
+     40e:	ce 01       	movw	r24, r28
+     410:	01 96       	adiw	r24, 0x01	; 1
+     412:	27 e0       	ldi	r18, 0x07	; 7
+     414:	fc 01       	movw	r30, r24
+     416:	11 92       	st	Z+, r1
+     418:	2a 95       	dec	r18
+     41a:	e9 f7       	brne	.-6      	; 0x416 <__LOCK_REGION_LENGTH__+0x16>
+    eeprom_update_block((const void *)&record, (void *)&g_store.keys[index], sizeof(record));
+     41c:	f7 e0       	ldi	r31, 0x07	; 7
+     41e:	6f 9f       	mul	r22, r31
+     420:	b0 01       	movw	r22, r0
+     422:	11 24       	eor	r1, r1
+     424:	66 5f       	subi	r22, 0xF6	; 246
+     426:	7f 4f       	sbci	r23, 0xFF	; 255
+     428:	47 e0       	ldi	r20, 0x07	; 7
+     42a:	50 e0       	ldi	r21, 0x00	; 0
+     42c:	0e 94 da 08 	call	0x11b4	; 0x11b4 <eeprom_update_block>
+    return true;
+     430:	81 e0       	ldi	r24, 0x01	; 1
+     432:	01 c0       	rjmp	.+2      	; 0x436 <__LOCK_REGION_LENGTH__+0x36>
+{
+    key_record_t record;
+
+    if (index >= MAX_KEYS)
+    {
+        return false;
+     434:	80 e0       	ldi	r24, 0x00	; 0
+    }
+
+    memset(&record, 0, sizeof(record));
+    eeprom_update_block((const void *)&record, (void *)&g_store.keys[index], sizeof(record));
+    return true;
+}
+     436:	27 96       	adiw	r28, 0x07	; 7
+     438:	0f b6       	in	r0, 0x3f	; 63
+     43a:	f8 94       	cli
+     43c:	de bf       	out	0x3e, r29	; 62
+     43e:	0f be       	out	0x3f, r0	; 63
+     440:	cd bf       	out	0x3d, r28	; 61
+     442:	df 91       	pop	r29
+     444:	cf 91       	pop	r28
+     446:	08 95       	ret
+
+00000448 <store_find_key>:
+
+int8_t store_find_key(uint16_t a, uint16_t p, key_record_t *out_record)
+{
+     448:	8f 92       	push	r8
+     44a:	9f 92       	push	r9
+     44c:	af 92       	push	r10
+     44e:	bf 92       	push	r11
+     450:	cf 92       	push	r12
+     452:	df 92       	push	r13
+     454:	ef 92       	push	r14
+     456:	ff 92       	push	r15
+     458:	1f 93       	push	r17
+     45a:	cf 93       	push	r28
+     45c:	df 93       	push	r29
+     45e:	cd b7       	in	r28, 0x3d	; 61
+     460:	de b7       	in	r29, 0x3e	; 62
+     462:	27 97       	sbiw	r28, 0x07	; 7
+     464:	0f b6       	in	r0, 0x3f	; 63
+     466:	f8 94       	cli
+     468:	de bf       	out	0x3e, r29	; 62
+     46a:	0f be       	out	0x3f, r0	; 63
+     46c:	cd bf       	out	0x3d, r28	; 61
+     46e:	6c 01       	movw	r12, r24
+     470:	5b 01       	movw	r10, r22
+     472:	4a 01       	movw	r8, r20
+     474:	0f 2e       	mov	r0, r31
+     476:	fa e0       	ldi	r31, 0x0A	; 10
+     478:	ef 2e       	mov	r14, r31
+     47a:	f0 e0       	ldi	r31, 0x00	; 0
+     47c:	ff 2e       	mov	r15, r31
+     47e:	f0 2d       	mov	r31, r0
+    uint8_t i;
+    key_record_t record;
+    key_flags_t flags;
+
+    for (i = 0u; i < MAX_KEYS; ++i)
+     480:	10 e0       	ldi	r17, 0x00	; 0
+    {
+        eeprom_read_block((void *)&record, (const void *)&g_store.keys[i], sizeof(record));
+     482:	47 e0       	ldi	r20, 0x07	; 7
+     484:	50 e0       	ldi	r21, 0x00	; 0
+     486:	b7 01       	movw	r22, r14
+     488:	ce 01       	movw	r24, r28
+     48a:	01 96       	adiw	r24, 0x01	; 1
+     48c:	0e 94 bc 08 	call	0x1178	; 0x1178 <eeprom_read_block>
+        flags.raw = record.flags_raw;
+        if ((flags.bits.used != 0u) && (record.a == a) && (record.p == p))
+     490:	8f 81       	ldd	r24, Y+7	; 0x07
+     492:	80 ff       	sbrs	r24, 0
+     494:	17 c0       	rjmp	.+46     	; 0x4c4 <store_find_key+0x7c>
+     496:	89 81       	ldd	r24, Y+1	; 0x01
+     498:	9a 81       	ldd	r25, Y+2	; 0x02
+     49a:	8c 15       	cp	r24, r12
+     49c:	9d 05       	cpc	r25, r13
+     49e:	91 f4       	brne	.+36     	; 0x4c4 <store_find_key+0x7c>
+     4a0:	8b 81       	ldd	r24, Y+3	; 0x03
+     4a2:	9c 81       	ldd	r25, Y+4	; 0x04
+     4a4:	8a 15       	cp	r24, r10
+     4a6:	9b 05       	cpc	r25, r11
+     4a8:	69 f4       	brne	.+26     	; 0x4c4 <store_find_key+0x7c>
+        {
+            if (out_record != NULL)
+     4aa:	81 14       	cp	r8, r1
+     4ac:	91 04       	cpc	r9, r1
+     4ae:	41 f0       	breq	.+16     	; 0x4c0 <store_find_key+0x78>
+            {
+                *out_record = record;
+     4b0:	87 e0       	ldi	r24, 0x07	; 7
+     4b2:	fe 01       	movw	r30, r28
+     4b4:	31 96       	adiw	r30, 0x01	; 1
+     4b6:	d4 01       	movw	r26, r8
+     4b8:	01 90       	ld	r0, Z+
+     4ba:	0d 92       	st	X+, r0
+     4bc:	8a 95       	dec	r24
+     4be:	e1 f7       	brne	.-8      	; 0x4b8 <store_find_key+0x70>
+            }
+            return (int8_t)i;
+     4c0:	81 2f       	mov	r24, r17
+     4c2:	07 c0       	rjmp	.+14     	; 0x4d2 <store_find_key+0x8a>
+{
+    uint8_t i;
+    key_record_t record;
+    key_flags_t flags;
+
+    for (i = 0u; i < MAX_KEYS; ++i)
+     4c4:	1f 5f       	subi	r17, 0xFF	; 255
+     4c6:	87 e0       	ldi	r24, 0x07	; 7
+     4c8:	e8 0e       	add	r14, r24
+     4ca:	f1 1c       	adc	r15, r1
+     4cc:	18 30       	cpi	r17, 0x08	; 8
+     4ce:	c9 f6       	brne	.-78     	; 0x482 <store_find_key+0x3a>
+            }
+            return (int8_t)i;
+        }
+    }
+
+    return -1;
+     4d0:	8f ef       	ldi	r24, 0xFF	; 255
+}
+     4d2:	27 96       	adiw	r28, 0x07	; 7
+     4d4:	0f b6       	in	r0, 0x3f	; 63
+     4d6:	f8 94       	cli
+     4d8:	de bf       	out	0x3e, r29	; 62
+     4da:	0f be       	out	0x3f, r0	; 63
+     4dc:	cd bf       	out	0x3d, r28	; 61
+     4de:	df 91       	pop	r29
+     4e0:	cf 91       	pop	r28
+     4e2:	1f 91       	pop	r17
+     4e4:	ff 90       	pop	r15
+     4e6:	ef 90       	pop	r14
+     4e8:	df 90       	pop	r13
+     4ea:	cf 90       	pop	r12
+     4ec:	bf 90       	pop	r11
+     4ee:	af 90       	pop	r10
+     4f0:	9f 90       	pop	r9
+     4f2:	8f 90       	pop	r8
+     4f4:	08 95       	ret
+
+000004f6 <store_list_keys>:
+
+uint8_t store_list_keys(key_record_t *out_records, uint8_t max_records, uint8_t *out_indexes)
+{
+     4f6:	9f 92       	push	r9
+     4f8:	af 92       	push	r10
+     4fa:	bf 92       	push	r11
+     4fc:	cf 92       	push	r12
+     4fe:	df 92       	push	r13
+     500:	ef 92       	push	r14
+     502:	ff 92       	push	r15
+     504:	0f 93       	push	r16
+     506:	1f 93       	push	r17
+     508:	cf 93       	push	r28
+     50a:	df 93       	push	r29
+     50c:	cd b7       	in	r28, 0x3d	; 61
+     50e:	de b7       	in	r29, 0x3e	; 62
+     510:	27 97       	sbiw	r28, 0x07	; 7
+     512:	0f b6       	in	r0, 0x3f	; 63
+     514:	f8 94       	cli
+     516:	de bf       	out	0x3e, r29	; 62
+     518:	0f be       	out	0x3f, r0	; 63
+     51a:	cd bf       	out	0x3d, r28	; 61
+    uint8_t i;
+    uint8_t count = 0u;
+    key_record_t record;
+    key_flags_t flags;
+
+    for (i = 0u; (i < MAX_KEYS) && (count < max_records); ++i)
+     51c:	66 23       	and	r22, r22
+     51e:	a9 f1       	breq	.+106    	; 0x58a <store_list_keys+0x94>
+     520:	6a 01       	movw	r12, r20
+     522:	96 2e       	mov	r9, r22
+     524:	5c 01       	movw	r10, r24
+     526:	0f 2e       	mov	r0, r31
+     528:	fa e0       	ldi	r31, 0x0A	; 10
+     52a:	ef 2e       	mov	r14, r31
+     52c:	f0 e0       	ldi	r31, 0x00	; 0
+     52e:	ff 2e       	mov	r15, r31
+     530:	f0 2d       	mov	r31, r0
+     532:	00 e0       	ldi	r16, 0x00	; 0
+     534:	10 e0       	ldi	r17, 0x00	; 0
+    {
+        eeprom_read_block((void *)&record, (const void *)&g_store.keys[i], sizeof(record));
+     536:	47 e0       	ldi	r20, 0x07	; 7
+     538:	50 e0       	ldi	r21, 0x00	; 0
+     53a:	b7 01       	movw	r22, r14
+     53c:	ce 01       	movw	r24, r28
+     53e:	01 96       	adiw	r24, 0x01	; 1
+     540:	0e 94 bc 08 	call	0x1178	; 0x1178 <eeprom_read_block>
+        flags.raw = record.flags_raw;
+        if (flags.bits.used != 0u)
+     544:	8f 81       	ldd	r24, Y+7	; 0x07
+     546:	80 ff       	sbrs	r24, 0
+     548:	17 c0       	rjmp	.+46     	; 0x578 <store_list_keys+0x82>
+        {
+            out_records[count] = record;
+     54a:	80 2f       	mov	r24, r16
+     54c:	90 e0       	ldi	r25, 0x00	; 0
+     54e:	27 e0       	ldi	r18, 0x07	; 7
+     550:	fe 01       	movw	r30, r28
+     552:	31 96       	adiw	r30, 0x01	; 1
+     554:	d5 01       	movw	r26, r10
+     556:	37 e0       	ldi	r19, 0x07	; 7
+     558:	03 9f       	mul	r16, r19
+     55a:	a0 0d       	add	r26, r0
+     55c:	b1 1d       	adc	r27, r1
+     55e:	11 24       	eor	r1, r1
+     560:	01 90       	ld	r0, Z+
+     562:	0d 92       	st	X+, r0
+     564:	2a 95       	dec	r18
+     566:	e1 f7       	brne	.-8      	; 0x560 <store_list_keys+0x6a>
+            if (out_indexes != NULL)
+     568:	c1 14       	cp	r12, r1
+     56a:	d1 04       	cpc	r13, r1
+     56c:	21 f0       	breq	.+8      	; 0x576 <store_list_keys+0x80>
+            {
+                out_indexes[count] = i;
+     56e:	f6 01       	movw	r30, r12
+     570:	e8 0f       	add	r30, r24
+     572:	f9 1f       	adc	r31, r25
+     574:	10 83       	st	Z, r17
+            }
+            ++count;
+     576:	0f 5f       	subi	r16, 0xFF	; 255
+    uint8_t i;
+    uint8_t count = 0u;
+    key_record_t record;
+    key_flags_t flags;
+
+    for (i = 0u; (i < MAX_KEYS) && (count < max_records); ++i)
+     578:	1f 5f       	subi	r17, 0xFF	; 255
+     57a:	18 30       	cpi	r17, 0x08	; 8
+     57c:	39 f0       	breq	.+14     	; 0x58c <store_list_keys+0x96>
+     57e:	87 e0       	ldi	r24, 0x07	; 7
+     580:	e8 0e       	add	r14, r24
+     582:	f1 1c       	adc	r15, r1
+     584:	09 15       	cp	r16, r9
+     586:	b8 f2       	brcs	.-82     	; 0x536 <store_list_keys+0x40>
+     588:	01 c0       	rjmp	.+2      	; 0x58c <store_list_keys+0x96>
+}
+
+uint8_t store_list_keys(key_record_t *out_records, uint8_t max_records, uint8_t *out_indexes)
+{
+    uint8_t i;
+    uint8_t count = 0u;
+     58a:	00 e0       	ldi	r16, 0x00	; 0
+            ++count;
+        }
+    }
+
+    return count;
+}
+     58c:	80 2f       	mov	r24, r16
+     58e:	27 96       	adiw	r28, 0x07	; 7
+     590:	0f b6       	in	r0, 0x3f	; 63
+     592:	f8 94       	cli
+     594:	de bf       	out	0x3e, r29	; 62
+     596:	0f be       	out	0x3f, r0	; 63
+     598:	cd bf       	out	0x3d, r28	; 61
+     59a:	df 91       	pop	r29
+     59c:	cf 91       	pop	r28
+     59e:	1f 91       	pop	r17
+     5a0:	0f 91       	pop	r16
+     5a2:	ff 90       	pop	r15
+     5a4:	ef 90       	pop	r14
+     5a6:	df 90       	pop	r13
+     5a8:	cf 90       	pop	r12
+     5aa:	bf 90       	pop	r11
+     5ac:	af 90       	pop	r10
+     5ae:	9f 90       	pop	r9
+     5b0:	08 95       	ret
+
+000005b2 <store_get_next_y>:
+
+uint8_t store_get_next_y(void)
+{
+     5b2:	cf 93       	push	r28
+    static const uint8_t k_values[] = { 3u, 5u, 7u, 11u, 13u, 17u, 19u, 23u };
+    uint8_t index = eeprom_read_byte(&g_store.next_y_index);
+     5b4:	86 e0       	ldi	r24, 0x06	; 6
+     5b6:	90 e0       	ldi	r25, 0x00	; 0
+     5b8:	0e 94 cc 08 	call	0x1198	; 0x1198 <eeprom_read_byte>
+    uint8_t value = k_values[index & (uint8_t)(sizeof(k_values) - 1u)];
+     5bc:	e8 2f       	mov	r30, r24
+     5be:	e7 70       	andi	r30, 0x07	; 7
+     5c0:	f0 e0       	ldi	r31, 0x00	; 0
+     5c2:	e0 5a       	subi	r30, 0xA0	; 160
+     5c4:	ff 4f       	sbci	r31, 0xFF	; 255
+     5c6:	c0 81       	ld	r28, Z
+
+    index = (uint8_t)((index + 1u) & (uint8_t)(sizeof(k_values) - 1u));
+     5c8:	8f 5f       	subi	r24, 0xFF	; 255
+    eeprom_update_byte(&g_store.next_y_index, index);
+     5ca:	68 2f       	mov	r22, r24
+     5cc:	67 70       	andi	r22, 0x07	; 7
+     5ce:	86 e0       	ldi	r24, 0x06	; 6
+     5d0:	90 e0       	ldi	r25, 0x00	; 0
+     5d2:	0e 94 ea 08 	call	0x11d4	; 0x11d4 <eeprom_update_byte>
+    return value;
+}
+     5d6:	8c 2f       	mov	r24, r28
+     5d8:	cf 91       	pop	r28
+     5da:	08 95       	ret
+
+000005dc <main>:
+#include <avr/interrupt.h>
+#include <avr/sleep.h>
+
+int main(void)
+{
+    store_init();
+     5dc:	0e 94 fc 00 	call	0x1f8	; 0x1f8 <store_init>
+    uart_init();
+     5e0:	0e 94 ad 07 	call	0xf5a	; 0xf5a <uart_init>
+    protocol_init();
+     5e4:	0e 94 9e 03 	call	0x73c	; 0x73c <protocol_init>
+
+    set_sleep_mode(SLEEP_MODE_IDLE);
+     5e8:	85 b7       	in	r24, 0x35	; 53
+     5ea:	8f 78       	andi	r24, 0x8F	; 143
+     5ec:	85 bf       	out	0x35, r24	; 53
+    sei();
+     5ee:	78 94       	sei
+
+    for (;;)
+    {
+        protocol_poll();
+     5f0:	0e 94 a3 03 	call	0x746	; 0x746 <protocol_poll>
+        sleep_mode();
+     5f4:	85 b7       	in	r24, 0x35	; 53
+     5f6:	80 68       	ori	r24, 0x80	; 128
+     5f8:	85 bf       	out	0x35, r24	; 53
+     5fa:	88 95       	sleep
+     5fc:	85 b7       	in	r24, 0x35	; 53
+     5fe:	8f 77       	andi	r24, 0x7F	; 127
+     600:	85 bf       	out	0x35, r24	; 53
+     602:	f6 cf       	rjmp	.-20     	; 0x5f0 <main+0x14>
+
+00000604 <crc8_update>:
+}
+
+static uint8_t crc8_update(uint8_t crc, uint8_t data)
+{
+    uint8_t i;
+    crc ^= data;
+     604:	86 27       	eor	r24, r22
+     606:	98 e0       	ldi	r25, 0x08	; 8
+    for (i = 0u; i < 8u; ++i)
+    {
+        if ((crc & 0x80u) != 0u)
+        {
+            crc = (uint8_t)((crc << 1u) ^ 0x07u);
+     608:	27 e0       	ldi	r18, 0x07	; 7
+{
+    uint8_t i;
+    crc ^= data;
+    for (i = 0u; i < 8u; ++i)
+    {
+        if ((crc & 0x80u) != 0u)
+     60a:	88 23       	and	r24, r24
+     60c:	1c f4       	brge	.+6      	; 0x614 <crc8_update+0x10>
+        {
+            crc = (uint8_t)((crc << 1u) ^ 0x07u);
+     60e:	88 0f       	add	r24, r24
+     610:	82 27       	eor	r24, r18
+     612:	01 c0       	rjmp	.+2      	; 0x616 <crc8_update+0x12>
+        }
+        else
+        {
+            crc <<= 1u;
+     614:	88 0f       	add	r24, r24
+     616:	91 50       	subi	r25, 0x01	; 1
+
+static uint8_t crc8_update(uint8_t crc, uint8_t data)
+{
+    uint8_t i;
+    crc ^= data;
+    for (i = 0u; i < 8u; ++i)
+     618:	c1 f7       	brne	.-16     	; 0x60a <crc8_update+0x6>
+        {
+            crc <<= 1u;
+        }
+    }
+    return crc;
+}
+     61a:	08 95       	ret
+
+0000061c <frame_crc>:
+
+static uint8_t frame_crc(uint8_t cmd, uint8_t flags, uint16_t len, const uint8_t *payload)
+{
+     61c:	ef 92       	push	r14
+     61e:	ff 92       	push	r15
+     620:	0f 93       	push	r16
+     622:	1f 93       	push	r17
+     624:	cf 93       	push	r28
+     626:	df 93       	push	r29
+     628:	c6 2f       	mov	r28, r22
+     62a:	8a 01       	movw	r16, r20
+     62c:	79 01       	movw	r14, r18
+    uint8_t crc = 0u;
+    uint16_t i;
+
+    crc = crc8_update(crc, cmd);
+     62e:	68 2f       	mov	r22, r24
+     630:	80 e0       	ldi	r24, 0x00	; 0
+     632:	0e 94 02 03 	call	0x604	; 0x604 <crc8_update>
+    crc = crc8_update(crc, flags);
+     636:	6c 2f       	mov	r22, r28
+     638:	0e 94 02 03 	call	0x604	; 0x604 <crc8_update>
+    crc = crc8_update(crc, (uint8_t)(len & 0xFFu));
+     63c:	60 2f       	mov	r22, r16
+     63e:	0e 94 02 03 	call	0x604	; 0x604 <crc8_update>
+    crc = crc8_update(crc, (uint8_t)(len >> 8));
+     642:	61 2f       	mov	r22, r17
+     644:	0e 94 02 03 	call	0x604	; 0x604 <crc8_update>
+    for (i = 0u; i < len; ++i)
+     648:	01 15       	cp	r16, r1
+     64a:	11 05       	cpc	r17, r1
+     64c:	49 f0       	breq	.+18     	; 0x660 <frame_crc+0x44>
+     64e:	e7 01       	movw	r28, r14
+     650:	0e 0d       	add	r16, r14
+     652:	1f 1d       	adc	r17, r15
+    {
+        crc = crc8_update(crc, payload[i]);
+     654:	69 91       	ld	r22, Y+
+     656:	0e 94 02 03 	call	0x604	; 0x604 <crc8_update>
+
+    crc = crc8_update(crc, cmd);
+    crc = crc8_update(crc, flags);
+    crc = crc8_update(crc, (uint8_t)(len & 0xFFu));
+    crc = crc8_update(crc, (uint8_t)(len >> 8));
+    for (i = 0u; i < len; ++i)
+     65a:	c0 17       	cp	r28, r16
+     65c:	d1 07       	cpc	r29, r17
+     65e:	d1 f7       	brne	.-12     	; 0x654 <frame_crc+0x38>
+    {
+        crc = crc8_update(crc, payload[i]);
+    }
+    return crc;
+}
+     660:	df 91       	pop	r29
+     662:	cf 91       	pop	r28
+     664:	1f 91       	pop	r17
+     666:	0f 91       	pop	r16
+     668:	ff 90       	pop	r15
+     66a:	ef 90       	pop	r14
+     66c:	08 95       	ret
+
+0000066e <reset_parser>:
+
+static void reset_parser(void)
+{
+    g_rx.state = RX_WAIT_SOF1;
+     66e:	eb ef       	ldi	r30, 0xFB	; 251
+     670:	f0 e0       	ldi	r31, 0x00	; 0
+     672:	10 82       	st	Z, r1
+    g_rx.cmd = 0u;
+     674:	11 82       	std	Z+1, r1	; 0x01
+    g_rx.flags = 0u;
+     676:	12 82       	std	Z+2, r1	; 0x02
+    g_rx.length = 0u;
+     678:	14 82       	std	Z+4, r1	; 0x04
+     67a:	13 82       	std	Z+3, r1	; 0x03
+    g_rx.index = 0u;
+     67c:	16 82       	std	Z+6, r1	; 0x06
+     67e:	15 82       	std	Z+5, r1	; 0x05
+     680:	08 95       	ret
+
+00000682 <clear_session>:
+    send_frame(CMD_ERROR, 0u, payload, 2u);
+}
+
+static void clear_session(void)
+{
+    memset(&g_session, 0, sizeof(g_session));
+     682:	8d e0       	ldi	r24, 0x0D	; 13
+     684:	ee ee       	ldi	r30, 0xEE	; 238
+     686:	f0 e0       	ldi	r31, 0x00	; 0
+     688:	df 01       	movw	r26, r30
+     68a:	1d 92       	st	X+, r1
+     68c:	8a 95       	dec	r24
+     68e:	e9 f7       	brne	.-6      	; 0x68a <clear_session+0x8>
+     690:	08 95       	ret
+
+00000692 <send_frame>:
+    g_rx.length = 0u;
+    g_rx.index = 0u;
+}
+
+static void send_frame(uint8_t cmd, uint8_t flags, const uint8_t *payload, uint16_t len)
+{
+     692:	df 92       	push	r13
+     694:	ef 92       	push	r14
+     696:	ff 92       	push	r15
+     698:	0f 93       	push	r16
+     69a:	1f 93       	push	r17
+     69c:	cf 93       	push	r28
+     69e:	df 93       	push	r29
+     6a0:	00 d0       	rcall	.+0      	; 0x6a2 <send_frame+0x10>
+     6a2:	00 d0       	rcall	.+0      	; 0x6a4 <send_frame+0x12>
+     6a4:	00 d0       	rcall	.+0      	; 0x6a6 <send_frame+0x14>
+     6a6:	cd b7       	in	r28, 0x3d	; 61
+     6a8:	de b7       	in	r29, 0x3e	; 62
+     6aa:	7a 01       	movw	r14, r20
+     6ac:	89 01       	movw	r16, r18
+    uint8_t header[6];
+    uint8_t crc;
+
+    header[0] = PROTO_SOF1;
+     6ae:	95 e5       	ldi	r25, 0x55	; 85
+     6b0:	99 83       	std	Y+1, r25	; 0x01
+    header[1] = PROTO_SOF2;
+     6b2:	9a ea       	ldi	r25, 0xAA	; 170
+     6b4:	9a 83       	std	Y+2, r25	; 0x02
+    header[2] = cmd;
+     6b6:	8b 83       	std	Y+3, r24	; 0x03
+    header[3] = flags;
+     6b8:	6c 83       	std	Y+4, r22	; 0x04
+    header[4] = (uint8_t)(len & 0xFFu);
+     6ba:	2d 83       	std	Y+5, r18	; 0x05
+    header[5] = (uint8_t)(len >> 8);
+     6bc:	1e 83       	std	Y+6, r17	; 0x06
+
+    crc = frame_crc(cmd, flags, len, payload);
+     6be:	9a 01       	movw	r18, r20
+     6c0:	a8 01       	movw	r20, r16
+     6c2:	0e 94 0e 03 	call	0x61c	; 0x61c <frame_crc>
+     6c6:	d8 2e       	mov	r13, r24
+
+    uart_write_block(header, sizeof(header));
+     6c8:	66 e0       	ldi	r22, 0x06	; 6
+     6ca:	70 e0       	ldi	r23, 0x00	; 0
+     6cc:	ce 01       	movw	r24, r28
+     6ce:	01 96       	adiw	r24, 0x01	; 1
+     6d0:	0e 94 e2 07 	call	0xfc4	; 0xfc4 <uart_write_block>
+    if (len != 0u)
+     6d4:	01 15       	cp	r16, r1
+     6d6:	11 05       	cpc	r17, r1
+     6d8:	21 f0       	breq	.+8      	; 0x6e2 <send_frame+0x50>
+    {
+        uart_write_block(payload, len);
+     6da:	b8 01       	movw	r22, r16
+     6dc:	c7 01       	movw	r24, r14
+     6de:	0e 94 e2 07 	call	0xfc4	; 0xfc4 <uart_write_block>
+    }
+    uart_write_byte(crc);
+     6e2:	8d 2d       	mov	r24, r13
+     6e4:	0e 94 d0 07 	call	0xfa0	; 0xfa0 <uart_write_byte>
+}
+     6e8:	26 96       	adiw	r28, 0x06	; 6
+     6ea:	0f b6       	in	r0, 0x3f	; 63
+     6ec:	f8 94       	cli
+     6ee:	de bf       	out	0x3e, r29	; 62
+     6f0:	0f be       	out	0x3f, r0	; 63
+     6f2:	cd bf       	out	0x3d, r28	; 61
+     6f4:	df 91       	pop	r29
+     6f6:	cf 91       	pop	r28
+     6f8:	1f 91       	pop	r17
+     6fa:	0f 91       	pop	r16
+     6fc:	ff 90       	pop	r15
+     6fe:	ef 90       	pop	r14
+     700:	df 90       	pop	r13
+     702:	08 95       	ret
+
+00000704 <send_ok>:
+
+static void send_ok(uint8_t cmd, const uint8_t *payload, uint16_t len)
+{
+     704:	9a 01       	movw	r18, r20
+    send_frame((uint8_t)(cmd | 0x80u), 0u, payload, len);
+     706:	ab 01       	movw	r20, r22
+     708:	60 e0       	ldi	r22, 0x00	; 0
+     70a:	80 68       	ori	r24, 0x80	; 128
+     70c:	0e 94 49 03 	call	0x692	; 0x692 <send_frame>
+     710:	08 95       	ret
+
+00000712 <send_error>:
+}
+
+static void send_error(uint8_t failed_cmd, error_code_t code)
+{
+     712:	cf 93       	push	r28
+     714:	df 93       	push	r29
+     716:	00 d0       	rcall	.+0      	; 0x718 <send_error+0x6>
+     718:	cd b7       	in	r28, 0x3d	; 61
+     71a:	de b7       	in	r29, 0x3e	; 62
+    uint8_t payload[2];
+    payload[0] = failed_cmd;
+     71c:	89 83       	std	Y+1, r24	; 0x01
+    payload[1] = (uint8_t)code;
+     71e:	6a 83       	std	Y+2, r22	; 0x02
+    send_frame(CMD_ERROR, 0u, payload, 2u);
+     720:	22 e0       	ldi	r18, 0x02	; 2
+     722:	30 e0       	ldi	r19, 0x00	; 0
+     724:	ae 01       	movw	r20, r28
+     726:	4f 5f       	subi	r20, 0xFF	; 255
+     728:	5f 4f       	sbci	r21, 0xFF	; 255
+     72a:	60 e0       	ldi	r22, 0x00	; 0
+     72c:	8f e7       	ldi	r24, 0x7F	; 127
+     72e:	0e 94 49 03 	call	0x692	; 0x692 <send_frame>
+}
+     732:	0f 90       	pop	r0
+     734:	0f 90       	pop	r0
+     736:	df 91       	pop	r29
+     738:	cf 91       	pop	r28
+     73a:	08 95       	ret
+
+0000073c <protocol_init>:
+    }
+}
+
+void protocol_init(void)
+{
+    reset_parser();
+     73c:	0e 94 37 03 	call	0x66e	; 0x66e <reset_parser>
+    clear_session();
+     740:	0e 94 41 03 	call	0x682	; 0x682 <clear_session>
+     744:	08 95       	ret
+
+00000746 <protocol_poll>:
+}
+
+void protocol_poll(void)
+{
+     746:	2f 92       	push	r2
+     748:	3f 92       	push	r3
+     74a:	4f 92       	push	r4
+     74c:	5f 92       	push	r5
+     74e:	6f 92       	push	r6
+     750:	7f 92       	push	r7
+     752:	8f 92       	push	r8
+     754:	9f 92       	push	r9
+     756:	af 92       	push	r10
+     758:	bf 92       	push	r11
+     75a:	cf 92       	push	r12
+     75c:	df 92       	push	r13
+     75e:	ef 92       	push	r14
+     760:	ff 92       	push	r15
+     762:	0f 93       	push	r16
+     764:	1f 93       	push	r17
+     766:	cf 93       	push	r28
+     768:	df 93       	push	r29
+     76a:	cd b7       	in	r28, 0x3d	; 61
+     76c:	de b7       	in	r29, 0x3e	; 62
+     76e:	c3 54       	subi	r28, 0x43	; 67
+     770:	d1 09       	sbc	r29, r1
+     772:	0f b6       	in	r0, 0x3f	; 63
+     774:	f8 94       	cli
+     776:	de bf       	out	0x3e, r29	; 62
+     778:	0f be       	out	0x3f, r0	; 63
+     77a:	cd bf       	out	0x3d, r28	; 61
+    uint8_t byte;
+
+    while (uart_read_byte(&byte))
+    {
+        switch (g_rx.state)
+     77c:	0b ef       	ldi	r16, 0xFB	; 251
+     77e:	10 e0       	ldi	r17, 0x00	; 0
+{
+    uint16_t plain_len;
+    uint16_t i;
+    uint16_t pos = 0u;
+
+    if ((g_session.flags.bits.active == 0u) || (g_session.flags.bits.decrypt == 0u))
+     780:	0f 2e       	mov	r0, r31
+     782:	fe ee       	ldi	r31, 0xEE	; 238
+     784:	cf 2e       	mov	r12, r31
+     786:	f0 e0       	ldi	r31, 0x00	; 0
+     788:	df 2e       	mov	r13, r31
+     78a:	f0 2d       	mov	r31, r0
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     78c:	0f 2e       	mov	r0, r31
+     78e:	fc e6       	ldi	r31, 0x6C	; 108
+     790:	8f 2e       	mov	r8, r31
+     792:	f0 e0       	ldi	r31, 0x00	; 0
+     794:	9f 2e       	mov	r9, r31
+     796:	f0 2d       	mov	r31, r0
+    {
+        send_error(CMD_DEC_DATA, ERR_BAD_LENGTH);
+        return;
+    }
+
+    wr_u16(g_tx_payload + pos, plain_len); pos += 2u;
+     798:	68 94       	set
+     79a:	77 24       	eor	r7, r7
+     79c:	71 f8       	bld	r7, 1
+     79e:	a1 2c       	mov	r10, r1
+
+    (void)key_index;
+    g_session.x = rec.x;
+    g_session.shared_secret = crypto_mod_pow_u16(g_session.ay, g_session.x, g_session.p);
+    g_session.flags.raw = 0u;
+    g_session.flags.bits.active = 1u;
+     7a0:	bb 24       	eor	r11, r11
+     7a2:	b3 94       	inc	r11
+    uint8_t count;
+    uint8_t i;
+    uint16_t pos = 0u;
+
+    count = store_list_keys(records, MAX_KEYS, indexes);
+    g_tx_payload[pos++] = count;
+     7a4:	61 2c       	mov	r6, r1
+
+void protocol_poll(void)
+{
+    uint8_t byte;
+
+    while (uart_read_byte(&byte))
+     7a6:	74 c3       	rjmp	.+1768   	; 0xe90 <__stack+0x631>
+    {
+        switch (g_rx.state)
+     7a8:	d8 01       	movw	r26, r16
+     7aa:	ec 91       	ld	r30, X
+     7ac:	8e 2f       	mov	r24, r30
+     7ae:	90 e0       	ldi	r25, 0x00	; 0
+     7b0:	88 30       	cpi	r24, 0x08	; 8
+     7b2:	91 05       	cpc	r25, r1
+     7b4:	08 f0       	brcs	.+2      	; 0x7b8 <protocol_poll+0x72>
+     7b6:	6a c3       	rjmp	.+1748   	; 0xe8c <__stack+0x62d>
+     7b8:	fc 01       	movw	r30, r24
+     7ba:	e6 5d       	subi	r30, 0xD6	; 214
+     7bc:	ff 4f       	sbci	r31, 0xFF	; 255
+     7be:	0c 94 9c 08 	jmp	0x1138	; 0x1138 <__tablejump2__>
+        {
+            case RX_WAIT_SOF1:
+                if (byte == PROTO_SOF1)
+     7c2:	89 81       	ldd	r24, Y+1	; 0x01
+     7c4:	85 35       	cpi	r24, 0x55	; 85
+     7c6:	09 f0       	breq	.+2      	; 0x7ca <protocol_poll+0x84>
+     7c8:	63 c3       	rjmp	.+1734   	; 0xe90 <__stack+0x631>
+                {
+                    g_rx.state = RX_WAIT_SOF2;
+     7ca:	f8 01       	movw	r30, r16
+     7cc:	b0 82       	st	Z, r11
+     7ce:	60 c3       	rjmp	.+1728   	; 0xe90 <__stack+0x631>
+                }
+                break;
+
+            case RX_WAIT_SOF2:
+                if (byte == PROTO_SOF2)
+     7d0:	89 81       	ldd	r24, Y+1	; 0x01
+     7d2:	8a 3a       	cpi	r24, 0xAA	; 170
+     7d4:	21 f4       	brne	.+8      	; 0x7de <protocol_poll+0x98>
+                {
+                    g_rx.state = RX_CMD;
+     7d6:	82 e0       	ldi	r24, 0x02	; 2
+     7d8:	d8 01       	movw	r26, r16
+     7da:	8c 93       	st	X, r24
+     7dc:	59 c3       	rjmp	.+1714   	; 0xe90 <__stack+0x631>
+                }
+                else
+                {
+                    reset_parser();
+     7de:	0e 94 37 03 	call	0x66e	; 0x66e <reset_parser>
+     7e2:	56 c3       	rjmp	.+1708   	; 0xe90 <__stack+0x631>
+                }
+                break;
+
+            case RX_CMD:
+                g_rx.cmd = byte;
+     7e4:	89 81       	ldd	r24, Y+1	; 0x01
+     7e6:	f8 01       	movw	r30, r16
+     7e8:	81 83       	std	Z+1, r24	; 0x01
+                g_rx.state = RX_FLAGS;
+     7ea:	83 e0       	ldi	r24, 0x03	; 3
+     7ec:	80 83       	st	Z, r24
+                break;
+     7ee:	50 c3       	rjmp	.+1696   	; 0xe90 <__stack+0x631>
+
+            case RX_FLAGS:
+                g_rx.flags = byte;
+     7f0:	89 81       	ldd	r24, Y+1	; 0x01
+     7f2:	d8 01       	movw	r26, r16
+     7f4:	12 96       	adiw	r26, 0x02	; 2
+     7f6:	8c 93       	st	X, r24
+     7f8:	12 97       	sbiw	r26, 0x02	; 2
+                g_rx.state = RX_LEN_LO;
+     7fa:	84 e0       	ldi	r24, 0x04	; 4
+     7fc:	8c 93       	st	X, r24
+                break;
+     7fe:	48 c3       	rjmp	.+1680   	; 0xe90 <__stack+0x631>
+
+            case RX_LEN_LO:
+                g_rx.length = byte;
+     800:	89 81       	ldd	r24, Y+1	; 0x01
+     802:	90 e0       	ldi	r25, 0x00	; 0
+     804:	f8 01       	movw	r30, r16
+     806:	94 83       	std	Z+4, r25	; 0x04
+     808:	83 83       	std	Z+3, r24	; 0x03
+                g_rx.state = RX_LEN_HI;
+     80a:	85 e0       	ldi	r24, 0x05	; 5
+     80c:	80 83       	st	Z, r24
+                break;
+     80e:	40 c3       	rjmp	.+1664   	; 0xe90 <__stack+0x631>
+
+            case RX_LEN_HI:
+                g_rx.length |= (uint16_t)((uint16_t)byte << 8);
+     810:	29 81       	ldd	r18, Y+1	; 0x01
+     812:	d8 01       	movw	r26, r16
+     814:	13 96       	adiw	r26, 0x03	; 3
+     816:	8d 91       	ld	r24, X+
+     818:	9c 91       	ld	r25, X
+     81a:	14 97       	sbiw	r26, 0x04	; 4
+     81c:	92 2b       	or	r25, r18
+     81e:	14 96       	adiw	r26, 0x04	; 4
+     820:	9c 93       	st	X, r25
+     822:	8e 93       	st	-X, r24
+     824:	13 97       	sbiw	r26, 0x03	; 3
+                g_rx.index = 0u;
+     826:	16 96       	adiw	r26, 0x06	; 6
+     828:	1c 92       	st	X, r1
+     82a:	1e 92       	st	-X, r1
+     82c:	15 97       	sbiw	r26, 0x05	; 5
+                if (g_rx.length > PROTO_MAX_PAYLOAD)
+     82e:	83 38       	cpi	r24, 0x83	; 131
+     830:	91 05       	cpc	r25, r1
+     832:	40 f0       	brcs	.+16     	; 0x844 <protocol_poll+0xfe>
+                {
+                    send_error(g_rx.cmd, ERR_BAD_LENGTH);
+     834:	64 e0       	ldi	r22, 0x04	; 4
+     836:	11 96       	adiw	r26, 0x01	; 1
+     838:	8c 91       	ld	r24, X
+     83a:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+                    reset_parser();
+     83e:	0e 94 37 03 	call	0x66e	; 0x66e <reset_parser>
+     842:	26 c3       	rjmp	.+1612   	; 0xe90 <__stack+0x631>
+                }
+                else if (g_rx.length == 0u)
+     844:	89 2b       	or	r24, r25
+     846:	21 f4       	brne	.+8      	; 0x850 <protocol_poll+0x10a>
+                {
+                    g_rx.state = RX_CRC;
+     848:	87 e0       	ldi	r24, 0x07	; 7
+     84a:	f8 01       	movw	r30, r16
+     84c:	80 83       	st	Z, r24
+     84e:	20 c3       	rjmp	.+1600   	; 0xe90 <__stack+0x631>
+                }
+                else
+                {
+                    g_rx.state = RX_PAYLOAD;
+     850:	86 e0       	ldi	r24, 0x06	; 6
+     852:	d8 01       	movw	r26, r16
+     854:	8c 93       	st	X, r24
+     856:	1c c3       	rjmp	.+1592   	; 0xe90 <__stack+0x631>
+                }
+                break;
+
+            case RX_PAYLOAD:
+                g_rx.payload[g_rx.index++] = byte;
+     858:	f8 01       	movw	r30, r16
+     85a:	85 81       	ldd	r24, Z+5	; 0x05
+     85c:	96 81       	ldd	r25, Z+6	; 0x06
+     85e:	9c 01       	movw	r18, r24
+     860:	2f 5f       	subi	r18, 0xFF	; 255
+     862:	3f 4f       	sbci	r19, 0xFF	; 255
+     864:	36 83       	std	Z+6, r19	; 0x06
+     866:	25 83       	std	Z+5, r18	; 0x05
+     868:	fc 01       	movw	r30, r24
+     86a:	e5 50       	subi	r30, 0x05	; 5
+     86c:	ff 4f       	sbci	r31, 0xFF	; 255
+     86e:	49 81       	ldd	r20, Y+1	; 0x01
+     870:	47 83       	std	Z+7, r20	; 0x07
+                if (g_rx.index >= g_rx.length)
+     872:	d8 01       	movw	r26, r16
+     874:	13 96       	adiw	r26, 0x03	; 3
+     876:	8d 91       	ld	r24, X+
+     878:	9c 91       	ld	r25, X
+     87a:	14 97       	sbiw	r26, 0x04	; 4
+     87c:	28 17       	cp	r18, r24
+     87e:	39 07       	cpc	r19, r25
+     880:	08 f4       	brcc	.+2      	; 0x884 <__stack+0x25>
+     882:	06 c3       	rjmp	.+1548   	; 0xe90 <__stack+0x631>
+                {
+                    g_rx.state = RX_CRC;
+     884:	87 e0       	ldi	r24, 0x07	; 7
+     886:	8c 93       	st	X, r24
+     888:	03 c3       	rjmp	.+1542   	; 0xe90 <__stack+0x631>
+                }
+                break;
+
+            case RX_CRC:
+            {
+                const uint8_t expected = frame_crc(g_rx.cmd, g_rx.flags, g_rx.length, g_rx.payload);
+     88a:	f8 01       	movw	r30, r16
+     88c:	e3 80       	ldd	r14, Z+3	; 0x03
+     88e:	f4 80       	ldd	r15, Z+4	; 0x04
+     890:	51 80       	ldd	r5, Z+1	; 0x01
+     892:	22 e0       	ldi	r18, 0x02	; 2
+     894:	31 e0       	ldi	r19, 0x01	; 1
+     896:	a7 01       	movw	r20, r14
+     898:	62 81       	ldd	r22, Z+2	; 0x02
+     89a:	85 2d       	mov	r24, r5
+     89c:	0e 94 0e 03 	call	0x61c	; 0x61c <frame_crc>
+                if (byte == expected)
+     8a0:	99 81       	ldd	r25, Y+1	; 0x01
+     8a2:	89 13       	cpse	r24, r25
+     8a4:	ec c2       	rjmp	.+1496   	; 0xe7e <__stack+0x61f>
+
+static void handle_command(uint8_t cmd, uint8_t flags, const uint8_t *payload, uint16_t len)
+{
+    (void)flags;
+
+    switch (cmd)
+     8a6:	85 2d       	mov	r24, r5
+     8a8:	90 e0       	ldi	r25, 0x00	; 0
+     8aa:	fc 01       	movw	r30, r24
+     8ac:	31 97       	sbiw	r30, 0x01	; 1
+     8ae:	e5 32       	cpi	r30, 0x25	; 37
+     8b0:	f1 05       	cpc	r31, r1
+     8b2:	08 f0       	brcs	.+2      	; 0x8b6 <__stack+0x57>
+     8b4:	df c2       	rjmp	.+1470   	; 0xe74 <__stack+0x615>
+     8b6:	ee 5c       	subi	r30, 0xCE	; 206
+     8b8:	ff 4f       	sbci	r31, 0xFF	; 255
+     8ba:	0c 94 9c 08 	jmp	0x1138	; 0x1138 <__tablejump2__>
+}
+
+static void handle_ping(void)
+{
+    static const uint8_t k_sig[4] = { 'E', 'G', 'A', '3' };
+    send_ok(CMD_PING, k_sig, sizeof(k_sig));
+     8be:	44 e0       	ldi	r20, 0x04	; 4
+     8c0:	50 e0       	ldi	r21, 0x00	; 0
+     8c2:	68 e6       	ldi	r22, 0x68	; 104
+     8c4:	70 e0       	ldi	r23, 0x00	; 0
+     8c6:	8b 2d       	mov	r24, r11
+     8c8:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     8cc:	dc c2       	rjmp	.+1464   	; 0xe86 <__stack+0x627>
+}
+
+static void handle_get_block_size(void)
+{
+    const uint16_t size = store_get_block_size();
+     8ce:	0e 94 59 01 	call	0x2b2	; 0x2b2 <store_get_block_size>
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     8d2:	d4 01       	movw	r26, r8
+     8d4:	8c 93       	st	X, r24
+    p[1] = (uint8_t)(value >> 8);
+     8d6:	11 96       	adiw	r26, 0x01	; 1
+     8d8:	9c 93       	st	X, r25
+
+static void handle_get_block_size(void)
+{
+    const uint16_t size = store_get_block_size();
+    wr_u16(g_tx_payload, size);
+    send_ok(CMD_GET_BLOCK_SIZE, g_tx_payload, 2u);
+     8da:	47 2d       	mov	r20, r7
+     8dc:	5a 2d       	mov	r21, r10
+     8de:	b4 01       	movw	r22, r8
+     8e0:	82 e0       	ldi	r24, 0x02	; 2
+     8e2:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     8e6:	cf c2       	rjmp	.+1438   	; 0xe86 <__stack+0x627>
+
+static void handle_set_block_size(const uint8_t *payload, uint16_t len)
+{
+    uint16_t size;
+
+    if (len != 2u)
+     8e8:	b2 e0       	ldi	r27, 0x02	; 2
+     8ea:	eb 16       	cp	r14, r27
+     8ec:	f1 04       	cpc	r15, r1
+     8ee:	29 f0       	breq	.+10     	; 0x8fa <__stack+0x9b>
+    {
+        send_error(CMD_SET_BLOCK_SIZE, ERR_BAD_LENGTH);
+     8f0:	64 e0       	ldi	r22, 0x04	; 4
+     8f2:	83 e0       	ldi	r24, 0x03	; 3
+     8f4:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     8f8:	c6 c2       	rjmp	.+1420   	; 0xe86 <__stack+0x627>
+static crypto_session_t g_session;
+static uint8_t g_tx_payload[PROTO_MAX_PAYLOAD];
+
+static uint16_t rd_u16(const uint8_t *p)
+{
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+     8fa:	f8 01       	movw	r30, r16
+     8fc:	e0 84       	ldd	r14, Z+8	; 0x08
+     8fe:	f1 2c       	mov	r15, r1
+     900:	fe 2c       	mov	r15, r14
+     902:	ee 24       	eor	r14, r14
+     904:	87 81       	ldd	r24, Z+7	; 0x07
+     906:	e8 2a       	or	r14, r24
+        send_error(CMD_SET_BLOCK_SIZE, ERR_BAD_LENGTH);
+        return;
+    }
+
+    size = rd_u16(payload);
+    if ((size < MIN_BLOCK_SIZE) || (size > MAX_BLOCK_SIZE))
+     908:	c7 01       	movw	r24, r14
+     90a:	01 97       	sbiw	r24, 0x01	; 1
+     90c:	80 34       	cpi	r24, 0x40	; 64
+     90e:	91 05       	cpc	r25, r1
+     910:	28 f0       	brcs	.+10     	; 0x91c <__stack+0xbd>
+    {
+        send_error(CMD_SET_BLOCK_SIZE, ERR_INVALID_ARG);
+     912:	65 e0       	ldi	r22, 0x05	; 5
+     914:	83 e0       	ldi	r24, 0x03	; 3
+     916:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     91a:	b5 c2       	rjmp	.+1386   	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    store_set_block_size(size);
+     91c:	c7 01       	movw	r24, r14
+     91e:	0e 94 68 01 	call	0x2d0	; 0x2d0 <store_set_block_size>
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     922:	d4 01       	movw	r26, r8
+     924:	ec 92       	st	X, r14
+    p[1] = (uint8_t)(value >> 8);
+     926:	11 96       	adiw	r26, 0x01	; 1
+     928:	fc 92       	st	X, r15
+        return;
+    }
+
+    store_set_block_size(size);
+    wr_u16(g_tx_payload, size);
+    send_ok(CMD_SET_BLOCK_SIZE, g_tx_payload, 2u);
+     92a:	47 2d       	mov	r20, r7
+     92c:	5a 2d       	mov	r21, r10
+     92e:	b4 01       	movw	r22, r8
+     930:	83 e0       	ldi	r24, 0x03	; 3
+     932:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     936:	a7 c2       	rjmp	.+1358   	; 0xe86 <__stack+0x627>
+    int8_t index;
+    uint16_t a;
+    uint16_t p;
+    uint16_t x;
+
+    if (len != 6u)
+     938:	b6 e0       	ldi	r27, 0x06	; 6
+     93a:	eb 16       	cp	r14, r27
+     93c:	f1 04       	cpc	r15, r1
+     93e:	29 f0       	breq	.+10     	; 0x94a <__stack+0xeb>
+    {
+        send_error(CMD_KEY_ADD, ERR_BAD_LENGTH);
+     940:	64 e0       	ldi	r22, 0x04	; 4
+     942:	80 e1       	ldi	r24, 0x10	; 16
+     944:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     948:	9e c2       	rjmp	.+1340   	; 0xe86 <__stack+0x627>
+static crypto_session_t g_session;
+static uint8_t g_tx_payload[PROTO_MAX_PAYLOAD];
+
+static uint16_t rd_u16(const uint8_t *p)
+{
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+     94a:	f8 01       	movw	r30, r16
+     94c:	80 85       	ldd	r24, Z+8	; 0x08
+     94e:	90 e0       	ldi	r25, 0x00	; 0
+     950:	98 2f       	mov	r25, r24
+     952:	88 27       	eor	r24, r24
+     954:	27 81       	ldd	r18, Z+7	; 0x07
+     956:	82 2b       	or	r24, r18
+     958:	62 85       	ldd	r22, Z+10	; 0x0a
+     95a:	70 e0       	ldi	r23, 0x00	; 0
+     95c:	76 2f       	mov	r23, r22
+     95e:	66 27       	eor	r22, r22
+     960:	21 85       	ldd	r18, Z+9	; 0x09
+     962:	62 2b       	or	r22, r18
+
+    a = rd_u16(payload + 0u);
+    p = rd_u16(payload + 2u);
+    x = rd_u16(payload + 4u);
+
+    if ((a == 0u) || (p == 0u) || (x == 0u))
+     964:	00 97       	sbiw	r24, 0x00	; 0
+     966:	61 f0       	breq	.+24     	; 0x980 <__stack+0x121>
+     968:	61 15       	cp	r22, r1
+     96a:	71 05       	cpc	r23, r1
+     96c:	49 f0       	breq	.+18     	; 0x980 <__stack+0x121>
+static crypto_session_t g_session;
+static uint8_t g_tx_payload[PROTO_MAX_PAYLOAD];
+
+static uint16_t rd_u16(const uint8_t *p)
+{
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+     96e:	44 85       	ldd	r20, Z+12	; 0x0c
+     970:	50 e0       	ldi	r21, 0x00	; 0
+     972:	54 2f       	mov	r21, r20
+     974:	44 27       	eor	r20, r20
+     976:	23 85       	ldd	r18, Z+11	; 0x0b
+     978:	42 2b       	or	r20, r18
+
+    a = rd_u16(payload + 0u);
+    p = rd_u16(payload + 2u);
+    x = rd_u16(payload + 4u);
+
+    if ((a == 0u) || (p == 0u) || (x == 0u))
+     97a:	41 15       	cp	r20, r1
+     97c:	51 05       	cpc	r21, r1
+     97e:	29 f4       	brne	.+10     	; 0x98a <__stack+0x12b>
+    {
+        send_error(CMD_KEY_ADD, ERR_INVALID_ARG);
+     980:	65 e0       	ldi	r22, 0x05	; 5
+     982:	80 e1       	ldi	r24, 0x10	; 16
+     984:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     988:	7e c2       	rjmp	.+1276   	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    index = store_add_key(a, p, x);
+     98a:	0e 94 78 01 	call	0x2f0	; 0x2f0 <store_add_key>
+    if (index < 0)
+     98e:	88 23       	and	r24, r24
+     990:	2c f4       	brge	.+10     	; 0x99c <__stack+0x13d>
+    {
+        send_error(CMD_KEY_ADD, ERR_STORAGE_FULL);
+     992:	67 e0       	ldi	r22, 0x07	; 7
+     994:	80 e1       	ldi	r24, 0x10	; 16
+     996:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     99a:	75 c2       	rjmp	.+1258   	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    g_tx_payload[0] = (uint8_t)index;
+     99c:	d4 01       	movw	r26, r8
+     99e:	8c 93       	st	X, r24
+    send_ok(CMD_KEY_ADD, g_tx_payload, 1u);
+     9a0:	41 e0       	ldi	r20, 0x01	; 1
+     9a2:	56 2d       	mov	r21, r6
+     9a4:	b4 01       	movw	r22, r8
+     9a6:	80 e1       	ldi	r24, 0x10	; 16
+     9a8:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     9ac:	6c c2       	rjmp	.+1240   	; 0xe86 <__stack+0x627>
+}
+
+static void handle_key_delete(const uint8_t *payload, uint16_t len)
+{
+    if (len != 1u)
+     9ae:	ea 94       	dec	r14
+     9b0:	ef 28       	or	r14, r15
+     9b2:	29 f0       	breq	.+10     	; 0x9be <__stack+0x15f>
+    {
+        send_error(CMD_KEY_DELETE, ERR_BAD_LENGTH);
+     9b4:	64 e0       	ldi	r22, 0x04	; 4
+     9b6:	81 e1       	ldi	r24, 0x11	; 17
+     9b8:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     9bc:	64 c2       	rjmp	.+1224   	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    if (!store_delete_key(payload[0]))
+     9be:	f8 01       	movw	r30, r16
+     9c0:	87 81       	ldd	r24, Z+7	; 0x07
+     9c2:	0e 94 fa 01 	call	0x3f4	; 0x3f4 <store_delete_key>
+     9c6:	81 11       	cpse	r24, r1
+     9c8:	05 c0       	rjmp	.+10     	; 0x9d4 <__stack+0x175>
+    {
+        send_error(CMD_KEY_DELETE, ERR_INVALID_ARG);
+     9ca:	65 e0       	ldi	r22, 0x05	; 5
+     9cc:	81 e1       	ldi	r24, 0x11	; 17
+     9ce:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     9d2:	59 c2       	rjmp	.+1202   	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    send_ok(CMD_KEY_DELETE, NULL, 0u);
+     9d4:	40 e0       	ldi	r20, 0x00	; 0
+     9d6:	50 e0       	ldi	r21, 0x00	; 0
+     9d8:	60 e0       	ldi	r22, 0x00	; 0
+     9da:	70 e0       	ldi	r23, 0x00	; 0
+     9dc:	81 e1       	ldi	r24, 0x11	; 17
+     9de:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     9e2:	51 c2       	rjmp	.+1186   	; 0xe86 <__stack+0x627>
+    uint8_t indexes[MAX_KEYS];
+    uint8_t count;
+    uint8_t i;
+    uint16_t pos = 0u;
+
+    count = store_list_keys(records, MAX_KEYS, indexes);
+     9e4:	ae 01       	movw	r20, r28
+     9e6:	46 5c       	subi	r20, 0xC6	; 198
+     9e8:	5f 4f       	sbci	r21, 0xFF	; 255
+     9ea:	68 e0       	ldi	r22, 0x08	; 8
+     9ec:	ce 01       	movw	r24, r28
+     9ee:	02 96       	adiw	r24, 0x02	; 2
+     9f0:	0e 94 7b 02 	call	0x4f6	; 0x4f6 <store_list_keys>
+    g_tx_payload[pos++] = count;
+     9f4:	d4 01       	movw	r26, r8
+     9f6:	8c 93       	st	X, r24
+
+    for (i = 0u; i < count; ++i)
+     9f8:	88 23       	and	r24, r24
+     9fa:	f1 f1       	breq	.+124    	; 0xa78 <__stack+0x219>
+     9fc:	9e 01       	movw	r18, r28
+     9fe:	26 5c       	subi	r18, 0xC6	; 198
+     a00:	3f 4f       	sbci	r19, 0xFF	; 255
+     a02:	ec e6       	ldi	r30, 0x6C	; 108
+     a04:	f0 e0       	ldi	r31, 0x00	; 0
+     a06:	7e 01       	movw	r14, r28
+     a08:	b2 e0       	ldi	r27, 0x02	; 2
+     a0a:	eb 0e       	add	r14, r27
+     a0c:	f1 1c       	adc	r15, r1
+     a0e:	81 50       	subi	r24, 0x01	; 1
+     a10:	48 2f       	mov	r20, r24
+     a12:	50 e0       	ldi	r21, 0x00	; 0
+     a14:	ca 01       	movw	r24, r20
+     a16:	01 96       	adiw	r24, 0x01	; 1
+     a18:	82 0f       	add	r24, r18
+     a1a:	93 1f       	adc	r25, r19
+    {
+        g_tx_payload[pos++] = indexes[i];
+     a1c:	d9 01       	movw	r26, r18
+     a1e:	6d 91       	ld	r22, X+
+     a20:	9d 01       	movw	r18, r26
+     a22:	61 83       	std	Z+1, r22	; 0x01
+        g_tx_payload[pos++] = records[i].flags_raw;
+     a24:	d7 01       	movw	r26, r14
+     a26:	16 96       	adiw	r26, 0x06	; 6
+     a28:	6c 91       	ld	r22, X
+     a2a:	16 97       	sbiw	r26, 0x06	; 6
+     a2c:	62 83       	std	Z+2, r22	; 0x02
+        wr_u16(g_tx_payload + pos, records[i].a); pos += 2u;
+     a2e:	7c 91       	ld	r23, X
+     a30:	11 96       	adiw	r26, 0x01	; 1
+     a32:	6c 91       	ld	r22, X
+     a34:	11 97       	sbiw	r26, 0x01	; 1
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     a36:	73 83       	std	Z+3, r23	; 0x03
+    p[1] = (uint8_t)(value >> 8);
+     a38:	64 83       	std	Z+4, r22	; 0x04
+    for (i = 0u; i < count; ++i)
+    {
+        g_tx_payload[pos++] = indexes[i];
+        g_tx_payload[pos++] = records[i].flags_raw;
+        wr_u16(g_tx_payload + pos, records[i].a); pos += 2u;
+        wr_u16(g_tx_payload + pos, records[i].p); pos += 2u;
+     a3a:	12 96       	adiw	r26, 0x02	; 2
+     a3c:	7c 91       	ld	r23, X
+     a3e:	12 97       	sbiw	r26, 0x02	; 2
+     a40:	13 96       	adiw	r26, 0x03	; 3
+     a42:	6c 91       	ld	r22, X
+     a44:	13 97       	sbiw	r26, 0x03	; 3
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     a46:	75 83       	std	Z+5, r23	; 0x05
+    p[1] = (uint8_t)(value >> 8);
+     a48:	66 83       	std	Z+6, r22	; 0x06
+    {
+        g_tx_payload[pos++] = indexes[i];
+        g_tx_payload[pos++] = records[i].flags_raw;
+        wr_u16(g_tx_payload + pos, records[i].a); pos += 2u;
+        wr_u16(g_tx_payload + pos, records[i].p); pos += 2u;
+        wr_u16(g_tx_payload + pos, records[i].x); pos += 2u;
+     a4a:	14 96       	adiw	r26, 0x04	; 4
+     a4c:	7c 91       	ld	r23, X
+     a4e:	14 97       	sbiw	r26, 0x04	; 4
+     a50:	15 96       	adiw	r26, 0x05	; 5
+     a52:	6c 91       	ld	r22, X
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     a54:	77 83       	std	Z+7, r23	; 0x07
+    p[1] = (uint8_t)(value >> 8);
+     a56:	60 87       	std	Z+8, r22	; 0x08
+     a58:	38 96       	adiw	r30, 0x08	; 8
+     a5a:	b7 e0       	ldi	r27, 0x07	; 7
+     a5c:	eb 0e       	add	r14, r27
+     a5e:	f1 1c       	adc	r15, r1
+    uint16_t pos = 0u;
+
+    count = store_list_keys(records, MAX_KEYS, indexes);
+    g_tx_payload[pos++] = count;
+
+    for (i = 0u; i < count; ++i)
+     a60:	28 17       	cp	r18, r24
+     a62:	39 07       	cpc	r19, r25
+     a64:	d9 f6       	brne	.-74     	; 0xa1c <__stack+0x1bd>
+     a66:	44 0f       	add	r20, r20
+     a68:	55 1f       	adc	r21, r21
+     a6a:	44 0f       	add	r20, r20
+     a6c:	55 1f       	adc	r21, r21
+     a6e:	44 0f       	add	r20, r20
+     a70:	55 1f       	adc	r21, r21
+     a72:	47 5f       	subi	r20, 0xF7	; 247
+     a74:	5f 4f       	sbci	r21, 0xFF	; 255
+     a76:	02 c0       	rjmp	.+4      	; 0xa7c <__stack+0x21d>
+    uint8_t count;
+    uint8_t i;
+    uint16_t pos = 0u;
+
+    count = store_list_keys(records, MAX_KEYS, indexes);
+    g_tx_payload[pos++] = count;
+     a78:	41 e0       	ldi	r20, 0x01	; 1
+     a7a:	56 2d       	mov	r21, r6
+        wr_u16(g_tx_payload + pos, records[i].a); pos += 2u;
+        wr_u16(g_tx_payload + pos, records[i].p); pos += 2u;
+        wr_u16(g_tx_payload + pos, records[i].x); pos += 2u;
+    }
+
+    send_ok(CMD_KEY_LIST, g_tx_payload, pos);
+     a7c:	b4 01       	movw	r22, r8
+     a7e:	82 e1       	ldi	r24, 0x12	; 18
+     a80:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     a84:	00 c2       	rjmp	.+1024   	; 0xe86 <__stack+0x627>
+{
+    key_record_t rec;
+    int8_t key_index;
+    uint8_t y;
+
+    if (len != 4u)
+     a86:	e4 e0       	ldi	r30, 0x04	; 4
+     a88:	ee 16       	cp	r14, r30
+     a8a:	f1 04       	cpc	r15, r1
+     a8c:	29 f0       	breq	.+10     	; 0xa98 <__stack+0x239>
+    {
+        send_error(CMD_ENC_BEGIN, ERR_BAD_LENGTH);
+     a8e:	64 e0       	ldi	r22, 0x04	; 4
+     a90:	80 e2       	ldi	r24, 0x20	; 32
+     a92:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     a96:	f7 c1       	rjmp	.+1006   	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    clear_session();
+     a98:	0e 94 41 03 	call	0x682	; 0x682 <clear_session>
+    g_session.a = rd_u16(payload + 0u);
+     a9c:	d8 01       	movw	r26, r16
+     a9e:	18 96       	adiw	r26, 0x08	; 8
+     aa0:	8c 91       	ld	r24, X
+     aa2:	18 97       	sbiw	r26, 0x08	; 8
+     aa4:	90 e0       	ldi	r25, 0x00	; 0
+     aa6:	98 2f       	mov	r25, r24
+     aa8:	88 27       	eor	r24, r24
+     aaa:	17 96       	adiw	r26, 0x07	; 7
+     aac:	2c 91       	ld	r18, X
+     aae:	17 97       	sbiw	r26, 0x07	; 7
+     ab0:	82 2b       	or	r24, r18
+     ab2:	f6 01       	movw	r30, r12
+     ab4:	92 83       	std	Z+2, r25	; 0x02
+     ab6:	81 83       	std	Z+1, r24	; 0x01
+    g_session.p = rd_u16(payload + 2u);
+     ab8:	1a 96       	adiw	r26, 0x0a	; 10
+     aba:	8c 91       	ld	r24, X
+     abc:	1a 97       	sbiw	r26, 0x0a	; 10
+     abe:	90 e0       	ldi	r25, 0x00	; 0
+     ac0:	98 2f       	mov	r25, r24
+     ac2:	88 27       	eor	r24, r24
+     ac4:	19 96       	adiw	r26, 0x09	; 9
+     ac6:	2c 91       	ld	r18, X
+     ac8:	82 2b       	or	r24, r18
+     aca:	94 83       	std	Z+4, r25	; 0x04
+     acc:	83 83       	std	Z+3, r24	; 0x03
+    g_session.block_size = store_get_block_size();
+     ace:	0e 94 59 01 	call	0x2b2	; 0x2b2 <store_get_block_size>
+     ad2:	d6 01       	movw	r26, r12
+     ad4:	1c 96       	adiw	r26, 0x0c	; 12
+     ad6:	9c 93       	st	X, r25
+     ad8:	8e 93       	st	-X, r24
+     ada:	1b 97       	sbiw	r26, 0x0b	; 11
+
+    key_index = store_find_key(g_session.a, g_session.p, &rec);
+     adc:	13 96       	adiw	r26, 0x03	; 3
+     ade:	6d 91       	ld	r22, X+
+     ae0:	7c 91       	ld	r23, X
+     ae2:	14 97       	sbiw	r26, 0x04	; 4
+     ae4:	ae 01       	movw	r20, r28
+     ae6:	4e 5f       	subi	r20, 0xFE	; 254
+     ae8:	5f 4f       	sbci	r21, 0xFF	; 255
+     aea:	11 96       	adiw	r26, 0x01	; 1
+     aec:	8d 91       	ld	r24, X+
+     aee:	9c 91       	ld	r25, X
+     af0:	12 97       	sbiw	r26, 0x02	; 2
+     af2:	0e 94 24 02 	call	0x448	; 0x448 <store_find_key>
+    if (key_index < 0)
+     af6:	88 23       	and	r24, r24
+     af8:	2c f4       	brge	.+10     	; 0xb04 <__stack+0x2a5>
+    {
+        send_error(CMD_ENC_BEGIN, ERR_NOT_FOUND);
+     afa:	66 e0       	ldi	r22, 0x06	; 6
+     afc:	80 e2       	ldi	r24, 0x20	; 32
+     afe:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     b02:	c1 c1       	rjmp	.+898    	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    (void)key_index;
+    g_session.x = rec.x;
+     b04:	8e 81       	ldd	r24, Y+6	; 0x06
+     b06:	9f 81       	ldd	r25, Y+7	; 0x07
+     b08:	f6 01       	movw	r30, r12
+     b0a:	96 83       	std	Z+6, r25	; 0x06
+     b0c:	85 83       	std	Z+5, r24	; 0x05
+    y = store_get_next_y();
+     b0e:	0e 94 d9 02 	call	0x5b2	; 0x5b2 <store_get_next_y>
+    g_session.ay = crypto_mod_pow_u16(g_session.a, y, g_session.p);
+     b12:	d6 01       	movw	r26, r12
+     b14:	13 96       	adiw	r26, 0x03	; 3
+     b16:	4d 91       	ld	r20, X+
+     b18:	5c 91       	ld	r21, X
+     b1a:	14 97       	sbiw	r26, 0x04	; 4
+     b1c:	68 2f       	mov	r22, r24
+     b1e:	70 e0       	ldi	r23, 0x00	; 0
+     b20:	11 96       	adiw	r26, 0x01	; 1
+     b22:	8d 91       	ld	r24, X+
+     b24:	9c 91       	ld	r25, X
+     b26:	12 97       	sbiw	r26, 0x02	; 2
+     b28:	0e 94 76 00 	call	0xec	; 0xec <crypto_mod_pow_u16>
+     b2c:	f6 01       	movw	r30, r12
+     b2e:	90 87       	std	Z+8, r25	; 0x08
+     b30:	87 83       	std	Z+7, r24	; 0x07
+    g_session.shared_secret = crypto_mod_pow_u16(g_session.ay, g_session.x, g_session.p);
+     b32:	43 81       	ldd	r20, Z+3	; 0x03
+     b34:	54 81       	ldd	r21, Z+4	; 0x04
+     b36:	65 81       	ldd	r22, Z+5	; 0x05
+     b38:	76 81       	ldd	r23, Z+6	; 0x06
+     b3a:	0e 94 76 00 	call	0xec	; 0xec <crypto_mod_pow_u16>
+     b3e:	d6 01       	movw	r26, r12
+     b40:	1a 96       	adiw	r26, 0x0a	; 10
+     b42:	9c 93       	st	X, r25
+     b44:	8e 93       	st	-X, r24
+     b46:	19 97       	sbiw	r26, 0x09	; 9
+    g_session.flags.raw = 0u;
+    g_session.flags.bits.active = 1u;
+    g_session.flags.bits.decrypt = 0u;
+     b48:	bc 92       	st	X, r11
+
+    wr_u16(g_tx_payload + 0u, g_session.ay);
+     b4a:	17 96       	adiw	r26, 0x07	; 7
+     b4c:	9c 91       	ld	r25, X
+     b4e:	17 97       	sbiw	r26, 0x07	; 7
+     b50:	18 96       	adiw	r26, 0x08	; 8
+     b52:	8c 91       	ld	r24, X
+     b54:	18 97       	sbiw	r26, 0x08	; 8
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     b56:	f4 01       	movw	r30, r8
+     b58:	90 83       	st	Z, r25
+    p[1] = (uint8_t)(value >> 8);
+     b5a:	81 83       	std	Z+1, r24	; 0x01
+    g_session.flags.raw = 0u;
+    g_session.flags.bits.active = 1u;
+    g_session.flags.bits.decrypt = 0u;
+
+    wr_u16(g_tx_payload + 0u, g_session.ay);
+    wr_u16(g_tx_payload + 2u, g_session.block_size);
+     b5c:	1b 96       	adiw	r26, 0x0b	; 11
+     b5e:	9c 91       	ld	r25, X
+     b60:	1b 97       	sbiw	r26, 0x0b	; 11
+     b62:	1c 96       	adiw	r26, 0x0c	; 12
+     b64:	8c 91       	ld	r24, X
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     b66:	92 83       	std	Z+2, r25	; 0x02
+    p[1] = (uint8_t)(value >> 8);
+     b68:	83 83       	std	Z+3, r24	; 0x03
+    g_session.flags.bits.active = 1u;
+    g_session.flags.bits.decrypt = 0u;
+
+    wr_u16(g_tx_payload + 0u, g_session.ay);
+    wr_u16(g_tx_payload + 2u, g_session.block_size);
+    send_ok(CMD_ENC_BEGIN, g_tx_payload, 4u);
+     b6a:	44 e0       	ldi	r20, 0x04	; 4
+     b6c:	50 e0       	ldi	r21, 0x00	; 0
+     b6e:	b4 01       	movw	r22, r8
+     b70:	80 e2       	ldi	r24, 0x20	; 32
+     b72:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     b76:	87 c1       	rjmp	.+782    	; 0xe86 <__stack+0x627>
+{
+    uint16_t plain_len;
+    uint16_t i;
+    uint16_t pos = 0u;
+
+    if ((g_session.flags.bits.active == 0u) || (g_session.flags.bits.decrypt != 0u))
+     b78:	d6 01       	movw	r26, r12
+     b7a:	8c 91       	ld	r24, X
+     b7c:	83 70       	andi	r24, 0x03	; 3
+     b7e:	81 30       	cpi	r24, 0x01	; 1
+     b80:	29 f0       	breq	.+10     	; 0xb8c <__stack+0x32d>
+    {
+        send_error(CMD_ENC_DATA, ERR_INVALID_STATE);
+     b82:	68 e0       	ldi	r22, 0x08	; 8
+     b84:	81 e2       	ldi	r24, 0x21	; 33
+     b86:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     b8a:	7d c1       	rjmp	.+762    	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    if (len < 2u)
+     b8c:	b2 e0       	ldi	r27, 0x02	; 2
+     b8e:	eb 16       	cp	r14, r27
+     b90:	f1 04       	cpc	r15, r1
+     b92:	28 f4       	brcc	.+10     	; 0xb9e <__stack+0x33f>
+    {
+        send_error(CMD_ENC_DATA, ERR_BAD_LENGTH);
+     b94:	64 e0       	ldi	r22, 0x04	; 4
+     b96:	81 e2       	ldi	r24, 0x21	; 33
+     b98:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     b9c:	74 c1       	rjmp	.+744    	; 0xe86 <__stack+0x627>
+static crypto_session_t g_session;
+static uint8_t g_tx_payload[PROTO_MAX_PAYLOAD];
+
+static uint16_t rd_u16(const uint8_t *p)
+{
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+     b9e:	f8 01       	movw	r30, r16
+     ba0:	20 84       	ldd	r2, Z+8	; 0x08
+     ba2:	31 2c       	mov	r3, r1
+     ba4:	32 2c       	mov	r3, r2
+     ba6:	22 24       	eor	r2, r2
+     ba8:	87 81       	ldd	r24, Z+7	; 0x07
+     baa:	28 2a       	or	r2, r24
+        send_error(CMD_ENC_DATA, ERR_BAD_LENGTH);
+        return;
+    }
+
+    plain_len = rd_u16(payload);
+    if ((plain_len > g_session.block_size) || (plain_len > MAX_BLOCK_SIZE) || (len != (uint16_t)(2u + plain_len)))
+     bac:	d6 01       	movw	r26, r12
+     bae:	1b 96       	adiw	r26, 0x0b	; 11
+     bb0:	8d 91       	ld	r24, X+
+     bb2:	9c 91       	ld	r25, X
+     bb4:	1c 97       	sbiw	r26, 0x0c	; 12
+     bb6:	82 15       	cp	r24, r2
+     bb8:	93 05       	cpc	r25, r3
+     bba:	48 f0       	brcs	.+18     	; 0xbce <__stack+0x36f>
+     bbc:	b1 e4       	ldi	r27, 0x41	; 65
+     bbe:	2b 16       	cp	r2, r27
+     bc0:	31 04       	cpc	r3, r1
+     bc2:	28 f4       	brcc	.+10     	; 0xbce <__stack+0x36f>
+     bc4:	c1 01       	movw	r24, r2
+     bc6:	02 96       	adiw	r24, 0x02	; 2
+     bc8:	e8 16       	cp	r14, r24
+     bca:	f9 06       	cpc	r15, r25
+     bcc:	29 f0       	breq	.+10     	; 0xbd8 <__stack+0x379>
+    {
+        send_error(CMD_ENC_DATA, ERR_BAD_LENGTH);
+     bce:	64 e0       	ldi	r22, 0x04	; 4
+     bd0:	81 e2       	ldi	r24, 0x21	; 33
+     bd2:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     bd6:	57 c1       	rjmp	.+686    	; 0xe86 <__stack+0x627>
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     bd8:	f4 01       	movw	r30, r8
+     bda:	20 82       	st	Z, r2
+    p[1] = (uint8_t)(value >> 8);
+     bdc:	31 82       	std	Z+1, r3	; 0x01
+        send_error(CMD_ENC_DATA, ERR_BAD_LENGTH);
+        return;
+    }
+
+    wr_u16(g_tx_payload + pos, plain_len); pos += 2u;
+    for (i = 0u; i < plain_len; ++i)
+     bde:	21 14       	cp	r2, r1
+     be0:	31 04       	cpc	r3, r1
+     be2:	79 f1       	breq	.+94     	; 0xc42 <__stack+0x3e3>
+     be4:	84 e0       	ldi	r24, 0x04	; 4
+     be6:	91 e0       	ldi	r25, 0x01	; 1
+     be8:	24 96       	adiw	r28, 0x04	; 4
+     bea:	9f af       	std	Y+63, r25	; 0x3f
+     bec:	8e af       	std	Y+62, r24	; 0x3e
+     bee:	24 97       	sbiw	r28, 0x04	; 4
+     bf0:	0f 2e       	mov	r0, r31
+     bf2:	fc e6       	ldi	r31, 0x6C	; 108
+     bf4:	4f 2e       	mov	r4, r31
+     bf6:	f0 e0       	ldi	r31, 0x00	; 0
+     bf8:	5f 2e       	mov	r5, r31
+     bfa:	f0 2d       	mov	r31, r0
+     bfc:	22 0c       	add	r2, r2
+     bfe:	33 1c       	adc	r3, r3
+     c00:	d1 01       	movw	r26, r2
+     c02:	a4 59       	subi	r26, 0x94	; 148
+     c04:	bf 4f       	sbci	r27, 0xFF	; 255
+     c06:	7d 01       	movw	r14, r26
+    {
+        uint16_t c = crypto_encrypt_byte(payload[2u + i], g_session.shared_secret, g_session.p);
+     c08:	f6 01       	movw	r30, r12
+     c0a:	43 81       	ldd	r20, Z+3	; 0x03
+     c0c:	54 81       	ldd	r21, Z+4	; 0x04
+     c0e:	61 85       	ldd	r22, Z+9	; 0x09
+     c10:	72 85       	ldd	r23, Z+10	; 0x0a
+     c12:	24 96       	adiw	r28, 0x04	; 4
+     c14:	ae ad       	ldd	r26, Y+62	; 0x3e
+     c16:	bf ad       	ldd	r27, Y+63	; 0x3f
+     c18:	24 97       	sbiw	r28, 0x04	; 4
+     c1a:	8d 91       	ld	r24, X+
+     c1c:	24 96       	adiw	r28, 0x04	; 4
+     c1e:	bf af       	std	Y+63, r27	; 0x3f
+     c20:	ae af       	std	Y+62, r26	; 0x3e
+     c22:	24 97       	sbiw	r28, 0x04	; 4
+     c24:	0e 94 c7 00 	call	0x18e	; 0x18e <crypto_encrypt_byte>
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     c28:	f2 01       	movw	r30, r4
+     c2a:	82 83       	std	Z+2, r24	; 0x02
+    p[1] = (uint8_t)(value >> 8);
+     c2c:	93 83       	std	Z+3, r25	; 0x03
+     c2e:	f2 e0       	ldi	r31, 0x02	; 2
+     c30:	4f 0e       	add	r4, r31
+     c32:	51 1c       	adc	r5, r1
+        send_error(CMD_ENC_DATA, ERR_BAD_LENGTH);
+        return;
+    }
+
+    wr_u16(g_tx_payload + pos, plain_len); pos += 2u;
+    for (i = 0u; i < plain_len; ++i)
+     c34:	4e 14       	cp	r4, r14
+     c36:	5f 04       	cpc	r5, r15
+     c38:	39 f7       	brne	.-50     	; 0xc08 <__stack+0x3a9>
+     c3a:	a1 01       	movw	r20, r2
+     c3c:	4e 5f       	subi	r20, 0xFE	; 254
+     c3e:	5f 4f       	sbci	r21, 0xFF	; 255
+     c40:	02 c0       	rjmp	.+4      	; 0xc46 <__stack+0x3e7>
+    {
+        send_error(CMD_ENC_DATA, ERR_BAD_LENGTH);
+        return;
+    }
+
+    wr_u16(g_tx_payload + pos, plain_len); pos += 2u;
+     c42:	47 2d       	mov	r20, r7
+     c44:	5a 2d       	mov	r21, r10
+        uint16_t c = crypto_encrypt_byte(payload[2u + i], g_session.shared_secret, g_session.p);
+        wr_u16(g_tx_payload + pos, c);
+        pos += 2u;
+    }
+
+    send_ok(CMD_ENC_DATA, g_tx_payload, pos);
+     c46:	b4 01       	movw	r22, r8
+     c48:	81 e2       	ldi	r24, 0x21	; 33
+     c4a:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     c4e:	1b c1       	rjmp	.+566    	; 0xe86 <__stack+0x627>
+}
+
+static void handle_enc_end(uint16_t len)
+{
+    if (len != 0u)
+     c50:	ef 28       	or	r14, r15
+     c52:	29 f0       	breq	.+10     	; 0xc5e <__stack+0x3ff>
+    {
+        send_error(CMD_ENC_END, ERR_BAD_LENGTH);
+     c54:	64 e0       	ldi	r22, 0x04	; 4
+     c56:	82 e2       	ldi	r24, 0x22	; 34
+     c58:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     c5c:	14 c1       	rjmp	.+552    	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    clear_session();
+     c5e:	0e 94 41 03 	call	0x682	; 0x682 <clear_session>
+    send_ok(CMD_ENC_END, NULL, 0u);
+     c62:	40 e0       	ldi	r20, 0x00	; 0
+     c64:	50 e0       	ldi	r21, 0x00	; 0
+     c66:	60 e0       	ldi	r22, 0x00	; 0
+     c68:	70 e0       	ldi	r23, 0x00	; 0
+     c6a:	82 e2       	ldi	r24, 0x22	; 34
+     c6c:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     c70:	0a c1       	rjmp	.+532    	; 0xe86 <__stack+0x627>
+static void handle_dec_begin(const uint8_t *payload, uint16_t len)
+{
+    key_record_t rec;
+    int8_t key_index;
+
+    if (len != 6u)
+     c72:	66 e0       	ldi	r22, 0x06	; 6
+     c74:	e6 16       	cp	r14, r22
+     c76:	f1 04       	cpc	r15, r1
+     c78:	29 f0       	breq	.+10     	; 0xc84 <__stack+0x425>
+    {
+        send_error(CMD_DEC_BEGIN, ERR_BAD_LENGTH);
+     c7a:	64 e0       	ldi	r22, 0x04	; 4
+     c7c:	83 e2       	ldi	r24, 0x23	; 35
+     c7e:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     c82:	01 c1       	rjmp	.+514    	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    clear_session();
+     c84:	0e 94 41 03 	call	0x682	; 0x682 <clear_session>
+    g_session.a = rd_u16(payload + 0u);
+     c88:	d8 01       	movw	r26, r16
+     c8a:	18 96       	adiw	r26, 0x08	; 8
+     c8c:	8c 91       	ld	r24, X
+     c8e:	18 97       	sbiw	r26, 0x08	; 8
+     c90:	90 e0       	ldi	r25, 0x00	; 0
+     c92:	98 2f       	mov	r25, r24
+     c94:	88 27       	eor	r24, r24
+     c96:	17 96       	adiw	r26, 0x07	; 7
+     c98:	2c 91       	ld	r18, X
+     c9a:	17 97       	sbiw	r26, 0x07	; 7
+     c9c:	82 2b       	or	r24, r18
+     c9e:	f6 01       	movw	r30, r12
+     ca0:	92 83       	std	Z+2, r25	; 0x02
+     ca2:	81 83       	std	Z+1, r24	; 0x01
+    g_session.p = rd_u16(payload + 2u);
+     ca4:	1a 96       	adiw	r26, 0x0a	; 10
+     ca6:	8c 91       	ld	r24, X
+     ca8:	1a 97       	sbiw	r26, 0x0a	; 10
+     caa:	90 e0       	ldi	r25, 0x00	; 0
+     cac:	98 2f       	mov	r25, r24
+     cae:	88 27       	eor	r24, r24
+     cb0:	19 96       	adiw	r26, 0x09	; 9
+     cb2:	2c 91       	ld	r18, X
+     cb4:	19 97       	sbiw	r26, 0x09	; 9
+     cb6:	82 2b       	or	r24, r18
+     cb8:	94 83       	std	Z+4, r25	; 0x04
+     cba:	83 83       	std	Z+3, r24	; 0x03
+    g_session.ay = rd_u16(payload + 4u);
+     cbc:	1c 96       	adiw	r26, 0x0c	; 12
+     cbe:	8c 91       	ld	r24, X
+     cc0:	1c 97       	sbiw	r26, 0x0c	; 12
+     cc2:	90 e0       	ldi	r25, 0x00	; 0
+     cc4:	98 2f       	mov	r25, r24
+     cc6:	88 27       	eor	r24, r24
+     cc8:	1b 96       	adiw	r26, 0x0b	; 11
+     cca:	2c 91       	ld	r18, X
+     ccc:	82 2b       	or	r24, r18
+     cce:	90 87       	std	Z+8, r25	; 0x08
+     cd0:	87 83       	std	Z+7, r24	; 0x07
+    g_session.block_size = store_get_block_size();
+     cd2:	0e 94 59 01 	call	0x2b2	; 0x2b2 <store_get_block_size>
+     cd6:	d6 01       	movw	r26, r12
+     cd8:	1c 96       	adiw	r26, 0x0c	; 12
+     cda:	9c 93       	st	X, r25
+     cdc:	8e 93       	st	-X, r24
+     cde:	1b 97       	sbiw	r26, 0x0b	; 11
+
+    key_index = store_find_key(g_session.a, g_session.p, &rec);
+     ce0:	13 96       	adiw	r26, 0x03	; 3
+     ce2:	6d 91       	ld	r22, X+
+     ce4:	7c 91       	ld	r23, X
+     ce6:	14 97       	sbiw	r26, 0x04	; 4
+     ce8:	ae 01       	movw	r20, r28
+     cea:	4e 5f       	subi	r20, 0xFE	; 254
+     cec:	5f 4f       	sbci	r21, 0xFF	; 255
+     cee:	11 96       	adiw	r26, 0x01	; 1
+     cf0:	8d 91       	ld	r24, X+
+     cf2:	9c 91       	ld	r25, X
+     cf4:	12 97       	sbiw	r26, 0x02	; 2
+     cf6:	0e 94 24 02 	call	0x448	; 0x448 <store_find_key>
+    if (key_index < 0)
+     cfa:	88 23       	and	r24, r24
+     cfc:	2c f4       	brge	.+10     	; 0xd08 <__stack+0x4a9>
+    {
+        send_error(CMD_DEC_BEGIN, ERR_NOT_FOUND);
+     cfe:	66 e0       	ldi	r22, 0x06	; 6
+     d00:	83 e2       	ldi	r24, 0x23	; 35
+     d02:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     d06:	bf c0       	rjmp	.+382    	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    (void)key_index;
+    g_session.x = rec.x;
+     d08:	6e 81       	ldd	r22, Y+6	; 0x06
+     d0a:	7f 81       	ldd	r23, Y+7	; 0x07
+     d0c:	f6 01       	movw	r30, r12
+     d0e:	76 83       	std	Z+6, r23	; 0x06
+     d10:	65 83       	std	Z+5, r22	; 0x05
+    g_session.shared_secret = crypto_mod_pow_u16(g_session.ay, g_session.x, g_session.p);
+     d12:	43 81       	ldd	r20, Z+3	; 0x03
+     d14:	54 81       	ldd	r21, Z+4	; 0x04
+     d16:	87 81       	ldd	r24, Z+7	; 0x07
+     d18:	90 85       	ldd	r25, Z+8	; 0x08
+     d1a:	0e 94 76 00 	call	0xec	; 0xec <crypto_mod_pow_u16>
+     d1e:	d6 01       	movw	r26, r12
+     d20:	1a 96       	adiw	r26, 0x0a	; 10
+     d22:	9c 93       	st	X, r25
+     d24:	8e 93       	st	-X, r24
+     d26:	19 97       	sbiw	r26, 0x09	; 9
+    g_session.flags.raw = 0u;
+    g_session.flags.bits.active = 1u;
+    g_session.flags.bits.decrypt = 1u;
+     d28:	83 e0       	ldi	r24, 0x03	; 3
+     d2a:	8c 93       	st	X, r24
+
+    wr_u16(g_tx_payload, g_session.block_size);
+     d2c:	1b 96       	adiw	r26, 0x0b	; 11
+     d2e:	9c 91       	ld	r25, X
+     d30:	1b 97       	sbiw	r26, 0x0b	; 11
+     d32:	1c 96       	adiw	r26, 0x0c	; 12
+     d34:	8c 91       	ld	r24, X
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     d36:	f4 01       	movw	r30, r8
+     d38:	90 83       	st	Z, r25
+    p[1] = (uint8_t)(value >> 8);
+     d3a:	81 83       	std	Z+1, r24	; 0x01
+    g_session.flags.raw = 0u;
+    g_session.flags.bits.active = 1u;
+    g_session.flags.bits.decrypt = 1u;
+
+    wr_u16(g_tx_payload, g_session.block_size);
+    send_ok(CMD_DEC_BEGIN, g_tx_payload, 2u);
+     d3c:	47 2d       	mov	r20, r7
+     d3e:	5a 2d       	mov	r21, r10
+     d40:	b4 01       	movw	r22, r8
+     d42:	83 e2       	ldi	r24, 0x23	; 35
+     d44:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     d48:	9e c0       	rjmp	.+316    	; 0xe86 <__stack+0x627>
+{
+    uint16_t plain_len;
+    uint16_t i;
+    uint16_t pos = 0u;
+
+    if ((g_session.flags.bits.active == 0u) || (g_session.flags.bits.decrypt == 0u))
+     d4a:	d6 01       	movw	r26, r12
+     d4c:	8c 91       	ld	r24, X
+     d4e:	83 70       	andi	r24, 0x03	; 3
+     d50:	83 30       	cpi	r24, 0x03	; 3
+     d52:	29 f0       	breq	.+10     	; 0xd5e <__stack+0x4ff>
+    {
+        send_error(CMD_DEC_DATA, ERR_INVALID_STATE);
+     d54:	68 e0       	ldi	r22, 0x08	; 8
+     d56:	84 e2       	ldi	r24, 0x24	; 36
+     d58:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     d5c:	94 c0       	rjmp	.+296    	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    if (len < 2u)
+     d5e:	b2 e0       	ldi	r27, 0x02	; 2
+     d60:	eb 16       	cp	r14, r27
+     d62:	f1 04       	cpc	r15, r1
+     d64:	28 f4       	brcc	.+10     	; 0xd70 <__stack+0x511>
+    {
+        send_error(CMD_DEC_DATA, ERR_BAD_LENGTH);
+     d66:	64 e0       	ldi	r22, 0x04	; 4
+     d68:	84 e2       	ldi	r24, 0x24	; 36
+     d6a:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     d6e:	8b c0       	rjmp	.+278    	; 0xe86 <__stack+0x627>
+static crypto_session_t g_session;
+static uint8_t g_tx_payload[PROTO_MAX_PAYLOAD];
+
+static uint16_t rd_u16(const uint8_t *p)
+{
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+     d70:	f8 01       	movw	r30, r16
+     d72:	20 84       	ldd	r2, Z+8	; 0x08
+     d74:	31 2c       	mov	r3, r1
+     d76:	32 2c       	mov	r3, r2
+     d78:	22 24       	eor	r2, r2
+     d7a:	87 81       	ldd	r24, Z+7	; 0x07
+     d7c:	28 2a       	or	r2, r24
+        send_error(CMD_DEC_DATA, ERR_BAD_LENGTH);
+        return;
+    }
+
+    plain_len = rd_u16(payload);
+    if ((plain_len > g_session.block_size) || (plain_len > MAX_BLOCK_SIZE) || (len != (uint16_t)(2u + (2u * plain_len))))
+     d7e:	d6 01       	movw	r26, r12
+     d80:	1b 96       	adiw	r26, 0x0b	; 11
+     d82:	8d 91       	ld	r24, X+
+     d84:	9c 91       	ld	r25, X
+     d86:	1c 97       	sbiw	r26, 0x0c	; 12
+     d88:	82 15       	cp	r24, r2
+     d8a:	93 05       	cpc	r25, r3
+     d8c:	58 f0       	brcs	.+22     	; 0xda4 <__stack+0x545>
+     d8e:	b1 e4       	ldi	r27, 0x41	; 65
+     d90:	2b 16       	cp	r2, r27
+     d92:	31 04       	cpc	r3, r1
+     d94:	38 f4       	brcc	.+14     	; 0xda4 <__stack+0x545>
+     d96:	c1 01       	movw	r24, r2
+     d98:	01 96       	adiw	r24, 0x01	; 1
+     d9a:	88 0f       	add	r24, r24
+     d9c:	99 1f       	adc	r25, r25
+     d9e:	e8 16       	cp	r14, r24
+     da0:	f9 06       	cpc	r15, r25
+     da2:	29 f0       	breq	.+10     	; 0xdae <__stack+0x54f>
+    {
+        send_error(CMD_DEC_DATA, ERR_BAD_LENGTH);
+     da4:	64 e0       	ldi	r22, 0x04	; 4
+     da6:	84 e2       	ldi	r24, 0x24	; 36
+     da8:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     dac:	6c c0       	rjmp	.+216    	; 0xe86 <__stack+0x627>
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
+static void wr_u16(uint8_t *p, uint16_t value)
+{
+    p[0] = (uint8_t)(value & 0xFFu);
+     dae:	f4 01       	movw	r30, r8
+     db0:	20 82       	st	Z, r2
+    p[1] = (uint8_t)(value >> 8);
+     db2:	31 82       	std	Z+1, r3	; 0x01
+        send_error(CMD_DEC_DATA, ERR_BAD_LENGTH);
+        return;
+    }
+
+    wr_u16(g_tx_payload + pos, plain_len); pos += 2u;
+    for (i = 0u; i < plain_len; ++i)
+     db4:	21 14       	cp	r2, r1
+     db6:	31 04       	cpc	r3, r1
+     db8:	09 f4       	brne	.+2      	; 0xdbc <__stack+0x55d>
+     dba:	43 c0       	rjmp	.+134    	; 0xe42 <__stack+0x5e3>
+     dbc:	0f 2e       	mov	r0, r31
+     dbe:	f4 e0       	ldi	r31, 0x04	; 4
+     dc0:	ef 2e       	mov	r14, r31
+     dc2:	f1 e0       	ldi	r31, 0x01	; 1
+     dc4:	ff 2e       	mov	r15, r31
+     dc6:	f0 2d       	mov	r31, r0
+     dc8:	8e e6       	ldi	r24, 0x6E	; 110
+     dca:	90 e0       	ldi	r25, 0x00	; 0
+     dcc:	24 96       	adiw	r28, 0x04	; 4
+     dce:	9f af       	std	Y+63, r25	; 0x3f
+     dd0:	8e af       	std	Y+62, r24	; 0x3e
+     dd2:	24 97       	sbiw	r28, 0x04	; 4
+     dd4:	92 e0       	ldi	r25, 0x02	; 2
+     dd6:	29 0e       	add	r2, r25
+     dd8:	31 1c       	adc	r3, r1
+     dda:	68 94       	set
+     ddc:	44 24       	eor	r4, r4
+     dde:	41 f8       	bld	r4, 1
+     de0:	51 2c       	mov	r5, r1
+    {
+        const uint16_t cipher = rd_u16(payload + 2u + (2u * i));
+        uint8_t plain;
+
+        if (!crypto_decrypt_word(cipher, g_session.shared_secret, g_session.p, &plain))
+     de2:	d6 01       	movw	r26, r12
+     de4:	13 96       	adiw	r26, 0x03	; 3
+     de6:	4d 91       	ld	r20, X+
+     de8:	5c 91       	ld	r21, X
+     dea:	14 97       	sbiw	r26, 0x04	; 4
+     dec:	19 96       	adiw	r26, 0x09	; 9
+     dee:	6d 91       	ld	r22, X+
+     df0:	7c 91       	ld	r23, X
+     df2:	1a 97       	sbiw	r26, 0x0a	; 10
+     df4:	f7 01       	movw	r30, r14
+     df6:	81 81       	ldd	r24, Z+1	; 0x01
+     df8:	90 e0       	ldi	r25, 0x00	; 0
+     dfa:	98 2f       	mov	r25, r24
+     dfc:	88 27       	eor	r24, r24
+     dfe:	e0 81       	ld	r30, Z
+     e00:	9e 01       	movw	r18, r28
+     e02:	2e 5f       	subi	r18, 0xFE	; 254
+     e04:	3f 4f       	sbci	r19, 0xFF	; 255
+     e06:	8e 2b       	or	r24, r30
+     e08:	0e 94 df 00 	call	0x1be	; 0x1be <crypto_decrypt_word>
+     e0c:	81 11       	cpse	r24, r1
+     e0e:	05 c0       	rjmp	.+10     	; 0xe1a <__stack+0x5bb>
+        {
+            send_error(CMD_DEC_DATA, ERR_DECRYPT_RANGE);
+     e10:	69 e0       	ldi	r22, 0x09	; 9
+     e12:	84 e2       	ldi	r24, 0x24	; 36
+     e14:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     e18:	36 c0       	rjmp	.+108    	; 0xe86 <__stack+0x627>
+            return;
+        }
+        g_tx_payload[pos++] = plain;
+     e1a:	ff ef       	ldi	r31, 0xFF	; 255
+     e1c:	4f 1a       	sub	r4, r31
+     e1e:	5f 0a       	sbc	r5, r31
+     e20:	8a 81       	ldd	r24, Y+2	; 0x02
+     e22:	24 96       	adiw	r28, 0x04	; 4
+     e24:	ae ad       	ldd	r26, Y+62	; 0x3e
+     e26:	bf ad       	ldd	r27, Y+63	; 0x3f
+     e28:	24 97       	sbiw	r28, 0x04	; 4
+     e2a:	8d 93       	st	X+, r24
+     e2c:	24 96       	adiw	r28, 0x04	; 4
+     e2e:	bf af       	std	Y+63, r27	; 0x3f
+     e30:	ae af       	std	Y+62, r26	; 0x3e
+     e32:	24 97       	sbiw	r28, 0x04	; 4
+     e34:	b2 e0       	ldi	r27, 0x02	; 2
+     e36:	eb 0e       	add	r14, r27
+     e38:	f1 1c       	adc	r15, r1
+        send_error(CMD_DEC_DATA, ERR_BAD_LENGTH);
+        return;
+    }
+
+    wr_u16(g_tx_payload + pos, plain_len); pos += 2u;
+    for (i = 0u; i < plain_len; ++i)
+     e3a:	42 14       	cp	r4, r2
+     e3c:	53 04       	cpc	r5, r3
+     e3e:	89 f6       	brne	.-94     	; 0xde2 <__stack+0x583>
+     e40:	02 c0       	rjmp	.+4      	; 0xe46 <__stack+0x5e7>
+    {
+        send_error(CMD_DEC_DATA, ERR_BAD_LENGTH);
+        return;
+    }
+
+    wr_u16(g_tx_payload + pos, plain_len); pos += 2u;
+     e42:	27 2c       	mov	r2, r7
+     e44:	3a 2c       	mov	r3, r10
+            return;
+        }
+        g_tx_payload[pos++] = plain;
+    }
+
+    send_ok(CMD_DEC_DATA, g_tx_payload, pos);
+     e46:	a1 01       	movw	r20, r2
+     e48:	b4 01       	movw	r22, r8
+     e4a:	84 e2       	ldi	r24, 0x24	; 36
+     e4c:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     e50:	1a c0       	rjmp	.+52     	; 0xe86 <__stack+0x627>
+}
+
+static void handle_dec_end(uint16_t len)
+{
+    if (len != 0u)
+     e52:	ef 28       	or	r14, r15
+     e54:	29 f0       	breq	.+10     	; 0xe60 <__stack+0x601>
+    {
+        send_error(CMD_DEC_END, ERR_BAD_LENGTH);
+     e56:	64 e0       	ldi	r22, 0x04	; 4
+     e58:	85 e2       	ldi	r24, 0x25	; 37
+     e5a:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     e5e:	13 c0       	rjmp	.+38     	; 0xe86 <__stack+0x627>
+        return;
+    }
+
+    clear_session();
+     e60:	0e 94 41 03 	call	0x682	; 0x682 <clear_session>
+    send_ok(CMD_DEC_END, NULL, 0u);
+     e64:	40 e0       	ldi	r20, 0x00	; 0
+     e66:	50 e0       	ldi	r21, 0x00	; 0
+     e68:	60 e0       	ldi	r22, 0x00	; 0
+     e6a:	70 e0       	ldi	r23, 0x00	; 0
+     e6c:	85 e2       	ldi	r24, 0x25	; 37
+     e6e:	0e 94 82 03 	call	0x704	; 0x704 <send_ok>
+     e72:	09 c0       	rjmp	.+18     	; 0xe86 <__stack+0x627>
+        case CMD_ENC_END:        handle_enc_end(len); break;
+        case CMD_DEC_BEGIN:      handle_dec_begin(payload, len); break;
+        case CMD_DEC_DATA:       handle_dec_data(payload, len); break;
+        case CMD_DEC_END:        handle_dec_end(len); break;
+        default:
+            send_error(cmd, ERR_UNKNOWN_CMD);
+     e74:	63 e0       	ldi	r22, 0x03	; 3
+     e76:	85 2d       	mov	r24, r5
+     e78:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+     e7c:	04 c0       	rjmp	.+8      	; 0xe86 <__stack+0x627>
+                {
+                    handle_command(g_rx.cmd, g_rx.flags, g_rx.payload, g_rx.length);
+                }
+                else
+                {
+                    send_error(g_rx.cmd, ERR_BAD_CRC);
+     e7e:	62 e0       	ldi	r22, 0x02	; 2
+     e80:	85 2d       	mov	r24, r5
+     e82:	0e 94 89 03 	call	0x712	; 0x712 <send_error>
+                }
+                reset_parser();
+     e86:	0e 94 37 03 	call	0x66e	; 0x66e <reset_parser>
+                break;
+     e8a:	02 c0       	rjmp	.+4      	; 0xe90 <__stack+0x631>
+            }
+
+            default:
+                reset_parser();
+     e8c:	0e 94 37 03 	call	0x66e	; 0x66e <reset_parser>
+
+void protocol_poll(void)
+{
+    uint8_t byte;
+
+    while (uart_read_byte(&byte))
+     e90:	ce 01       	movw	r24, r28
+     e92:	01 96       	adiw	r24, 0x01	; 1
+     e94:	0e 94 c5 07 	call	0xf8a	; 0xf8a <uart_read_byte>
+     e98:	81 11       	cpse	r24, r1
+     e9a:	86 cc       	rjmp	.-1780   	; 0x7a8 <protocol_poll+0x62>
+            default:
+                reset_parser();
+                break;
+        }
+    }
+}
+     e9c:	cd 5b       	subi	r28, 0xBD	; 189
+     e9e:	df 4f       	sbci	r29, 0xFF	; 255
+     ea0:	0f b6       	in	r0, 0x3f	; 63
+     ea2:	f8 94       	cli
+     ea4:	de bf       	out	0x3e, r29	; 62
+     ea6:	0f be       	out	0x3f, r0	; 63
+     ea8:	cd bf       	out	0x3d, r28	; 61
+     eaa:	df 91       	pop	r29
+     eac:	cf 91       	pop	r28
+     eae:	1f 91       	pop	r17
+     eb0:	0f 91       	pop	r16
+     eb2:	ff 90       	pop	r15
+     eb4:	ef 90       	pop	r14
+     eb6:	df 90       	pop	r13
+     eb8:	cf 90       	pop	r12
+     eba:	bf 90       	pop	r11
+     ebc:	af 90       	pop	r10
+     ebe:	9f 90       	pop	r9
+     ec0:	8f 90       	pop	r8
+     ec2:	7f 90       	pop	r7
+     ec4:	6f 90       	pop	r6
+     ec6:	5f 90       	pop	r5
+     ec8:	4f 90       	pop	r4
+     eca:	3f 90       	pop	r3
+     ecc:	2f 90       	pop	r2
+     ece:	08 95       	ret
+
+00000ed0 <ringbuf_init>:
+    rb->is_full = 0u;
+}
+uint8_t ringbuf_count(const ringbuf_t *rb)
+{
+    return (uint8_t)((rb->head - rb->tail) & rb->mask);
+}
+     ed0:	fc 01       	movw	r30, r24
+     ed2:	10 82       	st	Z, r1
+     ed4:	11 82       	std	Z+1, r1	; 0x01
+     ed6:	41 50       	subi	r20, 0x01	; 1
+     ed8:	42 83       	std	Z+2, r20	; 0x02
+     eda:	74 83       	std	Z+4, r23	; 0x04
+     edc:	63 83       	std	Z+3, r22	; 0x03
+     ede:	15 82       	std	Z+5, r1	; 0x05
+     ee0:	08 95       	ret
+
+00000ee2 <ringbuf_push>:
+
+bool ringbuf_push(ringbuf_t *rb, uint8_t value)
+{
+     ee2:	fc 01       	movw	r30, r24
+    uint8_t next = next_index(rb, rb->head);
+     ee4:	80 81       	ld	r24, Z
+    if (rb->is_full) return false;
+     ee6:	95 81       	ldd	r25, Z+5	; 0x05
+     ee8:	91 11       	cpse	r25, r1
+     eea:	18 c0       	rjmp	.+48     	; 0xf1c <ringbuf_push+0x3a>
+#include "ringbuf.h"
+
+static uint8_t next_index(const ringbuf_t *rb, uint8_t index)
+{
+    return (uint8_t)((index + 1u) & rb->mask);
+     eec:	8f 5f       	subi	r24, 0xFF	; 255
+     eee:	92 81       	ldd	r25, Z+2	; 0x02
+     ef0:	89 23       	and	r24, r25
+
+bool ringbuf_push(ringbuf_t *rb, uint8_t value)
+{
+    uint8_t next = next_index(rb, rb->head);
+    if (rb->is_full) return false;
+    rb->is_full = next + 1 == rb->tail ? 1 : 0;
+     ef2:	21 81       	ldd	r18, Z+1	; 0x01
+     ef4:	48 2f       	mov	r20, r24
+     ef6:	50 e0       	ldi	r21, 0x00	; 0
+     ef8:	4f 5f       	subi	r20, 0xFF	; 255
+     efa:	5f 4f       	sbci	r21, 0xFF	; 255
+     efc:	30 e0       	ldi	r19, 0x00	; 0
+     efe:	91 e0       	ldi	r25, 0x01	; 1
+     f00:	42 17       	cp	r20, r18
+     f02:	53 07       	cpc	r21, r19
+     f04:	09 f0       	breq	.+2      	; 0xf08 <ringbuf_push+0x26>
+     f06:	90 e0       	ldi	r25, 0x00	; 0
+     f08:	95 83       	std	Z+5, r25	; 0x05
+    rb->data[rb->head] = value;
+     f0a:	90 81       	ld	r25, Z
+     f0c:	a3 81       	ldd	r26, Z+3	; 0x03
+     f0e:	b4 81       	ldd	r27, Z+4	; 0x04
+     f10:	a9 0f       	add	r26, r25
+     f12:	b1 1d       	adc	r27, r1
+     f14:	6c 93       	st	X, r22
+    rb->head = next;
+     f16:	80 83       	st	Z, r24
+    return true;
+     f18:	81 e0       	ldi	r24, 0x01	; 1
+     f1a:	08 95       	ret
+}
+
+bool ringbuf_push(ringbuf_t *rb, uint8_t value)
+{
+    uint8_t next = next_index(rb, rb->head);
+    if (rb->is_full) return false;
+     f1c:	80 e0       	ldi	r24, 0x00	; 0
+    rb->is_full = next + 1 == rb->tail ? 1 : 0;
+    rb->data[rb->head] = value;
+    rb->head = next;
+    return true;
+}
+     f1e:	08 95       	ret
+
+00000f20 <ringbuf_pop>:
+
+bool ringbuf_pop(ringbuf_t *rb, uint8_t *value)
+{
+     f20:	fc 01       	movw	r30, r24
+    if (rb->head == rb->tail) return false;
+     f22:	90 81       	ld	r25, Z
+     f24:	81 81       	ldd	r24, Z+1	; 0x01
+     f26:	98 17       	cp	r25, r24
+     f28:	81 f0       	breq	.+32     	; 0xf4a <ringbuf_pop+0x2a>
+    rb->is_full = 0;
+     f2a:	15 82       	std	Z+5, r1	; 0x05
+    *value = rb->data[rb->tail];
+     f2c:	81 81       	ldd	r24, Z+1	; 0x01
+     f2e:	a3 81       	ldd	r26, Z+3	; 0x03
+     f30:	b4 81       	ldd	r27, Z+4	; 0x04
+     f32:	a8 0f       	add	r26, r24
+     f34:	b1 1d       	adc	r27, r1
+     f36:	8c 91       	ld	r24, X
+     f38:	db 01       	movw	r26, r22
+     f3a:	8c 93       	st	X, r24
+    rb->tail = next_index(rb, rb->tail);
+     f3c:	81 81       	ldd	r24, Z+1	; 0x01
+#include "ringbuf.h"
+
+static uint8_t next_index(const ringbuf_t *rb, uint8_t index)
+{
+    return (uint8_t)((index + 1u) & rb->mask);
+     f3e:	8f 5f       	subi	r24, 0xFF	; 255
+     f40:	92 81       	ldd	r25, Z+2	; 0x02
+     f42:	89 23       	and	r24, r25
+bool ringbuf_pop(ringbuf_t *rb, uint8_t *value)
+{
+    if (rb->head == rb->tail) return false;
+    rb->is_full = 0;
+    *value = rb->data[rb->tail];
+    rb->tail = next_index(rb, rb->tail);
+     f44:	81 83       	std	Z+1, r24	; 0x01
+    return true;
+     f46:	81 e0       	ldi	r24, 0x01	; 1
+     f48:	08 95       	ret
+    return true;
+}
+
+bool ringbuf_pop(ringbuf_t *rb, uint8_t *value)
+{
+    if (rb->head == rb->tail) return false;
+     f4a:	80 e0       	ldi	r24, 0x00	; 0
+    rb->is_full = 0;
+    *value = rb->data[rb->tail];
+    rb->tail = next_index(rb, rb->tail);
+    return true;
+}
+     f4c:	08 95       	ret
+
+00000f4e <ringbuf_push_isr>:
+
+bool ringbuf_push_isr(ringbuf_t *rb, uint8_t value)
+{
+    return ringbuf_push(rb, value);
+     f4e:	0e 94 71 07 	call	0xee2	; 0xee2 <ringbuf_push>
+}
+     f52:	08 95       	ret
+
+00000f54 <ringbuf_pop_isr>:
+
+bool ringbuf_pop_isr(ringbuf_t *rb, uint8_t *value)
+{
+    return ringbuf_pop(rb, value);
+     f54:	0e 94 90 07 	call	0xf20	; 0xf20 <ringbuf_pop>
+}
+     f58:	08 95       	ret
+
+00000f5a <uart_init>:
+
+void uart_init(void)
+{
+    const uint16_t ubrr = uart_calc_ubrr();
+
+    ringbuf_init(&g_rx_rb, g_rx_storage, (uint8_t)UART_RX_BUF_SIZE);
+     f5a:	40 e8       	ldi	r20, 0x80	; 128
+     f5c:	64 e0       	ldi	r22, 0x04	; 4
+     f5e:	72 e0       	ldi	r23, 0x02	; 2
+     f60:	8a e8       	ldi	r24, 0x8A	; 138
+     f62:	92 e0       	ldi	r25, 0x02	; 2
+     f64:	0e 94 68 07 	call	0xed0	; 0xed0 <ringbuf_init>
+    ringbuf_init(&g_tx_rb, g_tx_storage, (uint8_t)UART_TX_BUF_SIZE);
+     f68:	40 e8       	ldi	r20, 0x80	; 128
+     f6a:	64 e8       	ldi	r22, 0x84	; 132
+     f6c:	71 e0       	ldi	r23, 0x01	; 1
+     f6e:	84 e8       	ldi	r24, 0x84	; 132
+     f70:	92 e0       	ldi	r25, 0x02	; 2
+     f72:	0e 94 68 07 	call	0xed0	; 0xed0 <ringbuf_init>
+
+    UCSRA = _BV(U2X);
+     f76:	82 e0       	ldi	r24, 0x02	; 2
+     f78:	8b b9       	out	0x0b, r24	; 11
+    UBRRH = (uint8_t)(ubrr >> 8);
+     f7a:	10 bc       	out	0x20, r1	; 32
+    UBRRL = (uint8_t)(ubrr & 0xFFu);
+     f7c:	89 e1       	ldi	r24, 0x19	; 25
+     f7e:	89 b9       	out	0x09, r24	; 9
+
+    UCSRB = _BV(RXEN) | _BV(TXEN) | _BV(RXCIE);
+     f80:	88 e9       	ldi	r24, 0x98	; 152
+     f82:	8a b9       	out	0x0a, r24	; 10
+    UCSRC = _BV(URSEL) | _BV(UCSZ1) | _BV(UCSZ0); /* 8N1 */
+     f84:	86 e8       	ldi	r24, 0x86	; 134
+     f86:	80 bd       	out	0x20, r24	; 32
+     f88:	08 95       	ret
+
+00000f8a <uart_read_byte>:
+}
+
+bool uart_read_byte(uint8_t *byte_out)
+{
+     f8a:	cf 93       	push	r28
+    bool ok;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+     f8c:	cf b7       	in	r28, 0x3f	; 63
+    return 1;
+}
+
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+     f8e:	f8 94       	cli
+    {
+        ok = ringbuf_pop(&g_rx_rb, byte_out);
+     f90:	bc 01       	movw	r22, r24
+     f92:	8a e8       	ldi	r24, 0x8A	; 138
+     f94:	92 e0       	ldi	r25, 0x02	; 2
+     f96:	0e 94 90 07 	call	0xf20	; 0xf20 <ringbuf_pop>
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+     f9a:	cf bf       	out	0x3f, r28	; 63
+    }
+    return ok;
+}
+     f9c:	cf 91       	pop	r28
+     f9e:	08 95       	ret
+
+00000fa0 <uart_write_byte>:
+
+void uart_write_byte(uint8_t byte_value)
+{
+     fa0:	cf 93       	push	r28
+     fa2:	df 93       	push	r29
+     fa4:	d8 2f       	mov	r29, r24
+    bool pushed = false;
+
+    while (!pushed)
+    {
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+     fa6:	cf b7       	in	r28, 0x3f	; 63
+    return 1;
+}
+
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+     fa8:	f8 94       	cli
+        {
+            pushed = ringbuf_push(&g_tx_rb, byte_value);
+     faa:	6d 2f       	mov	r22, r29
+     fac:	84 e8       	ldi	r24, 0x84	; 132
+     fae:	92 e0       	ldi	r25, 0x02	; 2
+     fb0:	0e 94 71 07 	call	0xee2	; 0xee2 <ringbuf_push>
+            if (pushed)
+     fb4:	81 11       	cpse	r24, r1
+            {
+                UCSRB |= _BV(UDRIE);
+     fb6:	55 9a       	sbi	0x0a, 5	; 10
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+     fb8:	cf bf       	out	0x3f, r28	; 63
+
+void uart_write_byte(uint8_t byte_value)
+{
+    bool pushed = false;
+
+    while (!pushed)
+     fba:	88 23       	and	r24, r24
+     fbc:	a1 f3       	breq	.-24     	; 0xfa6 <uart_write_byte+0x6>
+            {
+                UCSRB |= _BV(UDRIE);
+            }
+        }
+    }
+}
+     fbe:	df 91       	pop	r29
+     fc0:	cf 91       	pop	r28
+     fc2:	08 95       	ret
+
+00000fc4 <uart_write_block>:
+
+void uart_write_block(const uint8_t *data, uint16_t size)
+{
+     fc4:	0f 93       	push	r16
+     fc6:	1f 93       	push	r17
+     fc8:	cf 93       	push	r28
+     fca:	df 93       	push	r29
+    uint16_t i;
+    for (i = 0u; i < size; ++i)
+     fcc:	61 15       	cp	r22, r1
+     fce:	71 05       	cpc	r23, r1
+     fd0:	51 f0       	breq	.+20     	; 0xfe6 <uart_write_block+0x22>
+     fd2:	8c 01       	movw	r16, r24
+     fd4:	ec 01       	movw	r28, r24
+     fd6:	06 0f       	add	r16, r22
+     fd8:	17 1f       	adc	r17, r23
+    {
+        uart_write_byte(data[i]);
+     fda:	89 91       	ld	r24, Y+
+     fdc:	0e 94 d0 07 	call	0xfa0	; 0xfa0 <uart_write_byte>
+}
+
+void uart_write_block(const uint8_t *data, uint16_t size)
+{
+    uint16_t i;
+    for (i = 0u; i < size; ++i)
+     fe0:	c0 17       	cp	r28, r16
+     fe2:	d1 07       	cpc	r29, r17
+     fe4:	d1 f7       	brne	.-12     	; 0xfda <uart_write_block+0x16>
+    {
+        uart_write_byte(data[i]);
+    }
+}
+     fe6:	df 91       	pop	r29
+     fe8:	cf 91       	pop	r28
+     fea:	1f 91       	pop	r17
+     fec:	0f 91       	pop	r16
+     fee:	08 95       	ret
+
+00000ff0 <__vector_13>:
+
+ISR(USART_RXC_vect)
+{
+     ff0:	1f 92       	push	r1
+     ff2:	0f 92       	push	r0
+     ff4:	0f b6       	in	r0, 0x3f	; 63
+     ff6:	0f 92       	push	r0
+     ff8:	11 24       	eor	r1, r1
+     ffa:	2f 93       	push	r18
+     ffc:	3f 93       	push	r19
+     ffe:	4f 93       	push	r20
+    1000:	5f 93       	push	r21
+    1002:	6f 93       	push	r22
+    1004:	7f 93       	push	r23
+    1006:	8f 93       	push	r24
+    1008:	9f 93       	push	r25
+    100a:	af 93       	push	r26
+    100c:	bf 93       	push	r27
+    100e:	ef 93       	push	r30
+    1010:	ff 93       	push	r31
+    const uint8_t value = UDR;
+    1012:	6c b1       	in	r22, 0x0c	; 12
+    (void)ringbuf_push_isr(&g_rx_rb, value);
+    1014:	8a e8       	ldi	r24, 0x8A	; 138
+    1016:	92 e0       	ldi	r25, 0x02	; 2
+    1018:	0e 94 a7 07 	call	0xf4e	; 0xf4e <ringbuf_push_isr>
+}
+    101c:	ff 91       	pop	r31
+    101e:	ef 91       	pop	r30
+    1020:	bf 91       	pop	r27
+    1022:	af 91       	pop	r26
+    1024:	9f 91       	pop	r25
+    1026:	8f 91       	pop	r24
+    1028:	7f 91       	pop	r23
+    102a:	6f 91       	pop	r22
+    102c:	5f 91       	pop	r21
+    102e:	4f 91       	pop	r20
+    1030:	3f 91       	pop	r19
+    1032:	2f 91       	pop	r18
+    1034:	0f 90       	pop	r0
+    1036:	0f be       	out	0x3f, r0	; 63
+    1038:	0f 90       	pop	r0
+    103a:	1f 90       	pop	r1
+    103c:	18 95       	reti
+
+0000103e <__vector_14>:
+
+ISR(USART_UDRE_vect)
+{
+    103e:	1f 92       	push	r1
+    1040:	0f 92       	push	r0
+    1042:	0f b6       	in	r0, 0x3f	; 63
+    1044:	0f 92       	push	r0
+    1046:	11 24       	eor	r1, r1
+    1048:	2f 93       	push	r18
+    104a:	3f 93       	push	r19
+    104c:	4f 93       	push	r20
+    104e:	5f 93       	push	r21
+    1050:	6f 93       	push	r22
+    1052:	7f 93       	push	r23
+    1054:	8f 93       	push	r24
+    1056:	9f 93       	push	r25
+    1058:	af 93       	push	r26
+    105a:	bf 93       	push	r27
+    105c:	ef 93       	push	r30
+    105e:	ff 93       	push	r31
+    1060:	cf 93       	push	r28
+    1062:	df 93       	push	r29
+    1064:	1f 92       	push	r1
+    1066:	cd b7       	in	r28, 0x3d	; 61
+    1068:	de b7       	in	r29, 0x3e	; 62
+    uint8_t value;
+    if (ringbuf_pop_isr(&g_tx_rb, &value))
+    106a:	be 01       	movw	r22, r28
+    106c:	6f 5f       	subi	r22, 0xFF	; 255
+    106e:	7f 4f       	sbci	r23, 0xFF	; 255
+    1070:	84 e8       	ldi	r24, 0x84	; 132
+    1072:	92 e0       	ldi	r25, 0x02	; 2
+    1074:	0e 94 aa 07 	call	0xf54	; 0xf54 <ringbuf_pop_isr>
+    1078:	88 23       	and	r24, r24
+    107a:	19 f0       	breq	.+6      	; 0x1082 <__vector_14+0x44>
+    {
+        UDR = value;
+    107c:	89 81       	ldd	r24, Y+1	; 0x01
+    107e:	8c b9       	out	0x0c, r24	; 12
+    1080:	01 c0       	rjmp	.+2      	; 0x1084 <__vector_14+0x46>
+    }
+    else
+    {
+        UCSRB &= (uint8_t)~_BV(UDRIE);
+    1082:	55 98       	cbi	0x0a, 5	; 10
+    }
+}
+    1084:	0f 90       	pop	r0
+    1086:	df 91       	pop	r29
+    1088:	cf 91       	pop	r28
+    108a:	ff 91       	pop	r31
+    108c:	ef 91       	pop	r30
+    108e:	bf 91       	pop	r27
+    1090:	af 91       	pop	r26
+    1092:	9f 91       	pop	r25
+    1094:	8f 91       	pop	r24
+    1096:	7f 91       	pop	r23
+    1098:	6f 91       	pop	r22
+    109a:	5f 91       	pop	r21
+    109c:	4f 91       	pop	r20
+    109e:	3f 91       	pop	r19
+    10a0:	2f 91       	pop	r18
+    10a2:	0f 90       	pop	r0
+    10a4:	0f be       	out	0x3f, r0	; 63
+    10a6:	0f 90       	pop	r0
+    10a8:	1f 90       	pop	r1
+    10aa:	18 95       	reti
+
+000010ac <__mulsi3>:
+    10ac:	db 01       	movw	r26, r22
+    10ae:	8f 93       	push	r24
+    10b0:	9f 93       	push	r25
+    10b2:	0e 94 a2 08 	call	0x1144	; 0x1144 <__muluhisi3>
+    10b6:	bf 91       	pop	r27
+    10b8:	af 91       	pop	r26
+    10ba:	a2 9f       	mul	r26, r18
+    10bc:	80 0d       	add	r24, r0
+    10be:	91 1d       	adc	r25, r1
+    10c0:	a3 9f       	mul	r26, r19
+    10c2:	90 0d       	add	r25, r0
+    10c4:	b2 9f       	mul	r27, r18
+    10c6:	90 0d       	add	r25, r0
+    10c8:	11 24       	eor	r1, r1
+    10ca:	08 95       	ret
+
+000010cc <__udivmodhi4>:
+    10cc:	aa 1b       	sub	r26, r26
+    10ce:	bb 1b       	sub	r27, r27
+    10d0:	51 e1       	ldi	r21, 0x11	; 17
+    10d2:	07 c0       	rjmp	.+14     	; 0x10e2 <__udivmodhi4_ep>
+
+000010d4 <__udivmodhi4_loop>:
+    10d4:	aa 1f       	adc	r26, r26
+    10d6:	bb 1f       	adc	r27, r27
+    10d8:	a6 17       	cp	r26, r22
+    10da:	b7 07       	cpc	r27, r23
+    10dc:	10 f0       	brcs	.+4      	; 0x10e2 <__udivmodhi4_ep>
+    10de:	a6 1b       	sub	r26, r22
+    10e0:	b7 0b       	sbc	r27, r23
+
+000010e2 <__udivmodhi4_ep>:
+    10e2:	88 1f       	adc	r24, r24
+    10e4:	99 1f       	adc	r25, r25
+    10e6:	5a 95       	dec	r21
+    10e8:	a9 f7       	brne	.-22     	; 0x10d4 <__udivmodhi4_loop>
+    10ea:	80 95       	com	r24
+    10ec:	90 95       	com	r25
+    10ee:	bc 01       	movw	r22, r24
+    10f0:	cd 01       	movw	r24, r26
+    10f2:	08 95       	ret
+
+000010f4 <__udivmodsi4>:
+    10f4:	a1 e2       	ldi	r26, 0x21	; 33
+    10f6:	1a 2e       	mov	r1, r26
+    10f8:	aa 1b       	sub	r26, r26
+    10fa:	bb 1b       	sub	r27, r27
+    10fc:	fd 01       	movw	r30, r26
+    10fe:	0d c0       	rjmp	.+26     	; 0x111a <__udivmodsi4_ep>
+
+00001100 <__udivmodsi4_loop>:
+    1100:	aa 1f       	adc	r26, r26
+    1102:	bb 1f       	adc	r27, r27
+    1104:	ee 1f       	adc	r30, r30
+    1106:	ff 1f       	adc	r31, r31
+    1108:	a2 17       	cp	r26, r18
+    110a:	b3 07       	cpc	r27, r19
+    110c:	e4 07       	cpc	r30, r20
+    110e:	f5 07       	cpc	r31, r21
+    1110:	20 f0       	brcs	.+8      	; 0x111a <__udivmodsi4_ep>
+    1112:	a2 1b       	sub	r26, r18
+    1114:	b3 0b       	sbc	r27, r19
+    1116:	e4 0b       	sbc	r30, r20
+    1118:	f5 0b       	sbc	r31, r21
+
+0000111a <__udivmodsi4_ep>:
+    111a:	66 1f       	adc	r22, r22
+    111c:	77 1f       	adc	r23, r23
+    111e:	88 1f       	adc	r24, r24
+    1120:	99 1f       	adc	r25, r25
+    1122:	1a 94       	dec	r1
+    1124:	69 f7       	brne	.-38     	; 0x1100 <__udivmodsi4_loop>
+    1126:	60 95       	com	r22
+    1128:	70 95       	com	r23
+    112a:	80 95       	com	r24
+    112c:	90 95       	com	r25
+    112e:	9b 01       	movw	r18, r22
+    1130:	ac 01       	movw	r20, r24
+    1132:	bd 01       	movw	r22, r26
+    1134:	cf 01       	movw	r24, r30
+    1136:	08 95       	ret
+
+00001138 <__tablejump2__>:
+    1138:	ee 0f       	add	r30, r30
+    113a:	ff 1f       	adc	r31, r31
+    113c:	05 90       	lpm	r0, Z+
+    113e:	f4 91       	lpm	r31, Z
+    1140:	e0 2d       	mov	r30, r0
+    1142:	09 94       	ijmp
+
+00001144 <__muluhisi3>:
+    1144:	0e 94 ad 08 	call	0x115a	; 0x115a <__umulhisi3>
+    1148:	a5 9f       	mul	r26, r21
+    114a:	90 0d       	add	r25, r0
+    114c:	b4 9f       	mul	r27, r20
+    114e:	90 0d       	add	r25, r0
+    1150:	a4 9f       	mul	r26, r20
+    1152:	80 0d       	add	r24, r0
+    1154:	91 1d       	adc	r25, r1
+    1156:	11 24       	eor	r1, r1
+    1158:	08 95       	ret
+
+0000115a <__umulhisi3>:
+    115a:	a2 9f       	mul	r26, r18
+    115c:	b0 01       	movw	r22, r0
+    115e:	b3 9f       	mul	r27, r19
+    1160:	c0 01       	movw	r24, r0
+    1162:	a3 9f       	mul	r26, r19
+    1164:	70 0d       	add	r23, r0
+    1166:	81 1d       	adc	r24, r1
+    1168:	11 24       	eor	r1, r1
+    116a:	91 1d       	adc	r25, r1
+    116c:	b2 9f       	mul	r27, r18
+    116e:	70 0d       	add	r23, r0
+    1170:	81 1d       	adc	r24, r1
+    1172:	11 24       	eor	r1, r1
+    1174:	91 1d       	adc	r25, r1
+    1176:	08 95       	ret
+
+00001178 <eeprom_read_block>:
+    1178:	dc 01       	movw	r26, r24
+    117a:	cb 01       	movw	r24, r22
+
+0000117c <eeprom_read_blraw>:
+    117c:	fc 01       	movw	r30, r24
+    117e:	e1 99       	sbic	0x1c, 1	; 28
+    1180:	fe cf       	rjmp	.-4      	; 0x117e <eeprom_read_blraw+0x2>
+    1182:	06 c0       	rjmp	.+12     	; 0x1190 <eeprom_read_blraw+0x14>
+    1184:	ff bb       	out	0x1f, r31	; 31
+    1186:	ee bb       	out	0x1e, r30	; 30
+    1188:	e0 9a       	sbi	0x1c, 0	; 28
+    118a:	31 96       	adiw	r30, 0x01	; 1
+    118c:	0d b2       	in	r0, 0x1d	; 29
+    118e:	0d 92       	st	X+, r0
+    1190:	41 50       	subi	r20, 0x01	; 1
+    1192:	50 40       	sbci	r21, 0x00	; 0
+    1194:	b8 f7       	brcc	.-18     	; 0x1184 <eeprom_read_blraw+0x8>
+    1196:	08 95       	ret
+
+00001198 <eeprom_read_byte>:
+    1198:	e1 99       	sbic	0x1c, 1	; 28
+    119a:	fe cf       	rjmp	.-4      	; 0x1198 <eeprom_read_byte>
+    119c:	9f bb       	out	0x1f, r25	; 31
+    119e:	8e bb       	out	0x1e, r24	; 30
+    11a0:	e0 9a       	sbi	0x1c, 0	; 28
+    11a2:	99 27       	eor	r25, r25
+    11a4:	8d b3       	in	r24, 0x1d	; 29
+    11a6:	08 95       	ret
+
+000011a8 <eeprom_read_word>:
+    11a8:	a8 e1       	ldi	r26, 0x18	; 24
+    11aa:	b0 e0       	ldi	r27, 0x00	; 0
+    11ac:	42 e0       	ldi	r20, 0x02	; 2
+    11ae:	50 e0       	ldi	r21, 0x00	; 0
+    11b0:	0c 94 be 08 	jmp	0x117c	; 0x117c <eeprom_read_blraw>
+
+000011b4 <eeprom_update_block>:
+    11b4:	dc 01       	movw	r26, r24
+    11b6:	a4 0f       	add	r26, r20
+    11b8:	b5 1f       	adc	r27, r21
+    11ba:	41 50       	subi	r20, 0x01	; 1
+    11bc:	50 40       	sbci	r21, 0x00	; 0
+    11be:	48 f0       	brcs	.+18     	; 0x11d2 <eeprom_update_block+0x1e>
+    11c0:	cb 01       	movw	r24, r22
+    11c2:	84 0f       	add	r24, r20
+    11c4:	95 1f       	adc	r25, r21
+    11c6:	2e 91       	ld	r18, -X
+    11c8:	0e 94 eb 08 	call	0x11d6	; 0x11d6 <eeprom_update_r18>
+    11cc:	41 50       	subi	r20, 0x01	; 1
+    11ce:	50 40       	sbci	r21, 0x00	; 0
+    11d0:	d0 f7       	brcc	.-12     	; 0x11c6 <eeprom_update_block+0x12>
+    11d2:	08 95       	ret
+
+000011d4 <eeprom_update_byte>:
+    11d4:	26 2f       	mov	r18, r22
+
+000011d6 <eeprom_update_r18>:
+    11d6:	e1 99       	sbic	0x1c, 1	; 28
+    11d8:	fe cf       	rjmp	.-4      	; 0x11d6 <eeprom_update_r18>
+    11da:	9f bb       	out	0x1f, r25	; 31
+    11dc:	8e bb       	out	0x1e, r24	; 30
+    11de:	e0 9a       	sbi	0x1c, 0	; 28
+    11e0:	01 97       	sbiw	r24, 0x01	; 1
+    11e2:	0d b2       	in	r0, 0x1d	; 29
+    11e4:	02 16       	cp	r0, r18
+    11e6:	31 f0       	breq	.+12     	; 0x11f4 <eeprom_update_r18+0x1e>
+    11e8:	2d bb       	out	0x1d, r18	; 29
+    11ea:	0f b6       	in	r0, 0x3f	; 63
+    11ec:	f8 94       	cli
+    11ee:	e2 9a       	sbi	0x1c, 2	; 28
+    11f0:	e1 9a       	sbi	0x1c, 1	; 28
+    11f2:	0f be       	out	0x3f, r0	; 63
+    11f4:	08 95       	ret
+
+000011f6 <eeprom_update_word>:
+    11f6:	01 96       	adiw	r24, 0x01	; 1
+    11f8:	27 2f       	mov	r18, r23
+    11fa:	0e 94 eb 08 	call	0x11d6	; 0x11d6 <eeprom_update_r18>
+    11fe:	0c 94 ea 08 	jmp	0x11d4	; 0x11d4 <eeprom_update_byte>
+
+00001202 <_exit>:
+    1202:	f8 94       	cli
+
+00001204 <__stop_program>:
+    1204:	ff cf       	rjmp	.-2      	; 0x1204 <__stop_program>

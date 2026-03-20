@@ -16,10 +16,6 @@ int main(void)
 
     for (;;)
     {
-        /*
-         * The parser works in the foreground, UART moves bytes in the background.
-         * Idle sleep reduces pointless busy-waiting and is a nice optimization for the lab.
-         */
         protocol_poll();
         sleep_mode();
     }

@@ -1,0 +1,1 @@
+gcc main.c protocol_host.c serial_port.c -I./include -o main.exe

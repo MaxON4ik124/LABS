@@ -14,10 +14,7 @@ static int parse_u16_arg(const char *s, uint16_t *out)
 {
     char *end = NULL;
     unsigned long v = strtoul(s, &end, 0);
-    if ((s == end) || (*end != '\0') || (v > 65535ul))
-    {
-        return -1;
-    }
+    if ((s == end) || (*end != '\0') || (v > 65535ul)) return -1;
     *out = (uint16_t)v;
     return 0;
 }
@@ -480,7 +477,6 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    /* Startup sync: read current block size right after launch. */
     if (exchange_or_print(&sp, HOST_CMD_GET_BLOCK_SIZE, NULL, 0u, &startup_resp) == 0 && startup_resp.len == 2u)
     {
         startup_block_size = proto_rd_u16(startup_resp.payload);
