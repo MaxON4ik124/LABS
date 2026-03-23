@@ -12,12 +12,13 @@ def print_subject_info(subject):
     subject_title = subject_title + f"Time:{subject.get("time_start")}-{subject.get("time_end")}\n"
     subject_title = subject_title + f"Subject:{subject.get("subject")}\n"
     subject_title = subject_title + f"Type:{subject.get("typeObj", {}).get("name")}\n"
-    subject_title = subject_title + f"Teacher:{subject.get("teachers", [{}])[0].get("full_name")}\n"
+    if subject.get("teachers", [{}]): subject_title = subject_title + f"Teacher:{subject.get("teachers", [{}])[0].get("full_name")}\n"
+    else: subject_title = subject_title + "Teacher:None\n"
     subject_title = subject_title + f"Groups:{','.join([group.get("name") for group in subject.get("groups", [])])}\n"
     subject_title = subject_title + f"Place:{subject.get("auditories", [{}])[0].get("name")}\n"
     return subject_title
 
-def get_teacher_shedule(teacher, date):
+def get_teacher_shedule(teacher: str, date: str):
     shedule = ''
     teacher_id = None
     found = False
@@ -41,8 +42,32 @@ def get_teacher_shedule(teacher, date):
     if not found: return None
     return shedule
 
+def get_group_shedule(group: str, date: str):
+    shedule = ''
+    group_id = None
+    found = False
+    group4req = group.replace("/", "%2F")
+    url = url_parse4group + group4req
+    r = requests.get(url)
+    data = r.text
+    group_t = [x for x in re.findall(r"<a.*?>.*?</a>", data) if group in x][0]
+    href = group_t.split()[2]
+    group_id = re.split('/|"', href)[-2]
+    api_req_2 = requests.get(f"https://ruz.spbstu.ru/api/v1/ruz/scheduler/{group_id}")
+    data = api_req_2.json()
+    days = data["days"]
+    for day in days:
+        if day["date"] == date:
+            for lesson in day.get("lessons"):
+                found = True
+                shedule = shedule + print_subject_info(lesson)
+    if not found: return None
+    return shedule
+    
+    
+    # with open("data_g.json", "w", encoding="utf-8") as f:
+    #     json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-
-# print(get_teacher_shedule("Истомина Анастасия Сергеевна", "2026-03-16"))
-
+print(get_teacher_shedule("Макаров Александр Сергеевич", "2026-03-27"))
+print(get_group_shedule("5151003/40002", "2026-03-25"))
