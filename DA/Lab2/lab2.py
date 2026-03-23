@@ -1,6 +1,5 @@
 import requests
 import re
-import json
 url_pasre4teacher = f"https://ruz.spbstu.ru/search/teacher?q="
 url_parse4group = f"https://ruz.spbstu.ru/search/groups?q="
 def print_subject_info(subject):
@@ -14,8 +13,8 @@ def print_subject_info(subject):
     subject_title = subject_title + f"Place:{subject.get("auditories", [{}])[0].get("name")}\n"
     return subject_title
 
-def get_teacher_shedule(teacher: str, date: str):
-    shedule = ''
+def get_teacher_schedule(teacher: str, date: str):
+    schedule = ''
     teacher_id = None
     found = False
     url = url_pasre4teacher + teacher
@@ -26,7 +25,7 @@ def get_teacher_shedule(teacher: str, date: str):
         if teacher in t:
             teacher_id_raw = (re.findall(r"<a(.*?)>.*?</a>", data)[teachers.index(t)].split())[-2]
             teacher_id = (re.split('"|/', teacher_id_raw))[-2]
-            break         
+            break
     api_req_1 = requests.get(f"https://ruz.spbstu.ru/api/v1/ruz/teachers/{int(teacher_id)}/scheduler?date={date}")
     data = api_req_1.json()
     days = data["days"]
@@ -34,12 +33,12 @@ def get_teacher_shedule(teacher: str, date: str):
         if day["date"] == date:
             for lesson in day.get("lessons"):
                 found = True
-                shedule = shedule + print_subject_info(lesson)
+                schedule = schedule + print_subject_info(lesson)
     if not found: return None
-    return shedule
+    return schedule
 
-def get_group_shedule(group: str, date: str):
-    shedule = ''
+def get_group_schedule(group: str, date: str):
+    schedule = ''
     group_id = None
     found = False
     group4req = group.replace("/", "%2F")
@@ -49,19 +48,19 @@ def get_group_shedule(group: str, date: str):
     group_t = [x for x in re.findall(r"<a.*?>.*?</a>", data) if group in x][0]
     href = group_t.split()[2]
     group_id = re.split('/|"', href)[-2]
-    api_req_2 = requests.get(f"https://ruz.spbstu.ru/api/v1/ruz/scheduler/{group_id}")
+    api_req_2 = requests.get(f"https://ruz.spbstu.ru/api/v1/ruz/scheduler/{group_id}?date={date}")
     data = api_req_2.json()
     days = data["days"]
     for day in days:
         if day["date"] == date:
             for lesson in day.get("lessons"):
                 found = True
-                shedule = shedule + print_subject_info(lesson)
+                schedule = schedule + print_subject_info(lesson)
     if not found: return None
-    return shedule
+    return schedule
 
-def get_room_shedule(building: str, room: str, date):
-    shedule = ''
+def get_room_schedule(building: str, room: str, date):
+    schedule = ''
     found = False
     buildings = requests.get("https://ruz.spbstu.ru/api/v1/ruz/buildings/").json()
     build_id, room_id = 0, 0
@@ -76,21 +75,13 @@ def get_room_shedule(building: str, room: str, date):
             break
     api_req_3 = requests.get(f"https://ruz.spbstu.ru/api/v1/ruz/buildings/{build_id}/rooms/{room_id}/scheduler?date={date}")
     data = api_req_3.json()
-    with open("data_a.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
     days = data["days"]
 
     for day in days:
         if day["date"] == date:
             for lesson in day.get("lessons"):
                 found = True
-                shedule = shedule + print_subject_info(lesson)
+                schedule = schedule + print_subject_info(lesson)
     if not found: return None
-    return shedule
-
-
-# print(get_teacher_shedule("Макаров Александр Сергеевич", "2026-03-27"))
-# print(get_group_shedule("5151003/40002", "2026-03-25"))
-# print(get_room_shedule("Главное здание", '237', "2026-03-23"))
-
+    return schedule
 
