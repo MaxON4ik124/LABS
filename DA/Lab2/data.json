@@ -1,0 +1,821 @@
+{
+    "week": {
+        "date_start": "2026.03.16",
+        "date_end": "2026.03.22",
+        "is_odd": true
+    },
+    "days": [
+        {
+            "weekday": 1,
+            "date": "2026-03-16",
+            "lessons": [
+                {
+                    "subject": "Физика",
+                    "subject_short": "Физика",
+                    "type": 0,
+                    "additional_info": "",
+                    "time_start": "12:00",
+                    "time_end": "13:40",
+                    "parity": 0,
+                    "typeObj": {
+                        "id": 27,
+                        "name": "Практика",
+                        "abbr": "Пр"
+                    },
+                    "groups": [
+                        {
+                            "id": 42714,
+                            "name": "5151001/50002",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        }
+                    ],
+                    "teachers": [
+                        {
+                            "id": 23003,
+                            "oid": 34939,
+                            "full_name": "Мизина Виктория Валерьевна",
+                            "first_name": "Мизина",
+                            "middle_name": "Виктория",
+                            "last_name": "Валерьевна",
+                            "grade": "",
+                            "chair": "50/06 Кафедра физики"
+                        }
+                    ],
+                    "auditories": [
+                        {
+                            "id": 905,
+                            "name": "207",
+                            "building": {
+                                "id": 18,
+                                "name": "3-й учебный корпус",
+                                "abbr": "3 к.",
+                                "address": ""
+                            }
+                        }
+                    ],
+                    "webinar_url": "",
+                    "lms_url": "https://lms.spbstu.ru//course/view.php?id=20032"
+                },
+                {
+                    "subject": "Физика",
+                    "subject_short": "Физика",
+                    "type": 0,
+                    "additional_info": "",
+                    "time_start": "14:00",
+                    "time_end": "15:40",
+                    "parity": 0,
+                    "typeObj": {
+                        "id": 27,
+                        "name": "Практика",
+                        "abbr": "Пр"
+                    },
+                    "groups": [
+                        {
+                            "id": 42713,
+                            "name": "5151001/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        }
+                    ],
+                    "teachers": [
+                        {
+                            "id": 23003,
+                            "oid": 34939,
+                            "full_name": "Мизина Виктория Валерьевна",
+                            "first_name": "Мизина",
+                            "middle_name": "Виктория",
+                            "last_name": "Валерьевна",
+                            "grade": "",
+                            "chair": "50/06 Кафедра физики"
+                        }
+                    ],
+                    "auditories": [
+                        {
+                            "id": 908,
+                            "name": "211",
+                            "building": {
+                                "id": 18,
+                                "name": "3-й учебный корпус",
+                                "abbr": "3 к.",
+                                "address": ""
+                            }
+                        }
+                    ],
+                    "webinar_url": "",
+                    "lms_url": "https://lms.spbstu.ru//course/view.php?id=20032"
+                }
+            ]
+        },
+        {
+            "weekday": 3,
+            "date": "2026-03-18",
+            "lessons": [
+                {
+                    "subject": "Физика",
+                    "subject_short": "Физика",
+                    "type": 2,
+                    "additional_info": "Поток",
+                    "time_start": "10:00",
+                    "time_end": "11:40",
+                    "parity": 0,
+                    "typeObj": {
+                        "id": 14,
+                        "name": "Лекции",
+                        "abbr": "Лек"
+                    },
+                    "groups": [
+                        {
+                            "id": 42716,
+                            "name": "5151003/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42720,
+                            "name": "5151004/50002",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42713,
+                            "name": "5151001/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42717,
+                            "name": "5151003/50002",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42718,
+                            "name": "5151003/50003",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42714,
+                            "name": "5151001/50002",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42719,
+                            "name": "5151004/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42715,
+                            "name": "5151001/50003",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42683,
+                            "name": "5131001/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 0,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        }
+                    ],
+                    "teachers": [
+                        {
+                            "id": 23003,
+                            "oid": 34939,
+                            "full_name": "Мизина Виктория Валерьевна",
+                            "first_name": "Мизина",
+                            "middle_name": "Виктория",
+                            "last_name": "Валерьевна",
+                            "grade": "",
+                            "chair": "50/06 Кафедра физики"
+                        }
+                    ],
+                    "auditories": [
+                        {
+                            "id": 546,
+                            "name": "235",
+                            "building": {
+                                "id": 11,
+                                "name": "Главное здание",
+                                "abbr": "ГЗ",
+                                "address": ""
+                            }
+                        }
+                    ],
+                    "webinar_url": "",
+                    "lms_url": "https://lms.spbstu.ru//course/view.php?id=20032"
+                },
+                {
+                    "subject": "Физика",
+                    "subject_short": "Физика",
+                    "type": 2,
+                    "additional_info": "",
+                    "time_start": "10:00",
+                    "time_end": "11:40",
+                    "parity": 0,
+                    "typeObj": {
+                        "id": 14,
+                        "name": "Лекции",
+                        "abbr": "Лек"
+                    },
+                    "groups": [
+                        {
+                            "id": 42379,
+                            "name": "4750601/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 119,
+                                "name": "Институт биомедицинских систем и биотехнологий",
+                                "abbr": "ИБСиБ"
+                            }
+                        }
+                    ],
+                    "teachers": [
+                        {
+                            "id": 23003,
+                            "oid": 34939,
+                            "full_name": "Мизина Виктория Валерьевна",
+                            "first_name": "Мизина",
+                            "middle_name": "Виктория",
+                            "last_name": "Валерьевна",
+                            "grade": "",
+                            "chair": "50/06 Кафедра физики"
+                        }
+                    ],
+                    "auditories": [
+                        {
+                            "id": 546,
+                            "name": "235",
+                            "building": {
+                                "id": 11,
+                                "name": "Главное здание",
+                                "abbr": "ГЗ",
+                                "address": ""
+                            }
+                        }
+                    ],
+                    "webinar_url": "",
+                    "lms_url": "https://lms.spbstu.ru//course/view.php?id=19869"
+                },
+                {
+                    "subject": "Физика",
+                    "subject_short": "Физика",
+                    "type": 1,
+                    "additional_info": "5031503/50001 п/г 1",
+                    "time_start": "12:00",
+                    "time_end": "13:40",
+                    "parity": 0,
+                    "typeObj": {
+                        "id": 26,
+                        "name": "Лабораторные",
+                        "abbr": "Лаб"
+                    },
+                    "groups": [
+                        {
+                            "id": 42579,
+                            "name": "5031503/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 0,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 124,
+                                "name": "Физико-механический институт",
+                                "abbr": "ФизМех"
+                            }
+                        }
+                    ],
+                    "teachers": [
+                        {
+                            "id": 23003,
+                            "oid": 34939,
+                            "full_name": "Мизина Виктория Валерьевна",
+                            "first_name": "Мизина",
+                            "middle_name": "Виктория",
+                            "last_name": "Валерьевна",
+                            "grade": "",
+                            "chair": "50/06 Кафедра физики"
+                        }
+                    ],
+                    "auditories": [
+                        {
+                            "id": 521,
+                            "name": "186 А",
+                            "building": {
+                                "id": 11,
+                                "name": "Главное здание",
+                                "abbr": "ГЗ",
+                                "address": ""
+                            }
+                        }
+                    ],
+                    "webinar_url": "",
+                    "lms_url": ""
+                },
+                {
+                    "subject": "Физика",
+                    "subject_short": "Физика",
+                    "type": 0,
+                    "additional_info": "",
+                    "time_start": "14:00",
+                    "time_end": "15:40",
+                    "parity": 0,
+                    "typeObj": {
+                        "id": 27,
+                        "name": "Практика",
+                        "abbr": "Пр"
+                    },
+                    "groups": [
+                        {
+                            "id": 42715,
+                            "name": "5151001/50003",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        }
+                    ],
+                    "teachers": [
+                        {
+                            "id": 23003,
+                            "oid": 34939,
+                            "full_name": "Мизина Виктория Валерьевна",
+                            "first_name": "Мизина",
+                            "middle_name": "Виктория",
+                            "last_name": "Валерьевна",
+                            "grade": "",
+                            "chair": "50/06 Кафедра физики"
+                        }
+                    ],
+                    "auditories": [
+                        {
+                            "id": 518,
+                            "name": "182",
+                            "building": {
+                                "id": 11,
+                                "name": "Главное здание",
+                                "abbr": "ГЗ",
+                                "address": ""
+                            }
+                        }
+                    ],
+                    "webinar_url": "",
+                    "lms_url": "https://lms.spbstu.ru//course/view.php?id=20032"
+                }
+            ]
+        },
+        {
+            "weekday": 5,
+            "date": "2026-03-20",
+            "lessons": [
+                {
+                    "subject": "Физика",
+                    "subject_short": "Физика",
+                    "type": 2,
+                    "additional_info": "Поток",
+                    "time_start": "10:00",
+                    "time_end": "11:40",
+                    "parity": 0,
+                    "typeObj": {
+                        "id": 14,
+                        "name": "Лекции",
+                        "abbr": "Лек"
+                    },
+                    "groups": [
+                        {
+                            "id": 42716,
+                            "name": "5151003/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42720,
+                            "name": "5151004/50002",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42713,
+                            "name": "5151001/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42717,
+                            "name": "5151003/50002",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42718,
+                            "name": "5151003/50003",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42714,
+                            "name": "5151001/50002",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42719,
+                            "name": "5151004/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42715,
+                            "name": "5151001/50003",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        },
+                        {
+                            "id": 42683,
+                            "name": "5131001/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 0,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        }
+                    ],
+                    "teachers": [
+                        {
+                            "id": 23003,
+                            "oid": 34939,
+                            "full_name": "Мизина Виктория Валерьевна",
+                            "first_name": "Мизина",
+                            "middle_name": "Виктория",
+                            "last_name": "Валерьевна",
+                            "grade": "",
+                            "chair": "50/06 Кафедра физики"
+                        }
+                    ],
+                    "auditories": [
+                        {
+                            "id": 546,
+                            "name": "235",
+                            "building": {
+                                "id": 11,
+                                "name": "Главное здание",
+                                "abbr": "ГЗ",
+                                "address": ""
+                            }
+                        }
+                    ],
+                    "webinar_url": "",
+                    "lms_url": "https://lms.spbstu.ru//course/view.php?id=20032"
+                },
+                {
+                    "subject": "Физика",
+                    "subject_short": "Физика",
+                    "type": 2,
+                    "additional_info": "",
+                    "time_start": "10:00",
+                    "time_end": "11:40",
+                    "parity": 0,
+                    "typeObj": {
+                        "id": 14,
+                        "name": "Лекции",
+                        "abbr": "Лек"
+                    },
+                    "groups": [
+                        {
+                            "id": 42379,
+                            "name": "4750601/50001",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 119,
+                                "name": "Институт биомедицинских систем и биотехнологий",
+                                "abbr": "ИБСиБ"
+                            }
+                        }
+                    ],
+                    "teachers": [
+                        {
+                            "id": 23003,
+                            "oid": 34939,
+                            "full_name": "Мизина Виктория Валерьевна",
+                            "first_name": "Мизина",
+                            "middle_name": "Виктория",
+                            "last_name": "Валерьевна",
+                            "grade": "",
+                            "chair": "50/06 Кафедра физики"
+                        }
+                    ],
+                    "auditories": [
+                        {
+                            "id": 546,
+                            "name": "235",
+                            "building": {
+                                "id": 11,
+                                "name": "Главное здание",
+                                "abbr": "ГЗ",
+                                "address": ""
+                            }
+                        }
+                    ],
+                    "webinar_url": "",
+                    "lms_url": "https://lms.spbstu.ru//course/view.php?id=19869"
+                },
+                {
+                    "subject": "Физика",
+                    "subject_short": "Физика",
+                    "type": 0,
+                    "additional_info": "",
+                    "time_start": "12:00",
+                    "time_end": "13:40",
+                    "parity": 0,
+                    "typeObj": {
+                        "id": 27,
+                        "name": "Практика",
+                        "abbr": "Пр"
+                    },
+                    "groups": [
+                        {
+                            "id": 42717,
+                            "name": "5151003/50002",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        }
+                    ],
+                    "teachers": [
+                        {
+                            "id": 23003,
+                            "oid": 34939,
+                            "full_name": "Мизина Виктория Валерьевна",
+                            "first_name": "Мизина",
+                            "middle_name": "Виктория",
+                            "last_name": "Валерьевна",
+                            "grade": "",
+                            "chair": "50/06 Кафедра физики"
+                        }
+                    ],
+                    "auditories": [
+                        {
+                            "id": 523,
+                            "name": "207",
+                            "building": {
+                                "id": 11,
+                                "name": "Главное здание",
+                                "abbr": "ГЗ",
+                                "address": ""
+                            }
+                        }
+                    ],
+                    "webinar_url": "",
+                    "lms_url": "https://lms.spbstu.ru//course/view.php?id=20032"
+                },
+                {
+                    "subject": "Физика",
+                    "subject_short": "Физика",
+                    "type": 0,
+                    "additional_info": "",
+                    "time_start": "14:00",
+                    "time_end": "15:40",
+                    "parity": 0,
+                    "typeObj": {
+                        "id": 27,
+                        "name": "Практика",
+                        "abbr": "Пр"
+                    },
+                    "groups": [
+                        {
+                            "id": 42720,
+                            "name": "5151004/50002",
+                            "level": 1,
+                            "type": "common",
+                            "kind": 2,
+                            "spec": "",
+                            "year": 2025,
+                            "faculty": {
+                                "id": 125,
+                                "name": "Институт компьютерных наук и кибербезопасности",
+                                "abbr": "ИКНК"
+                            }
+                        }
+                    ],
+                    "teachers": [
+                        {
+                            "id": 23003,
+                            "oid": 34939,
+                            "full_name": "Мизина Виктория Валерьевна",
+                            "first_name": "Мизина",
+                            "middle_name": "Виктория",
+                            "last_name": "Валерьевна",
+                            "grade": "",
+                            "chair": "50/06 Кафедра физики"
+                        }
+                    ],
+                    "auditories": [
+                        {
+                            "id": 523,
+                            "name": "207",
+                            "building": {
+                                "id": 11,
+                                "name": "Главное здание",
+                                "abbr": "ГЗ",
+                                "address": ""
+                            }
+                        }
+                    ],
+                    "webinar_url": "",
+                    "lms_url": "https://lms.spbstu.ru//course/view.php?id=20032"
+                }
+            ]
+        }
+    ],
+    "teacher": {
+        "id": 23003,
+        "oid": 34939,
+        "full_name": "Мизина Виктория Валерьевна",
+        "first_name": "Мизина",
+        "middle_name": "Виктория",
+        "last_name": "Валерьевна",
+        "grade": "",
+        "chair": "50/06 Кафедра физики"
+    }
+}
