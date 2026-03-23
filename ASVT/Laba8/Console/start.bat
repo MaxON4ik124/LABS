@@ -1,1 +1,1 @@
-gcc main.c protocol_host.c serial_port.c -I./include -o main.exe
+gcc Kernel/main.c Kernel/protocol_host.c Kernel/serial_port.c -I./include -o main.exe

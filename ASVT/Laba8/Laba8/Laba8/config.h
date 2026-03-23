@@ -7,39 +7,28 @@
 #define F_CPU 8000000UL
 #endif
 
-/*
- * UART settings.
- * 38400 baud at 8 MHz with U2X gives a small error and works stably on EasyAVR.
- */
 #define UART_BAUD               38400UL
 
-/*
- * Ring buffers must have power-of-two size.
- * The mask optimization removes expensive modulo operations on 8-bit AVR.
- */
+
 #define UART_RX_BUF_SIZE        128u
 #define UART_TX_BUF_SIZE        128u
 
-/*
- * Storage / crypto limits.
- * MAX_BLOCK_SIZE is the maximum transport block size selected from the PC.
- * Each plaintext byte is encrypted into one 16-bit ElGamal word.
- */
+
 #define MAX_KEYS                8u
 #define DEFAULT_BLOCK_SIZE      16u
 #define MIN_BLOCK_SIZE          1u
 #define MAX_BLOCK_SIZE          64u
 
-/* Protocol framing */
+
 #define PROTO_SOF1              0x55u
 #define PROTO_SOF2              0xAAu
 #define PROTO_MAX_PAYLOAD       (2u + (2u * MAX_BLOCK_SIZE))
 
-/* EEPROM */
+
 #define EEPROM_MAGIC            0xE3A3u
 #define EEPROM_VERSION          0x0001u
 
-/* Command set */
+
 typedef enum
 {
     CMD_PING            = 0x01,
