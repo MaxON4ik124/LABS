@@ -1,149 +1,3 @@
-// #ifdef _WIN32
-// #define WIN32_LEAN_AND_MEAN
-// #include <windows.h>
-// #include <winsock2.h>
-// #include <ws2tcpip.h>
-// // Директива линковщику: использовать библиотеку сокетов
-// #pragma comment(lib, "ws2_32.lib")
-// #else // LINUX
-// #include <sys/types.h>
-// #include <sys/socket.h>
-// #include <netdb.h>
-// #include <errno.h>
-// #endif
-// #include <stdio.h>
-// #include <string.h>
-// #define WEBHOST "google.com"
-// int init()
-// {
-//     #ifdef _WIN32
-//         // Для Windows следует вызвать WSAStartup перед началом использования сокетов
-//         WSADATA wsa_data;
-//         return (0 == WSAStartup(MAKEWORD(2, 2), &wsa_data));
-//     #else
-//         return 1; // Для других ОС действий не требуется
-//     #endif
-// }
-// void deinit()
-// {
-//     #ifdef _WIN32
-//         // Для Windows следует вызвать WSACleanup в конце работы
-//         WSACleanup();
-//     #else
-//         // Для других ОС действий не требуется
-//     #endif
-// }
-// int sock_err(const char* function, int s)
-// {
-//     int err;
-//     #ifdef _WIN32
-//         err = WSAGetLastError();
-//     #else
-//         err = errno;
-//     #endif
-//     fprintf(stderr, "%s: socket error: %d\n", function, err);
-//     return -1;
-// }
-// void s_close(int s)
-// {
-//     #ifdef _WIN32
-//         closesocket(s);
-//     #else
-//         close(s);
-//     #endif
-// }
-// // Функция определяет IP-адрес узла по его имени.
-// // Адрес возвращается в сетевом порядке байтов.
-// unsigned int get_host_ipn(const char* name)
-// {
-//     struct addrinfo* addr = 0;
-//     unsigned int ip4addr = 0;
-//     // Функция возвращает все адреса указанного хоста
-//     // в виде динамического однонаправленного списка
-//     if (0 == getaddrinfo(name, 0, 0, &addr))
-//     {
-//         struct addrinfo* cur = addr;
-//         while (cur)
-//         {
-//             // Интересует только IPv4 адрес, если их несколько - то первый
-//             if (cur->ai_family == AF_INET)
-//             {
-//                 ip4addr = ((struct sockaddr_in*) cur->ai_addr)->sin_addr.s_addr;
-//                 break;
-//             }
-//             cur = cur->ai_next;
-//         }
-//         freeaddrinfo(addr);
-//     }
-//     return ip4addr;
-// }
-// // Отправляет http-запрос на удаленный сервер
-// int send_request(int s)
-// {
-//     const char* request = "GET / HTTP/1.0\r\nServer: " WEBHOST "\r\n\r\n";
-//     int size = strlen(request);
-//     int sent = 0;
-//     #ifdef _WIN32
-//     int flags = 0;
-//     #else
-//     int flags = MSG_NOSIGNAL;
-//     #endif
-//     while (sent < size)
-//     {
-//     // Отправка очередного блока данных
-//         int res = send(s, request + sent, size - sent, flags);
-//         if (res < 0) return sock_err("send", s);
-//         sent += res;
-//         printf(" %d bytes sent.\n", sent);
-//     }
-//     return 0;
-// }
-// int recv_response(int s, FILE* f)
-// {
-//     char buffer[256];
-//     int res;
-//     // Принятие очередного блока данных.
-//     // Если соединение будет разорвано удаленным узлом recv вернет 0
-//     while ((res = recv(s, buffer, sizeof(buffer), 0)) > 0)
-//     {
-//         fwrite(buffer, 1, res, f);
-//         printf(" %d bytes received\n", res);
-//     }
-//     if (res < 0) return sock_err("recv", s);
-//     return 0;
-//     }
-// int main()
-// {
-//     int s;
-//     struct sockaddr_in addr;
-//     FILE* f;
-//     // Инициалиазация сетевой библиотеки
-//     init();
-//     // Создание TCP-сокета
-//     s = socket(AF_INET, SOCK_STREAM, 0);
-//     if (s < 0) return sock_err("socket", s);
-//     // Заполнение структуры с адресом удаленного узла
-//     memset(&addr, 0, sizeof(addr));
-//     addr.sin_family = AF_INET;
-//     addr.sin_port = htons(80);
-//     addr.sin_addr.s_addr = get_host_ipn(WEBHOST);
-//     // Установка соединения с удаленным хостом
-//     if (connect(s, (struct sockaddr*) &addr, sizeof(addr)) != 0)
-//     {
-//         s_close(s);
-//         return sock_err("connect", s);
-//     }
-//     // Отправка запроса на удаленный сервер
-//     send_request(s);
-//     // Прием результата
-//     f = fopen("page.html", "wb");
-//     recv_response(s, f);
-//     fclose(f);
-//     // Закрытие соединения
-//     s_close(s);
-//     deinit();
-//     return 0;
-// }
 
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
@@ -165,7 +19,7 @@
 static void print_wsa_error(const char* where)
 {
     int err = WSAGetLastError();
-    fprintf(stderr, "%s failed. WSA error = %d\n", where, err);
+    printf("%s failed. WSA error = %d\n", where, err);
 }
 
 static int init_winsock(void)
@@ -184,14 +38,14 @@ static void deinit_winsock(void)
     WSACleanup();
 }
 
-static int send_all(SOCKET s, const void* data, size_t len)
+static int send_all(SOCKET socket, const void* data, size_t len)
 {
-    const char* p = (const char*)data;
+    const char* lokal_data = (const char*)data;
 
     while (len > 0)
     {
         int chunk = (len > INT_MAX) ? INT_MAX : (int)len;
-        int sent = send(s, p, chunk, 0);
+        int sent = send(socket, lokal_data, chunk, 0);
         if (sent == SOCKET_ERROR)
         {
             print_wsa_error("send");
@@ -199,11 +53,11 @@ static int send_all(SOCKET s, const void* data, size_t len)
         }
         if (sent == 0)
         {
-            fprintf(stderr, "send returned 0, connection closed unexpectedly\n");
+            printf("send returned 0, connection closed unexpectedly\n");
             return -1;
         }
 
-        p += sent;
+        lokal_data += sent;
         len -= sent;
     }
 
@@ -227,7 +81,7 @@ static int recv_all(SOCKET s, void* data, size_t len)
         }
         if (received == 0)
         {
-            fprintf(stderr, "server closed connection unexpectedly\n");
+            printf("server closed connection unexpectedly\n");
             return -1;
         }
 
@@ -237,7 +91,6 @@ static int recv_all(SOCKET s, void* data, size_t len)
     return 0;
 }
 
-/* Чтение строки любой длины */
 static int read_line_alloc(FILE* f, char** out_line)
 {
     size_t cap = 256;
@@ -281,7 +134,7 @@ static int read_line_alloc(FILE* f, char** out_line)
     {
         free(buf);
         *out_line = NULL;
-        return 0; /* EOF */
+        return 0;
     }
 
     buf[len] = '\0';
@@ -296,10 +149,6 @@ static int parse_two_digits(const char* p)
     return (p[0] - '0') * 10 + (p[1] - '0');
 }
 
-/*
- * Формат строки:
- * AA BBB hh:mm:ss Message
- */
 static int parse_line(
     const char* line,
     uint16_t* out_aa,
@@ -313,13 +162,12 @@ static int parse_line(
     unsigned long aa;
     long bbb;
 
-    /* UTF-8 BOM в первой строке, если вдруг файл сохранен с BOM */
-    if ((unsigned char)p[0] == 0xEF &&
-        (unsigned char)p[1] == 0xBB &&
-        (unsigned char)p[2] == 0xBF)
-    {
-        p += 3;
-    }
+    // if ((unsigned char)p[0] == 0xEF &&
+    //     (unsigned char)p[1] == 0xBB &&
+    //     (unsigned char)p[2] == 0xBF)
+    // {
+    //     p += 3;
+    // }
 
     if (*p == '\0')
         return -1;
@@ -437,7 +285,7 @@ static SOCKET connect_to_server(const char* ip, uint16_t port)
 
     if (InetPtonA(AF_INET, ip, &addr.sin_addr) != 1)
     {
-        fprintf(stderr, "Invalid IPv4 address: %s\n", ip);
+        printf("Invalid IPv4 address: %s\n", ip);
         return INVALID_SOCKET;
     }
 
@@ -458,6 +306,59 @@ static SOCKET connect_to_server(const char* ip, uint16_t port)
     return s;
 }
 
+static int recv_all_oks(SOCKET s, uint32_t expected_ok_count)
+{
+    char recvbuf[512];
+    char pending[1024];
+    size_t pending_len = 0;
+    uint32_t ok_count = 0;
+
+    while (ok_count < expected_ok_count)
+    {
+        int n = recv(s, recvbuf, sizeof(recvbuf), 0);
+        if (n == SOCKET_ERROR)
+        {
+            print_wsa_error("recv");
+            return -1;
+        }
+        if (n == 0)
+        {
+            printf("server closed connection before all ok were received "
+                            "(got %u of %u)\n",
+                            ok_count, expected_ok_count);
+            return -1;
+        }
+
+        if (pending_len + (size_t)n > sizeof(pending))
+        {
+            printf("protocol buffer overflow while receiving ok\n");
+            return -1;
+        }
+
+        memcpy(pending + pending_len, recvbuf, (size_t)n);
+        pending_len += (size_t)n;
+
+        while (pending_len >= 2 && ok_count < expected_ok_count)
+        {
+            if (pending[0] != 'o' || pending[1] != 'k')
+            {
+                printf("unexpected server response bytes: %02X %02X\n",
+                        (unsigned char)pending[0],
+                        (unsigned char)pending[1]);
+                return -1;
+            }
+
+            ok_count++;
+
+            memmove(pending, pending + 2, pending_len - 2);
+            pending_len -= 2;
+        }
+    }
+
+    printf("Received %u/%u ok responses\n", ok_count, expected_ok_count);
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     const char* server_ip;
@@ -472,7 +373,7 @@ int main(int argc, char* argv[])
 
     if (argc != 4)
     {
-        fprintf(stderr, "Usage: %s xx.xx.xx.xx pppp file\n", argv[0]);
+        printf("Usage: %s xx.xx.xx.xx pppp file\n", argv[0]);
         return 1;
     }
 
@@ -482,7 +383,7 @@ int main(int argc, char* argv[])
     port_ul = strtoul(argv[2], &endptr, 10);
     if (*argv[2] == '\0' || *endptr != '\0' || port_ul == 0 || port_ul > 65535)
     {
-        fprintf(stderr, "Invalid port: %s\n", argv[2]);
+        printf("Invalid port: %s\n", argv[2]);
         return 1;
     }
     port = (uint16_t)port_ul;
@@ -493,15 +394,12 @@ int main(int argc, char* argv[])
     sock = connect_to_server(server_ip, port);
     if (sock == INVALID_SOCKET)
         goto cleanup;
-
-    /* Режим работы клиента: put */
     if (send_all(sock, "put", 3) != 0)
         goto cleanup;
-
     f = fopen(file_name, "rb");
     if (!f)
     {
-        fprintf(stderr, "Cannot open file: %s\n", file_name);
+        printf("Cannot open file: %s\n", file_name);
         goto cleanup;
     }
 
@@ -512,19 +410,15 @@ int main(int argc, char* argv[])
 
         if (line_status < 0)
         {
-            fprintf(stderr, "Failed to read line from file\n");
+            printf("Failed to read line from file\n");
             goto cleanup;
         }
-        if (line_status == 0)
-        {
-            /* EOF */
-            break;
-        }
+        if (line_status == 0) break;
 
         if (line[0] == '\0')
         {
             free(line);
-            continue; /* пустые строки пропускаем */
+            continue;
         }
 
         uint16_t aa;
@@ -538,14 +432,14 @@ int main(int argc, char* argv[])
 
         if (parse_line(line, &aa, &bbb, tm, &msg, &msg_len) != 0)
         {
-            fprintf(stderr, "Invalid line format at message #%u:\n%s\n", idx, line);
+            printf("Invalid line format at message #%u:\n%s\n", idx, line);
             free(line);
             goto cleanup;
         }
 
         if (build_packet(idx, aa, bbb, tm, msg, msg_len, &packet, &packet_len) != 0)
         {
-            fprintf(stderr, "Failed to build packet for message #%u\n", idx);
+            printf("Failed to build packet for message #%u\n", idx);
             free(msg);
             free(line);
             goto cleanup;
@@ -559,7 +453,6 @@ int main(int argc, char* argv[])
             goto cleanup;
         }
 
-        /* Сервер после каждого сообщения шлет "ok" */
         if (recv_all(sock, ack, 2) != 0)
         {
             free(packet);
@@ -567,28 +460,18 @@ int main(int argc, char* argv[])
             free(line);
             goto cleanup;
         }
-
-        if (ack[0] != 'o' || ack[1] != 'k')
-        {
-            fprintf(stderr, "Unexpected server reply after message #%u: %02X %02X\n",
-                    idx, (unsigned char)ack[0], (unsigned char)ack[1]);
-            free(packet);
-            free(msg);
-            free(line);
-            goto cleanup;
-        }
-
-        printf("Message #%u sent successfully\n", idx);
-
+        // printf("Message #%u sent successfully\n", idx);
         free(packet);
         free(msg);
         free(line);
         idx++;
     }
-
-    shutdown(sock, SD_SEND);
+    
+    if(recv_all_oks(sock, idx) != 0) goto cleanup;
+    // shutdown(sock, SD_SEND);
     printf("%u messages sent.\n", idx);
     rc = 0;
+
 
 cleanup:
     if (f)
