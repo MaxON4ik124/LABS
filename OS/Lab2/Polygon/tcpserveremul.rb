@@ -192,7 +192,7 @@ def dispatch(cn, peer)
     if mode == "put"
       while text = shift_msg(buf, peer)
         cn.write("ok")
-
+        puts "message accepted, sending ok"
         if text == "stop"
           puts "'stop' message arrived. Terminating..."
           Kernel.exit 
