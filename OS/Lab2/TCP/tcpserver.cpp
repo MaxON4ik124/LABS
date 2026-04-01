@@ -14,12 +14,6 @@
 
 typedef int socket_t;
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <ctype.h>
-
 static int g_running = 1;
 
 typedef struct Buffer
@@ -29,28 +23,25 @@ typedef struct Buffer
     int cap;
 } Buffer;
 
-static int init_net(void)
-{
-    return 1;
-}
-
-
 static int sock_err(const char* fn)
 {
-    int err = errno;
-    printf("%s: socket error: %d\n", fn, err);
+    printf("%s: %s\n", fn, strerror(errno));
     return -1;
 }
 
+static void s_close(socket_t s)
+{
+    close(s);
+}
 
 static int send_all(socket_t s, const char* data, int len)
 {
     int sent = 0;
-    int flags = MSG_NOSIGNAL;
+    int res;
 
     while (sent < len)
     {
-        int res = send(s, data + sent, len - sent, flags);
+        res = send(s, data + sent, len - sent, MSG_NOSIGNAL);
         if (res <= 0)
             return sock_err("send");
         sent += res;
@@ -180,14 +171,9 @@ static void msglog(const char* peer, uint16_t aa, int32_t bbb,
     fclose(f);
 }
 
-/* Возвращает:
-   1 - одно сообщение успешно извлечено
-   0 - пока недостаточно данных
-  -1 - ошибка памяти
-*/
 static int shift_msg(Buffer* buf, const char* peer, char** out_text)
 {
-    int pos = 0;
+    int pos;
     uint16_t aa;
     int32_t bbb;
     unsigned char hh, mm, ss;
@@ -195,11 +181,11 @@ static int shift_msg(Buffer* buf, const char* peer, char** out_text)
     char* text;
 
     *out_text = 0;
+    pos = 0;
 
     if (buf->len < 4)
         return 0;
 
-    /* idx */
     pos += 4;
 
     if (buf->len - pos < 2)
@@ -316,7 +302,7 @@ static int parse_time_token(const char** ps,
 
 static int build_msg_packet(uint32_t idx, const char* str, char** out_buf, int* out_len)
 {
-    const char* p = str;
+    const char* p;
     unsigned long aa_ul;
     long bbb_l;
     uint16_t aa;
@@ -326,6 +312,7 @@ static int build_msg_packet(uint32_t idx, const char* str, char** out_buf, int* 
     int total_len;
     char* buf;
 
+    p = str;
     *out_buf = 0;
     *out_len = 0;
 
@@ -349,7 +336,7 @@ static int build_msg_packet(uint32_t idx, const char* str, char** out_buf, int* 
     msg_len = (uint32_t)strlen(p);
 
     total_len = 4 + 2 + 4 + 3 + 4 + (int)msg_len;
-    buf = (char*)malloc(total_len);
+    buf = (char*)malloc((size_t)total_len);
     if (!buf)
         return -1;
 
@@ -360,6 +347,7 @@ static int build_msg_packet(uint32_t idx, const char* str, char** out_buf, int* 
     buf[11] = (char)mm;
     buf[12] = (char)ss;
     put_u32_be(buf + 13, msg_len);
+
     if (msg_len > 0)
         memcpy(buf + 17, p, msg_len);
 
@@ -371,11 +359,15 @@ static int build_msg_packet(uint32_t idx, const char* str, char** out_buf, int* 
 static int read_line_alloc(FILE* f, char** out_line)
 {
     int ch;
-    int len = 0;
-    int cap = 256;
-    char* buf = (char*)malloc(cap);
+    int len;
+    int cap;
+    char* buf;
+    char* tmp;
 
     *out_line = 0;
+    len = 0;
+    cap = 256;
+    buf = (char*)malloc(cap);
     if (!buf)
         return -1;
 
@@ -406,7 +398,6 @@ static int read_line_alloc(FILE* f, char** out_line)
 
         if (len + 1 >= cap)
         {
-            char* tmp;
             cap *= 2;
             tmp = (char*)realloc(buf, cap);
             if (!tmp)
@@ -429,21 +420,26 @@ static int send_msg(socket_t cn, uint32_t idx, const char* str)
 {
     char* buf;
     int len;
-    int rc = build_msg_packet(idx, str, &buf, &len);
+    int rc;
 
+    rc = build_msg_packet(idx, str, &buf, &len);
     if (rc <= 0)
         return rc;
 
     rc = send_all(cn, buf, len);
     free(buf);
-    return (rc == 0) ? 1 : -1;
+
+    if (rc != 0)
+        return -1;
+
+    return 1;
 }
 
 static int send_msgs(socket_t cn)
 {
     FILE* f;
     char* line;
-    uint32_t idx = 0;
+    uint32_t idx;
 
     f = fopen("msg.txt", "rb");
     if (!f)
@@ -451,6 +447,8 @@ static int send_msgs(socket_t cn)
         printf("0 messages sent.\n");
         return 0;
     }
+
+    idx = 0;
 
     for (;;)
     {
@@ -499,10 +497,11 @@ static int dispatch(socket_t cn, const char* peer)
     Buffer buf;
     char tmp[512];
     char mode[4];
-    int mode_set = 0;
+    int mode_set;
 
     buf_init(&buf);
     mode[0] = '\0';
+    mode_set = 0;
 
     for (;;)
     {
@@ -540,8 +539,11 @@ static int dispatch(socket_t cn, const char* peer)
         {
             for (;;)
             {
-                char* text = 0;
-                int rc = shift_msg(&buf, peer, &text);
+                char* text;
+                int rc;
+
+                text = 0;
+                rc = shift_msg(&buf, peer, &text);
 
                 if (rc < 0)
                 {
@@ -589,7 +591,8 @@ static int server_run(unsigned short port)
     struct sockaddr_in addr;
 
     s = socket(AF_INET, SOCK_STREAM, 0);
-    if (s < 0) return sock_err("socket");
+    if (s < 0)
+        return sock_err("socket");
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
@@ -603,13 +606,13 @@ static int server_run(unsigned short port)
 
     if (bind(s, (struct sockaddr*)&addr, sizeof(addr)) < 0)
     {
-        close(s);
+        s_close(s);
         return sock_err("bind");
     }
 
     if (listen(s, 16) < 0)
     {
-        close(s);
+        s_close(s);
         return sock_err("listen");
     }
 
@@ -619,10 +622,12 @@ static int server_run(unsigned short port)
     {
         socket_t cn;
         struct sockaddr_in peer_addr;
-        socklen_t peer_len = sizeof(peer_addr);
+        socklen_t peer_len;
         char ipbuf[64];
         char peer[128];
         const char* iptxt;
+
+        peer_len = sizeof(peer_addr);
 
         cn = accept(s, (struct sockaddr*)&peer_addr, &peer_len);
         if (cn < 0)
@@ -644,16 +649,18 @@ static int server_run(unsigned short port)
             printf("  Peer Exception   : %s: 'dispatch failed'\n", peer);
 
         printf("  Peer disconnected: %s\n", peer);
-        close(cn);
+        s_close(cn);
     }
 
-    close(s);
+    s_close(s);
     return 0;
 }
 
 int main(int argc, char* argv[])
 {
-    unsigned short port = 9000;
+    unsigned short port;
+
+    port = 9000;
 
     if (argc > 1)
     {
@@ -662,13 +669,5 @@ int main(int argc, char* argv[])
             port = (unsigned short)p;
     }
 
-    if (!init_net())
-    {
-        printf("Network init failed\n");
-        return 1;
-    }
-
-    server_run(port);
-    deinit_net();
-    return 0;
+    return server_run(port);
 }

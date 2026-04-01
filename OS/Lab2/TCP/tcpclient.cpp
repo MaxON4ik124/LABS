@@ -15,9 +15,34 @@ typedef unsigned __int32 u32;
 typedef __int32 s32;
 typedef unsigned short u16;
 
-static void print_wsa_error(const char* where)
+static void print_wsa_error_text(const char* where, int err)
 {
-    printf("ERROR: %s failed, WSA=%d\n", where, WSAGetLastError());
+    char msg[512];
+    DWORD n;
+
+    n = FormatMessageA(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        (DWORD)err,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        msg,
+        (DWORD)(sizeof(msg) / sizeof(msg[0])),
+        NULL
+    );
+
+    if (n == 0)
+    {
+        printf("%s failed, WSA=%d\n", where, err);
+        return;
+    }
+
+    while (n > 0 && (msg[n - 1] == '\r' || msg[n - 1] == '\n'))
+    {
+        msg[n - 1] = '\0';
+        n--;
+    }
+
+    printf("%s failed: %s\n", where, msg);
 }
 
 static int init_winsock(void)
@@ -25,7 +50,7 @@ static int init_winsock(void)
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
     {
-        print_wsa_error("WSAStartup");
+        print_wsa_error_text("WSAStartup", WSAGetLastError());
         return -1;
     }
     return 0;
@@ -47,17 +72,52 @@ static int send_all(SOCKET s, const char* data, int len)
         res = send(s, data + sent_total, len - sent_total, 0);
         if (res == SOCKET_ERROR)
         {
-            print_wsa_error("send");
+            print_wsa_error_text("send", WSAGetLastError());
             return -1;
         }
         if (res == 0)
         {
-            printf("ERROR: connection closed during send\n");
+            printf("connection closed during send\n");
             return -1;
         }
         sent_total += res;
     }
 
+    return 0;
+}
+
+static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_ip_size, u16* out_port)
+{
+    const char* colon;
+    size_t ip_len;
+    char port_buf[16];
+    char* endptr;
+    unsigned long port_ul;
+
+    colon = strchr(endpoint, ':');
+    if (!colon)
+        return -1;
+
+    ip_len = (size_t)(colon - endpoint);
+    if (ip_len == 0 || ip_len >= out_ip_size)
+        return -1;
+
+    memcpy(out_ip, endpoint, ip_len);
+    out_ip[ip_len] = '\0';
+
+    if (*(colon + 1) == '\0')
+        return -1;
+
+    if (strlen(colon + 1) >= sizeof(port_buf))
+        return -1;
+
+    strcpy(port_buf, colon + 1);
+
+    port_ul = strtoul(port_buf, &endptr, 10);
+    if (*port_buf == '\0' || *endptr != '\0' || port_ul == 0 || port_ul > 65535UL)
+        return -1;
+
+    *out_port = (u16)port_ul;
     return 0;
 }
 
@@ -75,23 +135,25 @@ static SOCKET connect_with_retry(const char* ip, u16 port)
 
     if (addr.sin_addr.s_addr == INADDR_NONE)
     {
-        printf("ERROR: invalid IPv4 address\n");
+        printf("invalid IPv4 address\n");
         return INVALID_SOCKET;
     }
+
+    printf("Connecting to: %s:%u\n", ip, (unsigned int)port);
 
     for (attempt = 1; attempt <= 10; ++attempt)
     {
         s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (s == INVALID_SOCKET)
         {
-            print_wsa_error("socket");
+            print_wsa_error_text("socket", WSAGetLastError());
             return INVALID_SOCKET;
         }
 
         mode = 0;
         if (ioctlsocket(s, FIONBIO, &mode) != 0)
         {
-            print_wsa_error("ioctlsocket");
+            print_wsa_error_text("ioctlsocket", WSAGetLastError());
             closesocket(s);
             return INVALID_SOCKET;
         }
@@ -99,13 +161,14 @@ static SOCKET connect_with_retry(const char* ip, u16 port)
         if (connect(s, (struct sockaddr*)&addr, sizeof(addr)) == 0)
             return s;
 
+        print_wsa_error_text("connect", WSAGetLastError());
         closesocket(s);
 
         if (attempt < 10)
             Sleep(100);
     }
 
-    printf("ERROR: connect failed after 10 attempts\n");
+    printf("connect failed after 10 attempts\n");
     return INVALID_SOCKET;
 }
 
@@ -198,6 +261,14 @@ static int parse_line(
     *out_msg_len = 0;
 
     p = line;
+
+    if ((unsigned char)p[0] == 0xEF &&
+        (unsigned char)p[1] == 0xBB &&
+        (unsigned char)p[2] == 0xBF)
+    {
+        p += 3;
+    }
+
     if (*p == '\0')
         return -1;
 
@@ -316,7 +387,7 @@ static int build_packet(
 static int recv_all_replies(SOCKET s, u32 expected_ok_count, int* out_stop_received)
 {
     char recvbuf[512];
-    char pending[1024];
+    char pending[2048];
     int pending_len;
     u32 ok_count;
     int n;
@@ -330,20 +401,20 @@ static int recv_all_replies(SOCKET s, u32 expected_ok_count, int* out_stop_recei
         n = recv(s, recvbuf, sizeof(recvbuf), 0);
         if (n == SOCKET_ERROR)
         {
-            print_wsa_error("recv");
+            print_wsa_error_text("recv", WSAGetLastError());
             return -1;
         }
 
         if (n == 0)
         {
-            printf("ERROR: server closed connection before all ok were received (got %u of %u)\n",
+            printf("server closed connection before all ok were received (got %u of %u)\n",
                    (unsigned int)ok_count, (unsigned int)expected_ok_count);
             return -1;
         }
 
         if (pending_len + n > (int)sizeof(pending))
         {
-            printf("ERROR: response buffer overflow\n");
+            printf("response buffer overflow\n");
             return -1;
         }
 
@@ -378,7 +449,7 @@ static int recv_all_replies(SOCKET s, u32 expected_ok_count, int* out_stop_recei
                 if (pending[0] == 's' && pending_len < 4)
                     break;
 
-                printf("ERROR: invalid server response bytes\n");
+                printf("invalid server response\n");
                 return -1;
             }
 
@@ -391,43 +462,38 @@ static int recv_all_replies(SOCKET s, u32 expected_ok_count, int* out_stop_recei
 
 int main(int argc, char* argv[])
 {
-    const char* server_ip;
+    const char* endpoint;
     const char* file_name;
-    unsigned long port_ul;
-    char* endptr;
+    char server_ip[64];
     u16 port;
     SOCKET sock;
     FILE* f;
     u32 sent_count;
-    int stop_sent;
     int stop_received;
     int rc;
 
-    server_ip = NULL;
+    endpoint = NULL;
     file_name = NULL;
     sock = INVALID_SOCKET;
     f = NULL;
     sent_count = 0;
-    stop_sent = 0;
     stop_received = 0;
     rc = 1;
 
-    if (argc != 4)
+    if (argc != 3)
     {
-        printf("Usage: %s xx.xx.xx.xx pppp file\n", argv[0]);
+        printf("Usage: %s xx.xx.xx.xx:pppp file\n", argv[0]);
         return 1;
     }
 
-    server_ip = argv[1];
-    file_name = argv[3];
+    endpoint = argv[1];
+    file_name = argv[2];
 
-    port_ul = strtoul(argv[2], &endptr, 10);
-    if (*argv[2] == '\0' || *endptr != '\0' || port_ul == 0 || port_ul > 65535UL)
+    if (parse_endpoint(endpoint, server_ip, sizeof(server_ip), &port) != 0)
     {
-        printf("ERROR: invalid port\n");
+        printf("invalid endpoint, expected xx.xx.xx.xx:pppp\n");
         return 1;
     }
-    port = (u16)port_ul;
 
     if (init_winsock() != 0)
         return 1;
@@ -442,7 +508,7 @@ int main(int argc, char* argv[])
     f = fopen(file_name, "rb");
     if (!f)
     {
-        printf("ERROR: cannot open file\n");
+        printf("cannot open file\n");
         goto cleanup;
     }
 
@@ -455,7 +521,7 @@ int main(int argc, char* argv[])
         line_status = read_line_alloc(f, &line);
         if (line_status < 0)
         {
-            printf("ERROR: failed to read file\n");
+            printf("failed to read file\n");
             goto cleanup;
         }
         if (line_status == 0)
@@ -476,19 +542,16 @@ int main(int argc, char* argv[])
 
             if (parse_line(line, &aa, &bbb, tm, &msg, &msg_len) != 0)
             {
-                printf("ERROR: invalid input line\n");
+                printf("invalid input line\n");
                 free(line);
                 goto cleanup;
             }
-
-            if (strcmp(msg, "stop") == 0)
-                stop_sent = 1;
 
             if (build_packet(sent_count, aa, bbb, tm, msg, msg_len, &packet, &packet_len) != 0)
             {
                 free(msg);
                 free(line);
-                printf("ERROR: failed to build packet\n");
+                printf("failed to build packet\n");
                 goto cleanup;
             }
 
@@ -513,14 +576,6 @@ int main(int argc, char* argv[])
         goto cleanup;
 
     if (stop_received)
-    {
-        closesocket(sock);
-        sock = INVALID_SOCKET;
-        rc = 0;
-        goto cleanup;
-    }
-
-    if (stop_sent)
     {
         closesocket(sock);
         sock = INVALID_SOCKET;
