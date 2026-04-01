@@ -1,13 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
-
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-#pragma comment(lib, "ws2_32.lib")
-typedef SOCKET socket_t;
-#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -15,8 +5,14 @@ typedef SOCKET socket_t;
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <errno.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <ctype.h>
+
 typedef int socket_t;
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,49 +31,22 @@ typedef struct Buffer
 
 static int init_net(void)
 {
-#ifdef _WIN32
-    WSADATA wsa;
-    return (WSAStartup(MAKEWORD(2, 2), &wsa) == 0) ? 1 : 0;
-#else
     return 1;
-#endif
 }
 
-static void deinit_net(void)
-{
-#ifdef _WIN32
-    WSACleanup();
-#endif
-}
 
 static int sock_err(const char* fn)
 {
-#ifdef _WIN32
-    int err = WSAGetLastError();
-#else
     int err = errno;
-#endif
     printf("%s: socket error: %d\n", fn, err);
     return -1;
 }
 
-static void s_close(socket_t s)
-{
-#ifdef _WIN32
-    closesocket(s);
-#else
-    close(s);
-#endif
-}
 
 static int send_all(socket_t s, const char* data, int len)
 {
     int sent = 0;
-#ifdef _WIN32
-    int flags = 0;
-#else
     int flags = MSG_NOSIGNAL;
-#endif
 
     while (sent < len)
     {
@@ -620,12 +589,7 @@ static int server_run(unsigned short port)
     struct sockaddr_in addr;
 
     s = socket(AF_INET, SOCK_STREAM, 0);
-#ifdef _WIN32
-    if (s == INVALID_SOCKET)
-#else
-    if (s < 0)
-#endif
-        return sock_err("socket");
+    if (s < 0) return sock_err("socket");
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
@@ -639,13 +603,13 @@ static int server_run(unsigned short port)
 
     if (bind(s, (struct sockaddr*)&addr, sizeof(addr)) < 0)
     {
-        s_close(s);
+        close(s);
         return sock_err("bind");
     }
 
     if (listen(s, 16) < 0)
     {
-        s_close(s);
+        close(s);
         return sock_err("listen");
     }
 
@@ -655,21 +619,13 @@ static int server_run(unsigned short port)
     {
         socket_t cn;
         struct sockaddr_in peer_addr;
-#ifdef _WIN32
-        int peer_len = sizeof(peer_addr);
-#else
         socklen_t peer_len = sizeof(peer_addr);
-#endif
         char ipbuf[64];
         char peer[128];
         const char* iptxt;
 
         cn = accept(s, (struct sockaddr*)&peer_addr, &peer_len);
-#ifdef _WIN32
-        if (cn == INVALID_SOCKET)
-#else
         if (cn < 0)
-#endif
         {
             if (g_running)
                 sock_err("accept");
@@ -688,10 +644,10 @@ static int server_run(unsigned short port)
             printf("  Peer Exception   : %s: 'dispatch failed'\n", peer);
 
         printf("  Peer disconnected: %s\n", peer);
-        s_close(cn);
+        close(cn);
     }
 
-    s_close(s);
+    close(s);
     return 0;
 }
 
