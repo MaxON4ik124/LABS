@@ -24,7 +24,7 @@ static void print_wsa_error_text(const char* where, int err)
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
         (DWORD)err,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
         msg,
         (DWORD)(sizeof(msg) / sizeof(msg[0])),
         NULL
@@ -159,7 +159,10 @@ static SOCKET connect_with_retry(const char* ip, u16 port)
         }
 
         if (connect(s, (struct sockaddr*)&addr, sizeof(addr)) == 0)
+        {
+            printf("successfully connected to: %s:%u\n", ip, (unsigned int)port);
             return s;
+        }
 
         print_wsa_error_text("connect", WSAGetLastError());
         closesocket(s);
@@ -582,8 +585,9 @@ int main(int argc, char* argv[])
         rc = 0;
         goto cleanup;
     }
-
+    
     rc = 0;
+    printf("%d message(s) has been sent.", sent_count);
 
 cleanup:
     if (f)
