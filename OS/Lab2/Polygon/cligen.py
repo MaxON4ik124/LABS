@@ -9,14 +9,6 @@ def write_to_file(file: str, message: str):
         f.write(f"{aa} {bbb} {curtime} {message}\n")
 
 
-# message_list = []
-# message = ''
-# while message != 'stop':
-#     message = input("Enter message (stop for exit): ")
-#     write_to_file(message)
-#     message_list.append(message)
-
-# print("Messages successfully added to file")
 
 
 
