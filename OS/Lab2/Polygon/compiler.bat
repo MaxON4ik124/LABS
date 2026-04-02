@@ -1,3 +1,4 @@
 cd ..
 gcc TCP\tcpclient.cpp -o Polygon\tcpclient.exe -lws2_32
-cd /d C:\Users\Maks\Desktop\Labs\OS\Lab2\Polygon\
+gcc UDP\udpserver.cpp -o Polygon\udpserver.exe -lws2_32
+
