@@ -8,12 +8,29 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #pragma comment(lib, "ws2_32.lib")
 
-typedef unsigned __int32 u32;
-typedef __int32 s32;
-typedef unsigned short u16;
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t u8;
+
+enum
+{
+    MESSAGE_TEXT_SIZE = 2048,
+    MESSAGE_WIRE_SIZE = 2 + 4 + 1 + 1 + 1 + MESSAGE_TEXT_SIZE
+};
+
+typedef struct Message
+{
+    u16 aa;
+    u32 bbb;
+    u8 hh;
+    u8 mm;
+    u8 ss;
+    char message[MESSAGE_TEXT_SIZE];
+} Message;
 
 static void print_wsa_error_text(const char* where, int err)
 {
@@ -242,27 +259,23 @@ static int parse_two_digits(const char* p)
     return (p[0] - '0') * 10 + (p[1] - '0');
 }
 
-static int parse_line(
-    const char* line,
-    u16* out_aa,
-    s32* out_bbb,
-    unsigned char out_time[3],
-    char** out_msg,
-    int* out_msg_len)
+static void message_clear(Message* msg)
+{
+    memset(msg, 0, sizeof(*msg));
+}
+
+static int parse_line(const char* line, Message* out_msg)
 {
     const char* p;
     char* endptr;
     unsigned long aa;
-    long bbb;
+    unsigned long bbb;
     int hh;
     int mm;
     int ss;
-    int msg_len;
-    char* msg;
+    size_t msg_len;
 
-    *out_msg = NULL;
-    *out_msg_len = 0;
-
+    message_clear(out_msg);
     p = line;
 
     if ((unsigned char)p[0] == 0xEF &&
@@ -284,10 +297,8 @@ static int parse_line(
     p = endptr + 1;
 
     errno = 0;
-    bbb = strtol(p, &endptr, 10);
-    if (endptr == p || errno != 0)
-        return -1;
-    if (bbb < (-2147483647L - 1L) || bbb > 2147483647L)
+    bbb = strtoul(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb > 0xFFFFFFFFUL)
         return -1;
     if (*endptr != ' ')
         return -1;
@@ -319,75 +330,44 @@ static int parse_line(
     if (*p == '\0')
         return -1;
 
-    msg_len = (int)strlen(p);
-    msg = (char*)malloc((size_t)msg_len + 1);
-    if (!msg)
+    msg_len = strlen(p);
+    if (msg_len >= MESSAGE_TEXT_SIZE)
         return -1;
 
-    memcpy(msg, p, (size_t)msg_len + 1);
-
-    *out_aa = (u16)aa;
-    *out_bbb = (s32)bbb;
-    out_time[0] = (unsigned char)hh;
-    out_time[1] = (unsigned char)mm;
-    out_time[2] = (unsigned char)ss;
-    *out_msg = msg;
-    *out_msg_len = msg_len;
-
+    out_msg->aa = (u16)aa;
+    out_msg->bbb = (u32)bbb;
+    out_msg->hh = (u8)hh;
+    out_msg->mm = (u8)mm;
+    out_msg->ss = (u8)ss;
+    memcpy(out_msg->message, p, msg_len + 1);
     return 0;
 }
 
-static int build_packet(
-    u32 idx,
-    u16 aa,
-    s32 bbb,
-    const unsigned char tm[3],
-    const char* msg,
-    int msg_len,
-    char** out_buf,
-    int* out_len)
+static void serialize_message(const Message* msg, char out[MESSAGE_WIRE_SIZE])
 {
-    int total_len;
-    char* buf;
-    u32 bbb_bits;
+    u16 aa_be;
+    u32 bbb_be;
 
-    total_len = 4 + 2 + 4 + 3 + 4 + msg_len;
-    buf = (char*)malloc(total_len);
-    if (!buf)
-        return -1;
+    aa_be = htons(msg->aa);
+    bbb_be = htonl(msg->bbb);
 
-    buf[0] = (char)((idx >> 24) & 0xFF);
-    buf[1] = (char)((idx >> 16) & 0xFF);
-    buf[2] = (char)((idx >> 8) & 0xFF);
-    buf[3] = (char)(idx & 0xFF);
-
-    buf[4] = (char)((aa >> 8) & 0xFF);
-    buf[5] = (char)(aa & 0xFF);
-
-    bbb_bits = (u32)bbb;
-    buf[6] = (char)((bbb_bits >> 24) & 0xFF);
-    buf[7] = (char)((bbb_bits >> 16) & 0xFF);
-    buf[8] = (char)((bbb_bits >> 8) & 0xFF);
-    buf[9] = (char)(bbb_bits & 0xFF);
-
-    buf[10] = (char)tm[0];
-    buf[11] = (char)tm[1];
-    buf[12] = (char)tm[2];
-
-    buf[13] = (char)(((u32)msg_len >> 24) & 0xFF);
-    buf[14] = (char)(((u32)msg_len >> 16) & 0xFF);
-    buf[15] = (char)(((u32)msg_len >> 8) & 0xFF);
-    buf[16] = (char)((u32)msg_len & 0xFF);
-
-    if (msg_len > 0)
-        memcpy(buf + 17, msg, msg_len);
-
-    *out_buf = buf;
-    *out_len = total_len;
-    return 0;
+    memcpy(out + 0, &aa_be, 2);
+    memcpy(out + 2, &bbb_be, 4);
+    out[6] = (char)msg->hh;
+    out[7] = (char)msg->mm;
+    out[8] = (char)msg->ss;
+    memcpy(out + 9, msg->message, MESSAGE_TEXT_SIZE);
 }
 
-static int recv_all_replies(SOCKET s, u32 expected_ok_count, int* out_stop_received)
+static int send_message(SOCKET s, const Message* msg)
+{
+    char buf[MESSAGE_WIRE_SIZE];
+
+    serialize_message(msg, buf);
+    return send_all(s, buf, MESSAGE_WIRE_SIZE);
+}
+
+static int recv_all_replies(SOCKET s, u32 expected_ok_count)
 {
     char recvbuf[512];
     char pending[2048];
@@ -395,7 +375,6 @@ static int recv_all_replies(SOCKET s, u32 expected_ok_count, int* out_stop_recei
     u32 ok_count;
     int n;
 
-    *out_stop_received = 0;
     pending_len = 0;
     ok_count = 0;
 
@@ -434,22 +413,9 @@ static int recv_all_replies(SOCKET s, u32 expected_ok_count, int* out_stop_recei
                 continue;
             }
 
-            if (pending_len >= 4 &&
-                pending[0] == 's' &&
-                pending[1] == 't' &&
-                pending[2] == 'o' &&
-                pending[3] == 'p')
-            {
-                *out_stop_received = 1;
-                return 0;
-            }
-
             if (pending_len > 0)
             {
                 if (pending[0] == 'o' && pending_len < 2)
-                    break;
-
-                if (pending[0] == 's' && pending_len < 4)
                     break;
 
                 printf("invalid server response\n");
@@ -472,7 +438,6 @@ int main(int argc, char* argv[])
     SOCKET sock;
     FILE* f;
     u32 sent_count;
-    int stop_received;
     int rc;
 
     endpoint = NULL;
@@ -480,7 +445,6 @@ int main(int argc, char* argv[])
     sock = INVALID_SOCKET;
     f = NULL;
     sent_count = 0;
-    stop_received = 0;
     rc = 1;
 
     if (argc != 3)
@@ -532,62 +496,32 @@ int main(int argc, char* argv[])
 
         if (line[0] != '\0')
         {
-            u16 aa;
-            s32 bbb;
-            unsigned char tm[3];
-            char* msg;
-            int msg_len;
-            char* packet;
-            int packet_len;
+            Message msg;
 
-            msg = NULL;
-            packet = NULL;
-
-            if (parse_line(line, &aa, &bbb, tm, &msg, &msg_len) != 0)
+            if (parse_line(line, &msg) != 0)
             {
                 printf("invalid input line\n");
                 free(line);
                 goto cleanup;
             }
 
-            if (build_packet(sent_count, aa, bbb, tm, msg, msg_len, &packet, &packet_len) != 0)
+            if (send_message(sock, &msg) != 0)
             {
-                free(msg);
-                free(line);
-                printf("failed to build packet\n");
-                goto cleanup;
-            }
-
-            if (send_all(sock, packet, packet_len) != 0)
-            {
-                free(packet);
-                free(msg);
                 free(line);
                 goto cleanup;
             }
 
             sent_count++;
-
-            free(packet);
-            free(msg);
         }
 
         free(line);
     }
 
-    if (recv_all_replies(sock, sent_count, &stop_received) != 0)
+    if (recv_all_replies(sock, sent_count) != 0)
         goto cleanup;
 
-    if (stop_received)
-    {
-        closesocket(sock);
-        sock = INVALID_SOCKET;
-        rc = 0;
-        goto cleanup;
-    }
-    
     rc = 0;
-    printf("%d message(s) has been sent.", sent_count);
+    printf("%u message(s) has been sent.\n", (unsigned int)sent_count);
 
 cleanup:
     if (f)

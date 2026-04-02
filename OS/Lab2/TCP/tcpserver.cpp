@@ -13,8 +13,27 @@
 #include <ctype.h>
 
 typedef int socket_t;
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t u8;
 
 static int g_running = 1;
+
+enum
+{
+    MESSAGE_TEXT_SIZE = 2048,
+    MESSAGE_WIRE_SIZE = 2 + 4 + 1 + 1 + 1 + MESSAGE_TEXT_SIZE
+};
+
+typedef struct Message
+{
+    u16 aa;
+    u32 bbb;
+    u8 hh;
+    u8 mm;
+    u8 ss;
+    char message[MESSAGE_TEXT_SIZE];
+} Message;
 
 typedef struct Buffer
 {
@@ -119,240 +138,76 @@ static void buf_consume(Buffer* b, int n)
     b->len -= n;
 }
 
-static uint16_t get_u16_be(const unsigned char* p)
+static void message_clear(Message* msg)
 {
-    return (uint16_t)(((uint16_t)p[0] << 8) | (uint16_t)p[1]);
+    memset(msg, 0, sizeof(*msg));
 }
 
-static uint32_t get_u32_be(const unsigned char* p)
+static void deserialize_message(const char* in, Message* out)
 {
-    return ((uint32_t)p[0] << 24) |
-           ((uint32_t)p[1] << 16) |
-           ((uint32_t)p[2] << 8)  |
-           (uint32_t)p[3];
+    u16 aa_be;
+    u32 bbb_be;
+
+    message_clear(out);
+    memcpy(&aa_be, in + 0, 2);
+    memcpy(&bbb_be, in + 2, 4);
+
+    out->aa = ntohs(aa_be);
+    out->bbb = ntohl(bbb_be);
+    out->hh = (u8)in[6];
+    out->mm = (u8)in[7];
+    out->ss = (u8)in[8];
+    memcpy(out->message, in + 9, MESSAGE_TEXT_SIZE);
+    out->message[MESSAGE_TEXT_SIZE - 1] = '\0';
 }
 
-static int32_t get_s32_be(const unsigned char* p)
+static void serialize_message(const Message* msg, char out[MESSAGE_WIRE_SIZE])
 {
-    uint32_t u = get_u32_be(p);
-    return (int32_t)u;
+    u16 aa_be;
+    u32 bbb_be;
+
+    aa_be = htons(msg->aa);
+    bbb_be = htonl(msg->bbb);
+
+    memcpy(out + 0, &aa_be, 2);
+    memcpy(out + 2, &bbb_be, 4);
+    out[6] = (char)msg->hh;
+    out[7] = (char)msg->mm;
+    out[8] = (char)msg->ss;
+    memcpy(out + 9, msg->message, MESSAGE_TEXT_SIZE);
 }
 
-static void put_u16_be(char* p, uint16_t v)
-{
-    p[0] = (char)((v >> 8) & 0xFF);
-    p[1] = (char)(v & 0xFF);
-}
-
-static void put_u32_be(char* p, uint32_t v)
-{
-    p[0] = (char)((v >> 24) & 0xFF);
-    p[1] = (char)((v >> 16) & 0xFF);
-    p[2] = (char)((v >> 8) & 0xFF);
-    p[3] = (char)(v & 0xFF);
-}
-
-static void msglog(const char* peer, uint16_t aa, int32_t bbb,
-                   unsigned char hh, unsigned char mm, unsigned char ss,
-                   const char* text)
+static void msglog(const char* peer, const Message* msg)
 {
     FILE* f = fopen("msg.txt", "a");
     if (!f)
         return;
 
-    fprintf(f, "%s %u %d %02u:%02u:%02u %s\n",
+    fprintf(f, "%s %u %u %02u:%02u:%02u %s\n",
             peer,
-            (unsigned int)aa,
-            (int)bbb,
-            (unsigned int)hh,
-            (unsigned int)mm,
-            (unsigned int)ss,
-            text ? text : "");
+            (unsigned int)msg->aa,
+            (unsigned int)msg->bbb,
+            (unsigned int)msg->hh,
+            (unsigned int)msg->mm,
+            (unsigned int)msg->ss,
+            msg->message);
     fclose(f);
 }
 
-static int shift_msg(Buffer* buf, const char* peer, char** out_text)
+static int shift_msg(Buffer* buf, const char* peer, Message* out_msg)
 {
-    int pos;
-    uint16_t aa;
-    int32_t bbb;
-    unsigned char hh, mm, ss;
-    uint32_t msg_len;
-    char* text;
-
-    *out_text = 0;
-    pos = 0;
-
-    if (buf->len < 4)
+    if (buf->len < MESSAGE_WIRE_SIZE)
         return 0;
 
-    pos += 4;
+    deserialize_message(buf->data, out_msg);
 
-    if (buf->len - pos < 2)
-        return 0;
-    aa = get_u16_be((const unsigned char*)(buf->data + pos));
-    pos += 2;
-
-    if (buf->len - pos < 4)
-        return 0;
-    bbb = get_s32_be((const unsigned char*)(buf->data + pos));
-    pos += 4;
-
-    if (buf->len - pos < 3)
-        return 0;
-    hh = (unsigned char)buf->data[pos + 0];
-    mm = (unsigned char)buf->data[pos + 1];
-    ss = (unsigned char)buf->data[pos + 2];
-    pos += 3;
-
-    if (buf->len - pos < 4)
-        return 0;
-    msg_len = get_u32_be((const unsigned char*)(buf->data + pos));
-    pos += 4;
-
-    if ((uint32_t)(buf->len - pos) < msg_len)
-        return 0;
-
-    text = (char*)malloc((size_t)msg_len + 1);
-    if (!text)
+    if (out_msg->hh > 23 || out_msg->mm > 59 || out_msg->ss > 59)
         return -1;
 
-    if (msg_len > 0)
-        memcpy(text, buf->data + pos, msg_len);
-    text[msg_len] = '\0';
-    pos += (int)msg_len;
+    if (strcmp(out_msg->message, "stop") != 0)
+        msglog(peer, out_msg);
 
-    msglog(peer, aa, bbb, hh, mm, ss, text);
-    buf_consume(buf, pos);
-
-    *out_text = text;
-    return 1;
-}
-
-static int parse_uint_token(const char** ps, unsigned long* out)
-{
-    char* endptr;
-    unsigned long v;
-
-    if (!isdigit((unsigned char)(*ps)[0]))
-        return 0;
-
-    v = strtoul(*ps, &endptr, 10);
-    if (endptr == *ps)
-        return 0;
-
-    *out = v;
-    *ps = endptr;
-    return 1;
-}
-
-static int parse_sint_token(const char** ps, long* out)
-{
-    char* endptr;
-    long v;
-
-    if ((*ps)[0] != '-' && !isdigit((unsigned char)(*ps)[0]))
-        return 0;
-
-    v = strtol(*ps, &endptr, 10);
-    if (endptr == *ps)
-        return 0;
-
-    *out = v;
-    *ps = endptr;
-    return 1;
-}
-
-static int eat_space(const char** ps)
-{
-    if ((*ps)[0] != ' ')
-        return 0;
-    (*ps)++;
-    return 1;
-}
-
-static int parse_time_token(const char** ps,
-                            unsigned char* hh,
-                            unsigned char* mm,
-                            unsigned char* ss)
-{
-    const char* p = *ps;
-    int h, m, s;
-
-    if (!(isdigit((unsigned char)p[0]) && isdigit((unsigned char)p[1]) &&
-          p[2] == ':' &&
-          isdigit((unsigned char)p[3]) && isdigit((unsigned char)p[4]) &&
-          p[5] == ':' &&
-          isdigit((unsigned char)p[6]) && isdigit((unsigned char)p[7])))
-    {
-        return 0;
-    }
-
-    h = (p[0] - '0') * 10 + (p[1] - '0');
-    m = (p[3] - '0') * 10 + (p[4] - '0');
-    s = (p[6] - '0') * 10 + (p[7] - '0');
-
-    *hh = (unsigned char)h;
-    *mm = (unsigned char)m;
-    *ss = (unsigned char)s;
-
-    *ps += 8;
-    return 1;
-}
-
-static int build_msg_packet(uint32_t idx, const char* str, char** out_buf, int* out_len)
-{
-    const char* p;
-    unsigned long aa_ul;
-    long bbb_l;
-    uint16_t aa;
-    int32_t bbb;
-    unsigned char hh, mm, ss;
-    uint32_t msg_len;
-    int total_len;
-    char* buf;
-
-    p = str;
-    *out_buf = 0;
-    *out_len = 0;
-
-    if (!parse_uint_token(&p, &aa_ul))
-        return 0;
-    if (!eat_space(&p))
-        return 0;
-
-    if (!parse_sint_token(&p, &bbb_l))
-        return 0;
-    if (!eat_space(&p))
-        return 0;
-
-    if (!parse_time_token(&p, &hh, &mm, &ss))
-        return 0;
-    if (!eat_space(&p))
-        return 0;
-
-    aa = (uint16_t)(aa_ul & 0xFFFFUL);
-    bbb = (int32_t)bbb_l;
-    msg_len = (uint32_t)strlen(p);
-
-    total_len = 4 + 2 + 4 + 3 + 4 + (int)msg_len;
-    buf = (char*)malloc((size_t)total_len);
-    if (!buf)
-        return -1;
-
-    put_u32_be(buf + 0, idx);
-    put_u16_be(buf + 4, aa);
-    put_u32_be(buf + 6, (uint32_t)bbb);
-    buf[10] = (char)hh;
-    buf[11] = (char)mm;
-    buf[12] = (char)ss;
-    put_u32_be(buf + 13, msg_len);
-
-    if (msg_len > 0)
-        memcpy(buf + 17, p, msg_len);
-
-    *out_buf = buf;
-    *out_len = total_len;
+    buf_consume(buf, MESSAGE_WIRE_SIZE);
     return 1;
 }
 
@@ -416,30 +271,97 @@ static int read_line_alloc(FILE* f, char** out_line)
     return 1;
 }
 
-static int send_msg(socket_t cn, uint32_t idx, const char* str)
+static int parse_two_digits(const char* p)
 {
-    char* buf;
-    int len;
-    int rc;
+    if (!isdigit((unsigned char)p[0]) || !isdigit((unsigned char)p[1]))
+        return -1;
+    return (p[0] - '0') * 10 + (p[1] - '0');
+}
 
-    rc = build_msg_packet(idx, str, &buf, &len);
-    if (rc <= 0)
-        return rc;
+static int parse_line_to_message(const char* line, Message* out_msg)
+{
+    const char* p;
+    char* endptr;
+    unsigned long aa;
+    unsigned long bbb;
+    int hh;
+    int mm;
+    int ss;
+    size_t msg_len;
 
-    rc = send_all(cn, buf, len);
-    free(buf);
+    message_clear(out_msg);
+    p = line;
 
-    if (rc != 0)
+    if (*p == '\0')
         return -1;
 
-    return 1;
+    errno = 0;
+    aa = strtoul(p, &endptr, 10);
+    if (endptr == p || errno != 0 || aa > 65535UL)
+        return -1;
+    if (*endptr != ' ')
+        return -1;
+    p = endptr + 1;
+
+    errno = 0;
+    bbb = strtoul(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb > 0xFFFFFFFFUL)
+        return -1;
+    if (*endptr != ' ')
+        return -1;
+    p = endptr + 1;
+
+    if ((int)strlen(p) < 8)
+        return -1;
+
+    hh = parse_two_digits(p);
+    if (hh < 0 || p[2] != ':')
+        return -1;
+
+    mm = parse_two_digits(p + 3);
+    if (mm < 0 || p[5] != ':')
+        return -1;
+
+    ss = parse_two_digits(p + 6);
+    if (ss < 0)
+        return -1;
+
+    if (hh > 23 || mm > 59 || ss > 59)
+        return -1;
+
+    p += 8;
+    if (*p != ' ')
+        return -1;
+    p++;
+
+    if (*p == '\0')
+        return -1;
+
+    msg_len = strlen(p);
+    if (msg_len >= MESSAGE_TEXT_SIZE)
+        return -1;
+
+    out_msg->aa = (u16)aa;
+    out_msg->bbb = (u32)bbb;
+    out_msg->hh = (u8)hh;
+    out_msg->mm = (u8)mm;
+    out_msg->ss = (u8)ss;
+    memcpy(out_msg->message, p, msg_len + 1);
+    return 0;
+}
+
+static int send_message(socket_t cn, const Message* msg)
+{
+    char buf[MESSAGE_WIRE_SIZE];
+
+    serialize_message(msg, buf);
+    return send_all(cn, buf, MESSAGE_WIRE_SIZE);
 }
 
 static int send_msgs(socket_t cn)
 {
     FILE* f;
     char* line;
-    uint32_t idx;
 
     f = fopen("msg.txt", "rb");
     if (!f)
@@ -448,12 +370,11 @@ static int send_msgs(socket_t cn)
         return 0;
     }
 
-    idx = 0;
-
     for (;;)
     {
         int r;
         char* rest;
+        Message msg;
 
         line = 0;
         r = read_line_alloc(f, &line);
@@ -475,20 +396,25 @@ static int send_msgs(socket_t cn)
         if (rest && rest[1] != '\0')
         {
             rest++;
-            if (send_msg(cn, idx, rest) <= 0)
+            if (parse_line_to_message(rest, &msg) != 0)
             {
                 free(line);
                 fclose(f);
                 return -1;
             }
-            idx++;
+
+            if (send_message(cn, &msg) != 0)
+            {
+                free(line);
+                fclose(f);
+                return -1;
+            }
         }
 
         free(line);
     }
 
     fclose(f);
-    printf("%u messages sent.\n", (unsigned int)idx);
     return 0;
 }
 
@@ -539,11 +465,10 @@ static int dispatch(socket_t cn, const char* peer)
         {
             for (;;)
             {
-                char* text;
+                Message msg;
                 int rc;
 
-                text = 0;
-                rc = shift_msg(&buf, peer, &text);
+                rc = shift_msg(&buf, peer, &msg);
 
                 if (rc < 0)
                 {
@@ -556,26 +481,27 @@ static int dispatch(socket_t cn, const char* peer)
 
                 if (send_all(cn, "ok", 2) != 0)
                 {
-                    free(text);
                     buf_free(&buf);
                     return -1;
                 }
 
-                if (strcmp(text, "stop") == 0)
+                if (strcmp(msg.message, "stop") == 0)
                 {
                     printf("'stop' message arrived. Terminating...\n");
-                    free(text);
                     buf_free(&buf);
                     g_running = 0;
                     return 0;
                 }
-
-                free(text);
             }
         }
         else if (mode_set && strcmp(mode, "get") == 0)
         {
-            send_msgs(cn);
+            if (send_msgs(cn) != 0)
+            {
+                buf_free(&buf);
+                return -1;
+            }
+
             buf_free(&buf);
             return 0;
         }

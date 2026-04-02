@@ -9,26 +9,34 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdint.h>
 
 #pragma comment(lib, "ws2_32.lib")
 
-typedef unsigned __int32 u32;
-typedef __int32 s32;
-typedef unsigned short u16;
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t u8;
 
 #define MAX_RECENT_ACK 20
 #define CLIENT_TTL_SEC 30
+#define MESSAGE_TEXT_SIZE 2048
+#define MESSAGE_WIRE_SIZE (2 + 4 + 1 + 1 + 1 + MESSAGE_TEXT_SIZE)
+#define UDP_PACKET_SIZE (4 + MESSAGE_WIRE_SIZE)
+
+typedef struct Message
+{
+    u16 aa;
+    u32 bbb;
+    u8 hh;
+    u8 mm;
+    u8 ss;
+    char message[MESSAGE_TEXT_SIZE];
+} Message;
 
 typedef struct ParsedMessage
 {
     u32 idx;
-    u16 aa;
-    s32 bbb;
-    unsigned char hh;
-    unsigned char mm;
-    unsigned char ss;
-    const char* text_ptr;
-    u32 text_len;
+    Message msg;
     int is_stop;
 } ParsedMessage;
 
@@ -80,13 +88,8 @@ static u32 read_u32_be(const unsigned char* p)
 {
     return ((u32)p[0] << 24) |
            ((u32)p[1] << 16) |
-           ((u32)p[2] << 8)  |
+           ((u32)p[2] << 8) |
            (u32)p[3];
-}
-
-static s32 read_s32_be(const unsigned char* p)
-{
-    return (s32)read_u32_be(p);
 }
 
 static void write_u32_be(char* p, u32 v)
@@ -122,40 +125,36 @@ static int same_client_id(const struct sockaddr_in* a, const struct sockaddr_in*
     return 1;
 }
 
+static void deserialize_message(const char* in, Message* out)
+{
+    u16 aa_be;
+    u32 bbb_be;
+
+    memset(out, 0, sizeof(*out));
+    aa_be = read_u16_be((const unsigned char*)(in + 0));
+    bbb_be = read_u32_be((const unsigned char*)(in + 2));
+
+    out->aa = aa_be;
+    out->bbb = bbb_be;
+    out->hh = (u8)in[6];
+    out->mm = (u8)in[7];
+    out->ss = (u8)in[8];
+    memcpy(out->message, in + 9, MESSAGE_TEXT_SIZE);
+    out->message[MESSAGE_TEXT_SIZE - 1] = '\0';
+}
+
 static int parse_datagram(const char* buf, int len, ParsedMessage* out)
 {
-    u32 msg_len;
-
-    if (len < 17)
+    if (len != UDP_PACKET_SIZE)
         return -1;
 
     out->idx = read_u32_be((const unsigned char*)(buf + 0));
-    out->aa = read_u16_be((const unsigned char*)(buf + 4));
-    out->bbb = read_s32_be((const unsigned char*)(buf + 6));
-    out->hh = (unsigned char)buf[10];
-    out->mm = (unsigned char)buf[11];
-    out->ss = (unsigned char)buf[12];
-    msg_len = read_u32_be((const unsigned char*)(buf + 13));
+    deserialize_message(buf + 4, &out->msg);
 
-    if (msg_len != (u32)(len - 17))
+    if (out->msg.hh > 23 || out->msg.mm > 59 || out->msg.ss > 59)
         return -1;
 
-    if (out->hh > 23 || out->mm > 59 || out->ss > 59)
-        return -1;
-
-    out->text_ptr = buf + 17;
-    out->text_len = msg_len;
-    out->is_stop = 0;
-
-    if (msg_len == 4 &&
-        out->text_ptr[0] == 's' &&
-        out->text_ptr[1] == 't' &&
-        out->text_ptr[2] == 'o' &&
-        out->text_ptr[3] == 'p')
-    {
-        out->is_stop = 1;
-    }
-
+    out->is_stop = (strcmp(out->msg.message, "stop") == 0);
     return 0;
 }
 
@@ -167,18 +166,15 @@ static void msglog_unique(const char* peer, const ParsedMessage* m)
     if (!f)
         return;
 
-    fprintf(f, "%s %u %d %02u:%02u:%02u ",
+    fprintf(f, "%s %u %u %02u:%02u:%02u %s\n",
             peer,
-            (unsigned int)m->aa,
-            (int)m->bbb,
-            (unsigned int)m->hh,
-            (unsigned int)m->mm,
-            (unsigned int)m->ss);
+            (unsigned int)m->msg.aa,
+            (unsigned int)m->msg.bbb,
+            (unsigned int)m->msg.hh,
+            (unsigned int)m->msg.mm,
+            (unsigned int)m->msg.ss,
+            m->msg.message);
 
-    if (m->text_len > 0)
-        fwrite(m->text_ptr, 1, (size_t)m->text_len, f);
-
-    fputc('\n', f);
     fclose(f);
 }
 
@@ -370,8 +366,11 @@ static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct 
         }
 
         client_add_recent(c, m.idx);
-        peer_to_string(from, peer, sizeof(peer));
-        msglog_unique(peer, &m);
+        if (!m.is_stop)
+        {
+            peer_to_string(from, peer, sizeof(peer));
+            msglog_unique(peer, &m);
+        }
     }
 
     if (send_ack(s, from, c) != 0)
@@ -463,8 +462,6 @@ int main(int argc, char* argv[])
 
     for (i = 0; i < port_count; ++i)
     {
-        struct sockaddr_in addr;
-
         socks[i] = INVALID_SOCKET;
         events[i] = WSA_INVALID_EVENT;
     }
