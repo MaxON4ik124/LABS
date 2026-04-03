@@ -16,6 +16,7 @@
 typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t u8;
+typedef int32_t s32;
 
 enum
 {
@@ -27,7 +28,7 @@ enum
 typedef struct Message
 {
     u16 aa;
-    u32 bbb;
+    s32 bbb;
     u8 hh;
     u8 mm;
     u8 ss;
@@ -137,7 +138,7 @@ static int read_line_alloc(FILE* f, char** out_line)
     return 1;
 }
 
-static int parse_two_digits(const char* p)
+static u8 parse_two_digits(const char* p)
 {
     if (!isdigit((unsigned char)p[0]) || !isdigit((unsigned char)p[1]))
         return -1;
@@ -153,11 +154,11 @@ static int parse_line(const char* line, Message* out_msg)
 {
     const char* p;
     char* endptr;
-    unsigned long aa;
-    unsigned long bbb;
-    int hh;
-    int mm;
-    int ss;
+    u16 aa;
+    s32 bbb;
+    u8 hh;
+    u8 mm;
+    u8 ss;
     size_t msg_len;
 
     message_clear(out_msg);
@@ -182,8 +183,8 @@ static int parse_line(const char* line, Message* out_msg)
     p = endptr + 1;
 
     errno = 0;
-    bbb = strtoul(p, &endptr, 10);
-    if (endptr == p || errno != 0 || bbb > 0xFFFFFFFFUL)
+    bbb = strtol(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb > 0x7FFFFFFF || bbb < -0x80000000)
         return -1;
     if (*endptr != ' ')
         return -1;
@@ -220,7 +221,7 @@ static int parse_line(const char* line, Message* out_msg)
         return -1;
 
     out_msg->aa = (u16)aa;
-    out_msg->bbb = (u32)bbb;
+    out_msg->bbb = (s32)bbb;
     out_msg->hh = (u8)hh;
     out_msg->mm = (u8)mm;
     out_msg->ss = (u8)ss;
@@ -239,16 +240,16 @@ static void write_u32_be(char* p, u32 v)
 static void serialize_message(const Message* msg, char out[MESSAGE_WIRE_SIZE])
 {
     u16 aa_be;
-    u32 bbb_be;
+    s32 bbb_be;
 
     aa_be = htons(msg->aa);
     bbb_be = htonl(msg->bbb);
 
     memcpy(out + 0, &aa_be, 2);
     memcpy(out + 2, &bbb_be, 4);
-    out[6] = (char)msg->hh;
-    out[7] = (char)msg->mm;
-    out[8] = (char)msg->ss;
+    out[6] = (u8)msg->hh;
+    out[7] = (u8)msg->mm;
+    out[8] = (u8)msg->ss;
     memcpy(out + 9, msg->message, MESSAGE_TEXT_SIZE);
 }
 

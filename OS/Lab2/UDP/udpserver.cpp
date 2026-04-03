@@ -16,6 +16,7 @@
 typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t u8;
+typedef int32_t s32;
 
 #define MAX_RECENT_ACK 20
 #define CLIENT_TTL_SEC 30
@@ -26,7 +27,7 @@ typedef uint8_t u8;
 typedef struct Message
 {
     u16 aa;
-    u32 bbb;
+    s32 bbb;
     u8 hh;
     u8 mm;
     u8 ss;
@@ -84,12 +85,12 @@ static u16 read_u16_be(const unsigned char* p)
     return (u16)(((u16)p[0] << 8) | (u16)p[1]);
 }
 
-static u32 read_u32_be(const unsigned char* p)
+static s32 read_s32_be(const unsigned char* p)
 {
-    return ((u32)p[0] << 24) |
-           ((u32)p[1] << 16) |
-           ((u32)p[2] << 8) |
-           (u32)p[3];
+    return ((s32)p[0] << 24) |
+           ((s32)p[1] << 16) |
+           ((s32)p[2] << 8) |
+           (s32)p[3];
 }
 
 static void write_u32_be(char* p, u32 v)
@@ -128,11 +129,11 @@ static int same_client_id(const struct sockaddr_in* a, const struct sockaddr_in*
 static void deserialize_message(const char* in, Message* out)
 {
     u16 aa_be;
-    u32 bbb_be;
+    s32 bbb_be;
 
     memset(out, 0, sizeof(*out));
     aa_be = read_u16_be((const unsigned char*)(in + 0));
-    bbb_be = read_u32_be((const unsigned char*)(in + 2));
+    bbb_be = read_s32_be((const unsigned char*)(in + 2));
 
     out->aa = aa_be;
     out->bbb = bbb_be;
@@ -148,7 +149,7 @@ static int parse_datagram(const char* buf, int len, ParsedMessage* out)
     if (len != UDP_PACKET_SIZE)
         return -1;
 
-    out->idx = read_u32_be((const unsigned char*)(buf + 0));
+    out->idx = read_s32_be((const unsigned char*)(buf + 0));
     deserialize_message(buf + 4, &out->msg);
 
     if (out->msg.hh > 23 || out->msg.mm > 59 || out->msg.ss > 59)
@@ -166,13 +167,13 @@ static void msglog_unique(const char* peer, const ParsedMessage* m)
     if (!f)
         return;
 
-    fprintf(f, "%s %u %u %02u:%02u:%02u %s\n",
+    fprintf(f, "%s %u %d %02u:%02u:%02u %s\n",
             peer,
-            (unsigned int)m->msg.aa,
-            (unsigned int)m->msg.bbb,
-            (unsigned int)m->msg.hh,
-            (unsigned int)m->msg.mm,
-            (unsigned int)m->msg.ss,
+            (u16)m->msg.aa,
+            (s32)m->msg.bbb,
+            (u8)m->msg.hh,
+            (u8)m->msg.mm,
+            (u8)m->msg.ss,
             m->msg.message);
 
     fclose(f);

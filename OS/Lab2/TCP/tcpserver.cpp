@@ -16,6 +16,7 @@ typedef int socket_t;
 typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t u8;
+typedef int32_t s32;
 
 static int g_running = 1;
 
@@ -28,7 +29,7 @@ enum
 typedef struct Message
 {
     u16 aa;
-    u32 bbb;
+    s32 bbb;
     u8 hh;
     u8 mm;
     u8 ss;
@@ -146,7 +147,7 @@ static void message_clear(Message* msg)
 static void deserialize_message(const char* in, Message* out)
 {
     u16 aa_be;
-    u32 bbb_be;
+    s32 bbb_be;
 
     message_clear(out);
     memcpy(&aa_be, in + 0, 2);
@@ -171,9 +172,9 @@ static void serialize_message(const Message* msg, char out[MESSAGE_WIRE_SIZE])
 
     memcpy(out + 0, &aa_be, 2);
     memcpy(out + 2, &bbb_be, 4);
-    out[6] = (char)msg->hh;
-    out[7] = (char)msg->mm;
-    out[8] = (char)msg->ss;
+    out[6] = (u8)msg->hh;
+    out[7] = (u8)msg->mm;
+    out[8] = (u8)msg->ss;
     memcpy(out + 9, msg->message, MESSAGE_TEXT_SIZE);
 }
 
@@ -183,13 +184,13 @@ static void msglog(const char* peer, const Message* msg)
     if (!f)
         return;
 
-    fprintf(f, "%s %u %u %02u:%02u:%02u %s\n",
+    fprintf(f, "%s %u %d %02u:%02u:%02u %s\n",
             peer,
-            (unsigned int)msg->aa,
-            (unsigned int)msg->bbb,
-            (unsigned int)msg->hh,
-            (unsigned int)msg->mm,
-            (unsigned int)msg->ss,
+            (u16)msg->aa,
+            (s32)msg->bbb,
+            (u8)msg->hh,
+            (u8)msg->mm,
+            (u8)msg->ss,
             msg->message);
     fclose(f);
 }
@@ -271,7 +272,7 @@ static int read_line_alloc(FILE* f, char** out_line)
     return 1;
 }
 
-static int parse_two_digits(const char* p)
+static u8 parse_two_digits(const char* p)
 {
     if (!isdigit((unsigned char)p[0]) || !isdigit((unsigned char)p[1]))
         return -1;
@@ -282,11 +283,11 @@ static int parse_line_to_message(const char* line, Message* out_msg)
 {
     const char* p;
     char* endptr;
-    unsigned long aa;
-    unsigned long bbb;
-    int hh;
-    int mm;
-    int ss;
+    u16 aa;
+    s32 bbb;
+    u8 hh;
+    u8 mm;
+    u8 ss;
     size_t msg_len;
 
     message_clear(out_msg);
@@ -302,10 +303,9 @@ static int parse_line_to_message(const char* line, Message* out_msg)
     if (*endptr != ' ')
         return -1;
     p = endptr + 1;
-
     errno = 0;
     bbb = strtoul(p, &endptr, 10);
-    if (endptr == p || errno != 0 || bbb > 0xFFFFFFFFUL)
+    if (endptr == p || errno != 0 || bbb > 0x7FFFFFFF || bbb < -0x80000000)
         return -1;
     if (*endptr != ' ')
         return -1;
@@ -584,7 +584,7 @@ static int server_run(unsigned short port)
 
 int main(int argc, char* argv[])
 {
-    unsigned short port;
+    u16 port;
 
     port = 9000;
 
@@ -592,7 +592,7 @@ int main(int argc, char* argv[])
     {
         long p = strtol(argv[1], 0, 10);
         if (p > 0 && p <= 65535)
-            port = (unsigned short)p;
+            port = (u16)p;
     }
 
     return server_run(port);
