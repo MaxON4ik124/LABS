@@ -18,5 +18,5 @@ def create_own_client():
             curtime = time.ctime().split()[-2]
             f.write(f"{aa} {bbb} {curtime} {msg}\n")
 
-
+create_own_client()
 
