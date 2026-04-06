@@ -2,6 +2,7 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <windows.h>
 
 #include <stdio.h>
@@ -10,6 +11,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <limits.h>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -17,6 +19,11 @@ typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t u8;
 typedef int32_t s32;
+
+enum
+{
+    MAX_TEXT_SIZE = 1024 * 1024
+};
 
 typedef struct Message
 {
@@ -62,30 +69,19 @@ static void print_wsa_error_text(const char* where, int err)
 static int init_winsock(void)
 {
     WSADATA wsa;
+
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
     {
         print_wsa_error_text("WSAStartup", WSAGetLastError());
         return -1;
     }
+
     return 0;
 }
 
 static void deinit_winsock(void)
 {
     WSACleanup();
-}
-
-static void message_init(Message* msg)
-{
-    memset(msg, 0, sizeof(*msg));
-}
-
-static void message_free(Message* msg)
-{
-    if (msg->text)
-        free(msg->text);
-    msg->text = NULL;
-    msg->text_len = 0;
 }
 
 static int send_all(SOCKET s, const char* data, int len)
@@ -113,26 +109,26 @@ static int send_all(SOCKET s, const char* data, int len)
     return 0;
 }
 
-static int recv_all(SOCKET s, char* data, int len)
+static int recv_exact(SOCKET s, char* data, int len)
 {
-    int got_total;
-    int res;
+    int got;
+    int rc;
 
-    got_total = 0;
-    while (got_total < len)
+    got = 0;
+    while (got < len)
     {
-        res = recv(s, data + got_total, len - got_total, 0);
-        if (res == SOCKET_ERROR)
+        rc = recv(s, data + got, len - got, 0);
+        if (rc == SOCKET_ERROR)
         {
             print_wsa_error_text("recv", WSAGetLastError());
             return -1;
         }
-        if (res == 0)
+        if (rc == 0)
         {
             printf("connection closed during recv\n");
             return -1;
         }
-        got_total += res;
+        got += rc;
     }
 
     return 0;
@@ -164,8 +160,8 @@ static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_ip_size
         return -1;
 
     strcpy(port_buf, colon + 1);
-
     port_ul = strtoul(port_buf, &endptr, 10);
+
     if (*port_buf == '\0' || *endptr != '\0' || port_ul == 0 || port_ul > 65535UL)
         return -1;
 
@@ -178,13 +174,14 @@ static SOCKET connect_with_retry(const char* ip, u16 port)
     SOCKET s;
     struct sockaddr_in addr;
     int attempt;
+    int rc;
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = inet_addr(ip);
 
-    if (addr.sin_addr.s_addr == INADDR_NONE)
+    rc = InetPtonA(AF_INET, ip, &addr.sin_addr);
+    if (rc != 1)
     {
         printf("invalid IPv4 address\n");
         return INVALID_SOCKET;
@@ -192,7 +189,7 @@ static SOCKET connect_with_retry(const char* ip, u16 port)
 
     printf("Connecting to: %s:%u\n", ip, (unsigned int)port);
 
-    for (attempt = 1; attempt <= 10; ++attempt)
+    for (attempt = 1; attempt <= 20; ++attempt)
     {
         s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (s == INVALID_SOCKET)
@@ -210,11 +207,11 @@ static SOCKET connect_with_retry(const char* ip, u16 port)
         print_wsa_error_text("connect", WSAGetLastError());
         closesocket(s);
 
-        if (attempt < 10)
+        if (attempt < 20)
             Sleep(100);
     }
 
-    printf("connect failed after 10 attempts\n");
+    printf("connect failed after 20 attempts\n");
     return INVALID_SOCKET;
 }
 
@@ -278,26 +275,63 @@ static int read_line_alloc(FILE* f, char** out_line)
     return 1;
 }
 
-static int parse_two_digits(const char* p)
+static void message_init(Message* msg)
 {
+    memset(msg, 0, sizeof(*msg));
+}
+
+static void message_free(Message* msg)
+{
+    free(msg->text);
+    msg->text = NULL;
+    msg->text_len = 0;
+}
+
+static int message_set_text(Message* msg, const char* text, u32 len)
+{
+    char* tmp;
+
+    if (len > MAX_TEXT_SIZE)
+        return -1;
+
+    tmp = (char*)malloc((size_t)len + 1U);
+    if (!tmp)
+        return -1;
+
+    if (len > 0)
+        memcpy(tmp, text, (size_t)len);
+    tmp[len] = '\0';
+
+    free(msg->text);
+    msg->text = tmp;
+    msg->text_len = len;
+    return 0;
+}
+
+static int parse_two_digits(const char* p, u8* out_value)
+{
+    int value;
+
     if (!isdigit((unsigned char)p[0]) || !isdigit((unsigned char)p[1]))
         return -1;
-    return (p[0] - '0') * 10 + (p[1] - '0');
+
+    value = (p[0] - '0') * 10 + (p[1] - '0');
+    *out_value = (u8)value;
+    return 0;
 }
 
 static int parse_line(const char* line, Message* out_msg)
 {
     const char* p;
     char* endptr;
-    unsigned long aa_ul;
-    long bbb_l;
-    int hh;
-    int mm;
-    int ss;
+    unsigned long long aa_ull;
+    long long bbb_ll;
+    u8 hh;
+    u8 mm;
+    u8 ss;
     size_t text_len;
-    char* text_copy;
 
-    message_init(out_msg);
+    message_free(out_msg);
     p = line;
 
     if ((unsigned char)p[0] == 0xEF &&
@@ -311,18 +345,16 @@ static int parse_line(const char* line, Message* out_msg)
         return -1;
 
     errno = 0;
-    aa_ul = strtoul(p, &endptr, 10);
-    if (endptr == p || errno != 0 || aa_ul > 65535UL)
+    aa_ull = strtoull(p, &endptr, 10);
+    if (endptr == p || errno != 0 || aa_ull > 65535ULL)
         return -1;
     if (*endptr != ' ')
         return -1;
     p = endptr + 1;
 
     errno = 0;
-    bbb_l = strtol(p, &endptr, 10);
-    if (endptr == p || errno != 0)
-        return -1;
-    if (bbb_l < (-2147483647L - 1L) || bbb_l > 2147483647L)
+    bbb_ll = strtoll(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb_ll < (long long)INT32_MIN || bbb_ll > (long long)INT32_MAX)
         return -1;
     if (*endptr != ' ')
         return -1;
@@ -331,16 +363,11 @@ static int parse_line(const char* line, Message* out_msg)
     if ((int)strlen(p) < 8)
         return -1;
 
-    hh = parse_two_digits(p);
-    if (hh < 0 || p[2] != ':')
+    if (parse_two_digits(p + 0, &hh) != 0 || p[2] != ':')
         return -1;
-
-    mm = parse_two_digits(p + 3);
-    if (mm < 0 || p[5] != ':')
+    if (parse_two_digits(p + 3, &mm) != 0 || p[5] != ':')
         return -1;
-
-    ss = parse_two_digits(p + 6);
-    if (ss < 0)
+    if (parse_two_digits(p + 6, &ss) != 0)
         return -1;
 
     if (hh > 23 || mm > 59 || ss > 59)
@@ -352,20 +379,23 @@ static int parse_line(const char* line, Message* out_msg)
     p++;
 
     text_len = strlen(p);
-    text_copy = (char*)malloc(text_len + 1);
-    if (!text_copy)
+
+    out_msg->aa = (u16)aa_ull;
+    out_msg->bbb = (s32)bbb_ll;
+    out_msg->hh = hh;
+    out_msg->mm = mm;
+    out_msg->ss = ss;
+
+    if (message_set_text(out_msg, p, (u32)text_len) != 0)
         return -1;
 
-    memcpy(text_copy, p, text_len + 1);
-
-    out_msg->aa = (u16)aa_ul;
-    out_msg->bbb = (s32)bbb_l;
-    out_msg->hh = (u8)hh;
-    out_msg->mm = (u8)mm;
-    out_msg->ss = (u8)ss;
-    out_msg->text = text_copy;
-    out_msg->text_len = (u32)text_len;
     return 0;
+}
+
+static void write_u16_be(char* p, u16 v)
+{
+    p[0] = (char)((v >> 8) & 0xFF);
+    p[1] = (char)(v & 0xFF);
 }
 
 static void write_u32_be(char* p, u32 v)
@@ -376,44 +406,63 @@ static void write_u32_be(char* p, u32 v)
     p[3] = (char)(v & 0xFF);
 }
 
-static int send_message(SOCKET s, u32 idx, const Message* msg)
+static int build_message_bytes(u32 idx, const Message* msg, char** out_buf, int* out_len)
 {
-    char hdr[17];
-    u16 aa_be;
-    u32 bbb_be;
+    char* buf;
+    int len;
+    u32 bbb_raw;
 
-    write_u32_be(hdr + 0, idx);
-    aa_be = htons(msg->aa);
-    bbb_be = htonl((u32)msg->bbb);
-    memcpy(hdr + 4, &aa_be, 2);
-    memcpy(hdr + 6, &bbb_be, 4);
-    hdr[10] = (char)msg->hh;
-    hdr[11] = (char)msg->mm;
-    hdr[12] = (char)msg->ss;
-    write_u32_be(hdr + 13, msg->text_len);
-
-    if (send_all(s, hdr, (int)sizeof(hdr)) != 0)
+    len = 4 + 2 + 4 + 3 + 4 + (int)msg->text_len;
+    buf = (char*)malloc((size_t)len);
+    if (!buf)
         return -1;
 
+    write_u32_be(buf + 0, idx);
+    write_u16_be(buf + 4, msg->aa);
+    memcpy(&bbb_raw, &msg->bbb, sizeof(bbb_raw));
+    write_u32_be(buf + 6, bbb_raw);
+    buf[10] = (char)msg->hh;
+    buf[11] = (char)msg->mm;
+    buf[12] = (char)msg->ss;
+    write_u32_be(buf + 13, msg->text_len);
     if (msg->text_len > 0)
-    {
-        if (send_all(s, msg->text, (int)msg->text_len) != 0)
-            return -1;
-    }
+        memcpy(buf + 17, msg->text, (size_t)msg->text_len);
 
+    *out_buf = buf;
+    *out_len = len;
     return 0;
+}
+
+static int send_message(SOCKET s, u32 idx, const Message* msg)
+{
+    char* buf;
+    int len;
+    int rc;
+
+    buf = NULL;
+    len = 0;
+
+    if (build_message_bytes(idx, msg, &buf, &len) != 0)
+        return -1;
+
+    rc = send_all(s, buf, len);
+    free(buf);
+    return rc;
 }
 
 static int wait_confirm(SOCKET s)
 {
-    char buf[2];
-    if (recv_all(s, buf, 2) != 0)
+    char ok[2];
+
+    if (recv_exact(s, ok, 2) != 0)
         return -1;
-    if (buf[0] != 'o' || buf[1] != 'k')
+
+    if (ok[0] != 'o' || ok[1] != 'k')
     {
-        printf("invalid confirmation\n");
+        printf("Invalid confirmation\n");
         return -1;
     }
+
     return 0;
 }
 
@@ -426,7 +475,6 @@ int main(int argc, char* argv[])
     SOCKET sock;
     FILE* f;
     u32 sent_count;
-    u32 idx;
     int rc;
 
     endpoint = NULL;
@@ -434,7 +482,6 @@ int main(int argc, char* argv[])
     sock = INVALID_SOCKET;
     f = NULL;
     sent_count = 0;
-    idx = 0;
     rc = 1;
 
     if (argc != 3)
@@ -492,11 +539,12 @@ int main(int argc, char* argv[])
             if (parse_line(line, &msg) != 0)
             {
                 printf("invalid input line\n");
+                message_free(&msg);
                 free(line);
                 goto cleanup;
             }
 
-            if (send_message(sock, idx, &msg) != 0)
+            if (send_message(sock, sent_count, &msg) != 0)
             {
                 message_free(&msg);
                 free(line);
@@ -512,15 +560,13 @@ int main(int argc, char* argv[])
 
             message_free(&msg);
             sent_count++;
-            idx++;
         }
 
         free(line);
     }
 
-    shutdown(sock, SD_SEND);
-    printf("%u message(s) has been sent.\n", (unsigned int)sent_count);
     rc = 0;
+    printf("%u message(s) has been sent.\n", (unsigned int)sent_count);
 
 cleanup:
     if (f)

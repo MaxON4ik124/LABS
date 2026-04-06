@@ -1,7 +1,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
-#include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -12,11 +11,18 @@
 #include <string.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <limits.h>
 
 typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t u8;
 typedef int32_t s32;
+
+enum
+{
+    MAX_TEXT_SIZE = 1024 * 1024,
+    ACK_BUF_SIZE = 65535
+};
 
 typedef struct Message
 {
@@ -36,19 +42,6 @@ typedef struct PendingMessage
     int packet_len;
     int confirmed;
 } PendingMessage;
-
-static void message_init(Message* msg)
-{
-    memset(msg, 0, sizeof(*msg));
-}
-
-static void message_free(Message* msg)
-{
-    if (msg->text)
-        free(msg->text);
-    msg->text = NULL;
-    msg->text_len = 0;
-}
 
 static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_ip_size, u16* out_port)
 {
@@ -76,12 +69,44 @@ static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_ip_size
         return -1;
 
     strcpy(port_buf, colon + 1);
-
     port_ul = strtoul(port_buf, &endptr, 10);
     if (*port_buf == '\0' || *endptr != '\0' || port_ul == 0 || port_ul > 65535UL)
         return -1;
 
     *out_port = (u16)port_ul;
+    return 0;
+}
+
+static void message_init(Message* msg)
+{
+    memset(msg, 0, sizeof(*msg));
+}
+
+static void message_free(Message* msg)
+{
+    free(msg->text);
+    msg->text = NULL;
+    msg->text_len = 0;
+}
+
+static int message_set_text(Message* msg, const char* text, u32 len)
+{
+    char* tmp;
+
+    if (len > MAX_TEXT_SIZE)
+        return -1;
+
+    tmp = (char*)malloc((size_t)len + 1U);
+    if (!tmp)
+        return -1;
+
+    if (len > 0)
+        memcpy(tmp, text, (size_t)len);
+    tmp[len] = '\0';
+
+    free(msg->text);
+    msg->text = tmp;
+    msg->text_len = len;
     return 0;
 }
 
@@ -145,26 +170,30 @@ static int read_line_alloc(FILE* f, char** out_line)
     return 1;
 }
 
-static int parse_two_digits(const char* p)
+static int parse_two_digits(const char* p, u8* out_value)
 {
+    int value;
+
     if (!isdigit((unsigned char)p[0]) || !isdigit((unsigned char)p[1]))
         return -1;
-    return (p[0] - '0') * 10 + (p[1] - '0');
+
+    value = (p[0] - '0') * 10 + (p[1] - '0');
+    *out_value = (u8)value;
+    return 0;
 }
 
 static int parse_line(const char* line, Message* out_msg)
 {
     const char* p;
     char* endptr;
-    unsigned long aa_ul;
-    long bbb_l;
-    int hh;
-    int mm;
-    int ss;
+    unsigned long long aa_ull;
+    long long bbb_ll;
+    u8 hh;
+    u8 mm;
+    u8 ss;
     size_t text_len;
-    char* text_copy;
 
-    message_init(out_msg);
+    message_free(out_msg);
     p = line;
 
     if ((unsigned char)p[0] == 0xEF &&
@@ -178,18 +207,16 @@ static int parse_line(const char* line, Message* out_msg)
         return -1;
 
     errno = 0;
-    aa_ul = strtoul(p, &endptr, 10);
-    if (endptr == p || errno != 0 || aa_ul > 65535UL)
+    aa_ull = strtoull(p, &endptr, 10);
+    if (endptr == p || errno != 0 || aa_ull > 65535ULL)
         return -1;
     if (*endptr != ' ')
         return -1;
     p = endptr + 1;
 
     errno = 0;
-    bbb_l = strtol(p, &endptr, 10);
-    if (endptr == p || errno != 0)
-        return -1;
-    if (bbb_l < (-2147483647L - 1L) || bbb_l > 2147483647L)
+    bbb_ll = strtoll(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb_ll < (long long)INT32_MIN || bbb_ll > (long long)INT32_MAX)
         return -1;
     if (*endptr != ' ')
         return -1;
@@ -198,16 +225,11 @@ static int parse_line(const char* line, Message* out_msg)
     if ((int)strlen(p) < 8)
         return -1;
 
-    hh = parse_two_digits(p);
-    if (hh < 0 || p[2] != ':')
+    if (parse_two_digits(p + 0, &hh) != 0 || p[2] != ':')
         return -1;
-
-    mm = parse_two_digits(p + 3);
-    if (mm < 0 || p[5] != ':')
+    if (parse_two_digits(p + 3, &mm) != 0 || p[5] != ':')
         return -1;
-
-    ss = parse_two_digits(p + 6);
-    if (ss < 0)
+    if (parse_two_digits(p + 6, &ss) != 0)
         return -1;
 
     if (hh > 23 || mm > 59 || ss > 59)
@@ -219,20 +241,23 @@ static int parse_line(const char* line, Message* out_msg)
     p++;
 
     text_len = strlen(p);
-    text_copy = (char*)malloc(text_len + 1);
-    if (!text_copy)
+
+    out_msg->aa = (u16)aa_ull;
+    out_msg->bbb = (s32)bbb_ll;
+    out_msg->hh = hh;
+    out_msg->mm = mm;
+    out_msg->ss = ss;
+
+    if (message_set_text(out_msg, p, (u32)text_len) != 0)
         return -1;
 
-    memcpy(text_copy, p, text_len + 1);
-
-    out_msg->aa = (u16)aa_ul;
-    out_msg->bbb = (s32)bbb_l;
-    out_msg->hh = (u8)hh;
-    out_msg->mm = (u8)mm;
-    out_msg->ss = (u8)ss;
-    out_msg->text = text_copy;
-    out_msg->text_len = (u32)text_len;
     return 0;
+}
+
+static void write_u16_be(char* p, u16 v)
+{
+    p[0] = (char)((v >> 8) & 0xFF);
+    p[1] = (char)(v & 0xFF);
 }
 
 static void write_u32_be(char* p, u32 v)
@@ -247,19 +272,17 @@ static int build_packet(u32 idx, const Message* msg, char** out_buf, int* out_le
 {
     char* buf;
     int len;
-    u16 aa_be;
-    u32 bbb_be;
+    u32 bbb_raw;
 
-    len = 17 + (int)msg->text_len;
+    len = 4 + 2 + 4 + 3 + 4 + (int)msg->text_len;
     buf = (char*)malloc((size_t)len);
     if (!buf)
         return -1;
 
     write_u32_be(buf + 0, idx);
-    aa_be = htons(msg->aa);
-    bbb_be = htonl((u32)msg->bbb);
-    memcpy(buf + 4, &aa_be, 2);
-    memcpy(buf + 6, &bbb_be, 4);
+    write_u16_be(buf + 4, msg->aa);
+    memcpy(&bbb_raw, &msg->bbb, sizeof(bbb_raw));
+    write_u32_be(buf + 6, bbb_raw);
     buf[10] = (char)msg->hh;
     buf[11] = (char)msg->mm;
     buf[12] = (char)msg->ss;
@@ -354,6 +377,7 @@ static int load_messages_from_file(const char* file_name, PendingMessage** out_m
             if (parse_line(line, &msg) != 0)
             {
                 printf("invalid input line: %s\n", line);
+                message_free(&msg);
                 free(line);
                 fclose(f);
                 free_messages(messages, count);
@@ -376,8 +400,8 @@ static int load_messages_from_file(const char* file_name, PendingMessage** out_m
 
             if (append_message(&messages, &count, &cap, &m) != 0)
             {
-                message_free(&msg);
                 free(packet);
+                message_free(&msg);
                 free(line);
                 fclose(f);
                 free_messages(messages, count);
@@ -397,12 +421,12 @@ static int load_messages_from_file(const char* file_name, PendingMessage** out_m
     return 0;
 }
 
-static int send_pending_messages(int sock, const struct sockaddr_in* addr, PendingMessage* msgs, int total)
+static int send_pending_messages(int sock, PendingMessage* msgs, int total)
 {
     int i;
-    int cnt;
+    int sent_cnt;
 
-    cnt = 0;
+    sent_cnt = 0;
     for (i = 0; i < total; ++i)
     {
         int rc;
@@ -410,20 +434,15 @@ static int send_pending_messages(int sock, const struct sockaddr_in* addr, Pendi
         if (msgs[i].confirmed)
             continue;
 
-        rc = (int)sendto(sock,
-                         msgs[i].packet,
-                         (size_t)msgs[i].packet_len,
-                         0,
-                         (const struct sockaddr*)addr,
-                         sizeof(*addr));
+        rc = (int)send(sock, msgs[i].packet, (size_t)msgs[i].packet_len, 0);
         if (rc < 0)
         {
-            printf("sendto failed: %s\n", strerror(errno));
+            printf("send failed: %s\n", strerror(errno));
             return -1;
         }
 
-        cnt++;
-        if (cnt >= 10)
+        sent_cnt++;
+        if (sent_cnt >= 10)
             break;
     }
 
@@ -434,7 +453,7 @@ static u32 read_u32_be(const unsigned char* p)
 {
     return ((u32)p[0] << 24) |
            ((u32)p[1] << 16) |
-           ((u32)p[2] << 8)  |
+           ((u32)p[2] << 8) |
            (u32)p[3];
 }
 
@@ -453,29 +472,28 @@ static void process_ack_datagram(const char* buf, int len, PendingMessage* msgs,
         u32 idx;
 
         idx = read_u32_be((const unsigned char*)(buf + i));
-        if (idx < (u32)total)
+        if (idx < (u32)total && !msgs[idx].confirmed)
         {
-            if (!msgs[idx].confirmed)
-            {
-                msgs[idx].confirmed = 1;
-                (*confirmed_count)++;
-            }
+            msgs[idx].confirmed = 1;
+            (*confirmed_count)++;
         }
     }
 }
 
-static int recv_all_ready_ack(int sock, PendingMessage* msgs, int total, int* confirmed_count)
+static int wait_for_ack_burst(int sock, PendingMessage* msgs, int total, int* confirmed_count)
 {
+    fd_set rfds;
+    struct timeval tv;
+    char ackbuf[ACK_BUF_SIZE];
+    int sel;
+
     for (;;)
     {
-        fd_set rfds;
-        struct timeval tv;
-        int sel;
-        char ackbuf[65535];
         int n;
 
         FD_ZERO(&rfds);
         FD_SET(sock, &rfds);
+
         tv.tv_sec = 0;
         tv.tv_usec = 100000;
 
@@ -485,8 +503,9 @@ static int recv_all_ready_ack(int sock, PendingMessage* msgs, int total, int* co
             printf("select failed: %s\n", strerror(errno));
             return -1;
         }
+
         if (sel == 0)
-            break;
+            return 0;
 
         n = (int)recv(sock, ackbuf, sizeof(ackbuf), 0);
         if (n < 0)
@@ -497,8 +516,6 @@ static int recv_all_ready_ack(int sock, PendingMessage* msgs, int total, int* co
 
         process_ack_datagram(ackbuf, n, msgs, total, confirmed_count);
     }
-
-    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -560,9 +577,7 @@ int main(int argc, char* argv[])
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = inet_addr(server_ip);
-
-    if (addr.sin_addr.s_addr == INADDR_NONE)
+    if (inet_pton(AF_INET, server_ip, &addr.sin_addr) != 1)
     {
         printf("invalid IPv4 address\n");
         goto cleanup;
@@ -574,18 +589,15 @@ int main(int argc, char* argv[])
         goto cleanup;
     }
 
-    printf("Server address: %s:%u\n", server_ip, (unsigned int)port);
+    printf("Sending UDP messages to %s:%u\n", server_ip, (unsigned int)port);
 
     while (confirmed_count < target_count)
     {
-        if (send_pending_messages(sock, &addr, messages, total_messages) != 0)
+        if (send_pending_messages(sock, messages, total_messages) != 0)
             goto cleanup;
 
-        if (recv_all_ready_ack(sock, messages, total_messages, &confirmed_count) != 0)
+        if (wait_for_ack_burst(sock, messages, total_messages, &confirmed_count) < 0)
             goto cleanup;
-
-        if (confirmed_count >= target_count)
-            break;
     }
 
     rc = 0;

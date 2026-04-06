@@ -1,6 +1,7 @@
 import random
 import time
 
+
 def write_to_file(file: str, message: str):
     with open(file, "a") as f:
         aa = random.randint(0, 65536)
@@ -18,5 +19,5 @@ def create_own_client():
             curtime = time.ctime().split()[-2]
             f.write(f"{aa} {bbb} {curtime} {msg}\n")
 
-create_own_client()
+# create_own_client()
 

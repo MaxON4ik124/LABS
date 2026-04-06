@@ -1,6 +1,5 @@
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -12,6 +11,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <limits.h>
 
 typedef int socket_t;
 typedef uint32_t u32;
@@ -19,11 +19,14 @@ typedef uint16_t u16;
 typedef uint8_t u8;
 typedef int32_t s32;
 
-static int g_running = 1;
+enum
+{
+    READ_CHUNK_SIZE = 512,
+    MAX_TEXT_SIZE = 1024 * 1024
+};
 
 typedef struct Message
 {
-    u32 idx;
     u16 aa;
     s32 bbb;
     u8 hh;
@@ -39,6 +42,8 @@ typedef struct Buffer
     int len;
     int cap;
 } Buffer;
+
+static int g_running = 1;
 
 static int sock_err(const char* fn)
 {
@@ -87,8 +92,7 @@ static void buf_init(Buffer* b)
 
 static void buf_free(Buffer* b)
 {
-    if (b->data)
-        free(b->data);
+    free(b->data);
     b->data = NULL;
     b->len = 0;
     b->cap = 0;
@@ -96,21 +100,21 @@ static void buf_free(Buffer* b)
 
 static int buf_reserve(Buffer* b, int need)
 {
-    char* p;
+    char* tmp;
     int new_cap;
 
     if (need <= b->cap)
         return 1;
 
-    new_cap = (b->cap > 0) ? b->cap : 512;
+    new_cap = (b->cap == 0) ? 512 : b->cap;
     while (new_cap < need)
         new_cap *= 2;
 
-    p = (char*)realloc(b->data, (size_t)new_cap);
-    if (!p)
+    tmp = (char*)realloc(b->data, (size_t)new_cap);
+    if (!tmp)
         return 0;
 
-    b->data = p;
+    b->data = tmp;
     b->cap = new_cap;
     return 1;
 }
@@ -140,17 +144,9 @@ static void buf_consume(Buffer* b, int n)
     b->len -= n;
 }
 
-static void message_init(Message* msg)
+static u16 read_u16_be(const unsigned char* p)
 {
-    memset(msg, 0, sizeof(*msg));
-}
-
-static void message_free(Message* msg)
-{
-    if (msg->text)
-        free(msg->text);
-    msg->text = NULL;
-    msg->text_len = 0;
+    return (u16)(((u16)p[0] << 8) | (u16)p[1]);
 }
 
 static u32 read_u32_be(const unsigned char* p)
@@ -161,68 +157,90 @@ static u32 read_u32_be(const unsigned char* p)
            (u32)p[3];
 }
 
-static int read_s32_be(const unsigned char* p)
+static s32 read_s32_be(const unsigned char* p)
 {
-    u32 v;
-    v = read_u32_be(p);
-    return (s32)v;
+    u32 raw;
+    s32 out;
+
+    raw = read_u32_be(p);
+    memcpy(&out, &raw, sizeof(out));
+    return out;
 }
 
-static int shift_msg(Buffer* buf, const char* peer, Message* out_msg)
+static void write_u16_be(char* p, u16 v)
 {
-    u32 text_len;
-    char* text_copy;
-    int total_len;
+    p[0] = (char)((v >> 8) & 0xFF);
+    p[1] = (char)(v & 0xFF);
+}
+
+static void write_u32_be(char* p, u32 v)
+{
+    p[0] = (char)((v >> 24) & 0xFF);
+    p[1] = (char)((v >> 16) & 0xFF);
+    p[2] = (char)((v >> 8) & 0xFF);
+    p[3] = (char)(v & 0xFF);
+}
+
+static void message_init(Message* msg)
+{
+    memset(msg, 0, sizeof(*msg));
+}
+
+static void message_free(Message* msg)
+{
+    free(msg->text);
+    msg->text = NULL;
+    msg->text_len = 0;
+}
+
+static int message_set_text(Message* msg, const char* text, u32 len)
+{
+    char* tmp;
+
+    tmp = (char*)malloc((size_t)len + 1U);
+    if (!tmp)
+        return -1;
+
+    if (len > 0)
+        memcpy(tmp, text, (size_t)len);
+    tmp[len] = '\0';
+
+    free(msg->text);
+    msg->text = tmp;
+    msg->text_len = len;
+    return 0;
+}
+
+static void msglog(const char* peer, const Message* msg)
+{
     FILE* f;
 
-    if (buf->len < 17)
-        return 0;
+    f = fopen("msg.txt", "ab");
+    if (!f)
+        return;
 
-    text_len = read_u32_be((const unsigned char*)(buf->data + 13));
-    if (text_len > 1024U * 1024U)
+    fprintf(f, "%s %u %d %02u:%02u:%02u ",
+            peer,
+            (unsigned int)msg->aa,
+            (int)msg->bbb,
+            (unsigned int)msg->hh,
+            (unsigned int)msg->mm,
+            (unsigned int)msg->ss);
+    fwrite(msg->text, 1, (size_t)msg->text_len, f);
+    fputc('\n', f);
+    fclose(f);
+}
+
+static int parse_two_digits(const char* p, u8* out_value)
+{
+    int value;
+
+    if (!isdigit((unsigned char)p[0]) || !isdigit((unsigned char)p[1]))
         return -1;
 
-    total_len = 17 + (int)text_len;
-    if (buf->len < total_len)
-        return 0;
-
-    message_init(out_msg);
-    out_msg->idx = read_u32_be((const unsigned char*)(buf->data + 0));
-    out_msg->aa = (u16)(((u16)(unsigned char)buf->data[4] << 8) |
-                        (u16)(unsigned char)buf->data[5]);
-    out_msg->bbb = (s32)read_s32_be((const unsigned char*)(buf->data + 6));
-    out_msg->hh = (u8)buf->data[10];
-    out_msg->mm = (u8)buf->data[11];
-    out_msg->ss = (u8)buf->data[12];
-    out_msg->text_len = text_len;
-
-    if (out_msg->hh > 23 || out_msg->mm > 59 || out_msg->ss > 59)
-        return -1;
-
-    text_copy = (char*)malloc((size_t)text_len + 1);
-    if (!text_copy)
-        return -1;
-
-    memcpy(text_copy, buf->data + 17, (size_t)text_len);
-    text_copy[text_len] = '\0';
-    out_msg->text = text_copy;
-
-    f = fopen("msg.txt", "a");
-    if (f)
-    {
-        fprintf(f, "%s %u %d %02u:%02u:%02u %s\n",
-                peer,
-                (unsigned int)out_msg->aa,
-                (int)out_msg->bbb,
-                (unsigned int)out_msg->hh,
-                (unsigned int)out_msg->mm,
-                (unsigned int)out_msg->ss,
-                out_msg->text);
-        fclose(f);
-    }
-
-    buf_consume(buf, total_len);
-    return 1;
+    value = (p[0] - '0') * 10 + (p[1] - '0');
+    *out_value = (u8)value;
+    return 0;
 }
 
 static int read_line_alloc(FILE* f, char** out_line)
@@ -285,44 +303,34 @@ static int read_line_alloc(FILE* f, char** out_line)
     return 1;
 }
 
-static int parse_two_digits(const char* p)
-{
-    if (!isdigit((unsigned char)p[0]) || !isdigit((unsigned char)p[1]))
-        return -1;
-    return (p[0] - '0') * 10 + (p[1] - '0');
-}
-
 static int parse_line_to_message(const char* line, Message* out_msg)
 {
     const char* p;
     char* endptr;
-    unsigned long aa_ul;
-    long bbb_l;
-    int hh;
-    int mm;
-    int ss;
+    unsigned long long aa_ull;
+    long long bbb_ll;
+    u8 hh;
+    u8 mm;
+    u8 ss;
     size_t text_len;
-    char* text_copy;
 
-    message_init(out_msg);
+    message_free(out_msg);
     p = line;
 
     if (*p == '\0')
         return -1;
 
     errno = 0;
-    aa_ul = strtoul(p, &endptr, 10);
-    if (endptr == p || errno != 0 || aa_ul > 65535UL)
+    aa_ull = strtoull(p, &endptr, 10);
+    if (endptr == p || errno != 0 || aa_ull > 65535ULL)
         return -1;
     if (*endptr != ' ')
         return -1;
     p = endptr + 1;
 
     errno = 0;
-    bbb_l = strtol(p, &endptr, 10);
-    if (endptr == p || errno != 0)
-        return -1;
-    if (bbb_l < (-2147483647L - 1L) || bbb_l > 2147483647L)
+    bbb_ll = strtoll(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb_ll < (long long)INT32_MIN || bbb_ll > (long long)INT32_MAX)
         return -1;
     if (*endptr != ' ')
         return -1;
@@ -331,16 +339,11 @@ static int parse_line_to_message(const char* line, Message* out_msg)
     if ((int)strlen(p) < 8)
         return -1;
 
-    hh = parse_two_digits(p);
-    if (hh < 0 || p[2] != ':')
+    if (parse_two_digits(p + 0, &hh) != 0 || p[2] != ':')
         return -1;
-
-    mm = parse_two_digits(p + 3);
-    if (mm < 0 || p[5] != ':')
+    if (parse_two_digits(p + 3, &mm) != 0 || p[5] != ':')
         return -1;
-
-    ss = parse_two_digits(p + 6);
-    if (ss < 0)
+    if (parse_two_digits(p + 6, &ss) != 0)
         return -1;
 
     if (hh > 23 || mm > 59 || ss > 59)
@@ -352,57 +355,96 @@ static int parse_line_to_message(const char* line, Message* out_msg)
     p++;
 
     text_len = strlen(p);
-    text_copy = (char*)malloc(text_len + 1);
-    if (!text_copy)
+
+    out_msg->aa = (u16)aa_ull;
+    out_msg->bbb = (s32)bbb_ll;
+    out_msg->hh = hh;
+    out_msg->mm = mm;
+    out_msg->ss = ss;
+
+    if (message_set_text(out_msg, p, (u32)text_len) != 0)
         return -1;
 
-    memcpy(text_copy, p, text_len + 1);
-
-    out_msg->idx = 0;
-    out_msg->aa = (u16)aa_ul;
-    out_msg->bbb = (s32)bbb_l;
-    out_msg->hh = (u8)hh;
-    out_msg->mm = (u8)mm;
-    out_msg->ss = (u8)ss;
-    out_msg->text = text_copy;
-    out_msg->text_len = (u32)text_len;
     return 0;
 }
 
-static void write_u32_be(char* p, u32 v)
+static int build_message_bytes(u32 idx, const Message* msg, char** out_buf, int* out_len)
 {
-    p[0] = (char)((v >> 24) & 0xFF);
-    p[1] = (char)((v >> 16) & 0xFF);
-    p[2] = (char)((v >> 8) & 0xFF);
-    p[3] = (char)(v & 0xFF);
-}
+    char* buf;
+    int len;
+    u32 bbb_raw;
 
-static int send_message(socket_t cn, const Message* msg)
-{
-    char hdr[17];
-    u16 aa_be;
-    u32 bbb_be;
-
-    write_u32_be(hdr + 0, msg->idx);
-    aa_be = htons(msg->aa);
-    bbb_be = htonl((u32)msg->bbb);
-    memcpy(hdr + 4, &aa_be, 2);
-    memcpy(hdr + 6, &bbb_be, 4);
-    hdr[10] = (char)msg->hh;
-    hdr[11] = (char)msg->mm;
-    hdr[12] = (char)msg->ss;
-    write_u32_be(hdr + 13, msg->text_len);
-
-    if (send_all(cn, hdr, (int)sizeof(hdr)) != 0)
+    len = 4 + 2 + 4 + 3 + 4 + (int)msg->text_len;
+    buf = (char*)malloc((size_t)len);
+    if (!buf)
         return -1;
 
+    write_u32_be(buf + 0, idx);
+    write_u16_be(buf + 4, msg->aa);
+    memcpy(&bbb_raw, &msg->bbb, sizeof(bbb_raw));
+    write_u32_be(buf + 6, bbb_raw);
+    buf[10] = (char)msg->hh;
+    buf[11] = (char)msg->mm;
+    buf[12] = (char)msg->ss;
+    write_u32_be(buf + 13, msg->text_len);
     if (msg->text_len > 0)
-    {
-        if (send_all(cn, msg->text, (int)msg->text_len) != 0)
-            return -1;
-    }
+        memcpy(buf + 17, msg->text, (size_t)msg->text_len);
 
+    *out_buf = buf;
+    *out_len = len;
     return 0;
+}
+
+static int shift_msg(Buffer* buf, Message* out_msg, u32* out_idx)
+{
+    u32 text_len;
+    int need;
+
+    if (buf->len < 17)
+        return 0;
+
+    text_len = read_u32_be((const unsigned char*)(buf->data + 13));
+    if (text_len > MAX_TEXT_SIZE)
+        return -1;
+
+    need = 17 + (int)text_len;
+    if (buf->len < need)
+        return 0;
+
+    message_free(out_msg);
+    out_msg->aa = read_u16_be((const unsigned char*)(buf->data + 4));
+    out_msg->bbb = read_s32_be((const unsigned char*)(buf->data + 6));
+    out_msg->hh = (u8)buf->data[10];
+    out_msg->mm = (u8)buf->data[11];
+    out_msg->ss = (u8)buf->data[12];
+
+    if (out_msg->hh > 23 || out_msg->mm > 59 || out_msg->ss > 59)
+        return -1;
+
+    if (message_set_text(out_msg, buf->data + 17, text_len) != 0)
+        return -1;
+
+    *out_idx = read_u32_be((const unsigned char*)(buf->data + 0));
+    buf_consume(buf, need);
+    return 1;
+}
+
+static int send_message(socket_t cn, u32 idx, const Message* msg)
+{
+    char* buf;
+    int len;
+    int rc;
+
+    buf = NULL;
+    len = 0;
+
+    rc = build_message_bytes(idx, msg, &buf, &len);
+    if (rc != 0)
+        return -1;
+
+    rc = send_all(cn, buf, len);
+    free(buf);
+    return rc;
 }
 
 static int send_msgs(socket_t cn)
@@ -425,6 +467,7 @@ static int send_msgs(socket_t cn)
         char* rest;
         Message msg;
 
+        message_init(&msg);
         line = NULL;
         r = read_line_alloc(f, &line);
         if (r < 0)
@@ -447,23 +490,24 @@ static int send_msgs(socket_t cn)
             rest++;
             if (parse_line_to_message(rest, &msg) != 0)
             {
+                message_free(&msg);
                 free(line);
                 fclose(f);
                 return -1;
             }
 
-            msg.idx = idx;
-            if (send_message(cn, &msg) != 0)
+            if (send_message(cn, idx, &msg) != 0)
             {
                 message_free(&msg);
                 free(line);
                 fclose(f);
                 return -1;
             }
-            message_free(&msg);
+
             idx++;
         }
 
+        message_free(&msg);
         free(line);
     }
 
@@ -475,7 +519,7 @@ static int send_msgs(socket_t cn)
 static int dispatch(socket_t cn, const char* peer)
 {
     Buffer buf;
-    char tmp[512];
+    char tmp[READ_CHUNK_SIZE];
     char mode[4];
     int mode_set;
 
@@ -485,7 +529,9 @@ static int dispatch(socket_t cn, const char* peer)
 
     for (;;)
     {
-        int n = recv_some(cn, tmp, (int)sizeof(tmp));
+        int n;
+
+        n = recv_some(cn, tmp, sizeof(tmp));
         if (n < 0)
         {
             buf_free(&buf);
@@ -520,18 +566,29 @@ static int dispatch(socket_t cn, const char* peer)
             for (;;)
             {
                 Message msg;
+                u32 idx;
                 int rc;
+                int is_stop;
 
                 message_init(&msg);
-                rc = shift_msg(&buf, peer, &msg);
+                idx = 0;
+                rc = shift_msg(&buf, &msg, &idx);
+
                 if (rc < 0)
                 {
                     message_free(&msg);
                     buf_free(&buf);
                     return -1;
                 }
+
                 if (rc == 0)
+                {
+                    message_free(&msg);
                     break;
+                }
+
+                msglog(peer, &msg);
+                is_stop = (msg.text && strcmp(msg.text, "stop") == 0);
 
                 if (send_all(cn, "ok", 2) != 0)
                 {
@@ -540,7 +597,7 @@ static int dispatch(socket_t cn, const char* peer)
                     return -1;
                 }
 
-                if (strcmp(msg.text, "stop") == 0)
+                if (is_stop)
                 {
                     printf("'stop' message arrived. Terminating...\n");
                     g_running = 0;
@@ -550,17 +607,15 @@ static int dispatch(socket_t cn, const char* peer)
                 }
 
                 message_free(&msg);
+                (void)idx;
             }
         }
         else if (mode_set && strcmp(mode, "get") == 0)
         {
-            if (send_msgs(cn) != 0)
-            {
-                buf_free(&buf);
-                return -1;
-            }
+            int rc;
+            rc = send_msgs(cn);
             buf_free(&buf);
-            return 0;
+            return rc;
         }
     }
 
@@ -572,8 +627,6 @@ static int server_run(unsigned short port)
 {
     socket_t s;
     struct sockaddr_in addr;
-
-    signal(SIGPIPE, SIG_IGN);
 
     s = socket(AF_INET, SOCK_STREAM, 0);
     if (s < 0)
@@ -625,11 +678,12 @@ static int server_run(unsigned short port)
         if (!iptxt)
             strcpy(ipbuf, "unknown");
 
-        snprintf(peer, sizeof(peer), "%s:%u", ipbuf, (unsigned int)ntohs(peer_addr.sin_port));
-
+        sprintf(peer, "%s:%u", ipbuf, (unsigned int)ntohs(peer_addr.sin_port));
         printf("  Peer connected  : %s\n", peer);
+
         if (dispatch(cn, peer) != 0)
             printf("  Peer Exception   : %s: 'dispatch failed'\n", peer);
+
         printf("  Peer disconnected: %s\n", peer);
         s_close(cn);
     }
@@ -642,10 +696,13 @@ int main(int argc, char* argv[])
 {
     u16 port;
 
+    signal(SIGPIPE, SIG_IGN);
+
     port = 9000;
     if (argc > 1)
     {
-        long p = strtol(argv[1], NULL, 10);
+        long p;
+        p = strtol(argv[1], 0, 10);
         if (p > 0 && p <= 65535)
             port = (u16)p;
     }
