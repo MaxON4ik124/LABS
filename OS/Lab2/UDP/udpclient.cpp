@@ -580,6 +580,7 @@ int main(int argc, char* argv[])
         int left_count;
 
         left_count = count_unconfirmed(messages, total_messages);
+        printf("Messages left: %d\n", left_count);
         if ((total_messages - left_count) >= target_count || left_count == 0)
             break;
 
