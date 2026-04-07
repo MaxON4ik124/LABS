@@ -1,18 +1,8 @@
-#ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
 #include <windows.h>
-
 #pragma comment(lib, "ws2_32.lib")
-#else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#endif
-
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,15 +16,10 @@ typedef uint16_t u16;
 typedef uint8_t u8;
 typedef int32_t s32;
 
-#ifdef _WIN32
+
 typedef SOCKET socket_t;
 #define CLOSESOCK closesocket
-#else
-typedef int socket_t;
-#define INVALID_SOCKET (-1)
-#define SOCKET_ERROR (-1)
-#define CLOSESOCK close
-#endif
+
 
 typedef struct Message
 {
@@ -85,20 +70,12 @@ static void net_deinit(void)
 
 static void msleep_short(int ms)
 {
-#ifdef _WIN32
     Sleep((DWORD)ms);
-#else
-    usleep((useconds_t)ms * 1000U);
-#endif
 }
 
 static int socket_last_error(void)
 {
-#ifdef _WIN32
     return WSAGetLastError();
-#else
-    return errno;
-#endif
 }
 
 static int send_all(socket_t s, const char* data, int len)
@@ -110,11 +87,7 @@ static int send_all(socket_t s, const char* data, int len)
     {
         int rc;
 
-#ifdef _WIN32
         rc = send(s, data + off, len - off, 0);
-#else
-        rc = send(s, data + off, (size_t)(len - off), MSG_NOSIGNAL);
-#endif
 
         if (rc <= 0)
         {
