@@ -20,9 +20,7 @@ typedef int32_t s32;
 
 enum
 {
-    MESSAGE_TEXT_SIZE = 2048,
-    MESSAGE_WIRE_SIZE = 2 + 4 + 1 + 1 + 1 + MESSAGE_TEXT_SIZE,
-    UDP_PACKET_SIZE = 4 + MESSAGE_WIRE_SIZE
+    MESSAGE_TEXT_SIZE = 2048
 };
 
 typedef struct Message
@@ -160,7 +158,7 @@ static int parse_line(const char* line, Message* out_msg)
     const char* p;
     char* endptr;
     unsigned long aa_ul;
-    long bbb_l;
+    long long bbb_ll;
     u8 hh;
     u8 mm;
     u8 ss;
@@ -188,8 +186,8 @@ static int parse_line(const char* line, Message* out_msg)
     p = endptr + 1;
 
     errno = 0;
-    bbb_l = strtol(p, &endptr, 10);
-    if (endptr == p || errno != 0 || bbb_l < INT32_MIN || bbb_l > INT32_MAX)
+    bbb_ll = strtoll(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb_ll < INT32_MIN || bbb_ll > INT32_MAX)
         return -1;
     if (*endptr != ' ')
         return -1;
@@ -221,12 +219,18 @@ static int parse_line(const char* line, Message* out_msg)
         return -1;
 
     out_msg->aa = (u16)aa_ul;
-    out_msg->bbb = (s32)bbb_l;
+    out_msg->bbb = (s32)bbb_ll;
     out_msg->hh = hh;
     out_msg->mm = mm;
     out_msg->ss = ss;
     memcpy(out_msg->message, p, msg_len + 1);
     return 0;
+}
+
+static void write_u16_be(char* p, u16 v)
+{
+    p[0] = (char)((v >> 8) & 0xFF);
+    p[1] = (char)(v & 0xFF);
 }
 
 static void write_u32_be(char* p, u32 v)
@@ -237,35 +241,35 @@ static void write_u32_be(char* p, u32 v)
     p[3] = (char)(v & 0xFF);
 }
 
-static void serialize_message(const Message* msg, char out[MESSAGE_WIRE_SIZE])
-{
-    u16 aa_be;
-    u32 bbb_be;
-
-    aa_be = htons(msg->aa);
-    bbb_be = htonl((u32)msg->bbb);
-
-    memcpy(out + 0, &aa_be, 2);
-    memcpy(out + 2, &bbb_be, 4);
-    out[6] = (char)msg->hh;
-    out[7] = (char)msg->mm;
-    out[8] = (char)msg->ss;
-    memcpy(out + 9, msg->message, MESSAGE_TEXT_SIZE);
-}
-
 static int build_packet(u32 idx, const Message* msg, char** out_buf, int* out_len)
 {
+    size_t msg_len;
+    int packet_len;
     char* buf;
+    u32 bbb_bits;
 
-    buf = (char*)malloc((size_t)UDP_PACKET_SIZE);
+    msg_len = strlen(msg->message);
+    packet_len = 4 + 2 + 4 + 3 + 4 + (int)msg_len;
+
+    buf = (char*)malloc((size_t)packet_len);
     if (!buf)
         return -1;
 
     write_u32_be(buf + 0, idx);
-    serialize_message(msg, buf + 4);
+    write_u16_be(buf + 4, msg->aa);
+
+    memcpy(&bbb_bits, &msg->bbb, sizeof(bbb_bits));
+    write_u32_be(buf + 6, bbb_bits);
+
+    buf[10] = (char)msg->hh;
+    buf[11] = (char)msg->mm;
+    buf[12] = (char)msg->ss;
+
+    write_u32_be(buf + 13, (u32)msg_len);
+    memcpy(buf + 17, msg->message, msg_len);
 
     *out_buf = buf;
-    *out_len = UDP_PACKET_SIZE;
+    *out_len = packet_len;
     return 0;
 }
 
@@ -392,7 +396,9 @@ static int load_messages_from_file(const char* file_name, PendingMessage** out_m
 static int send_pending_messages(int sock, PendingMessage* msgs, int total)
 {
     int i;
+    int cnt;
 
+    cnt = 0;
     for (i = 0; i < total; ++i)
     {
         int rc;
@@ -406,6 +412,10 @@ static int send_pending_messages(int sock, PendingMessage* msgs, int total)
             printf("send failed: %s\n", strerror(errno));
             return -1;
         }
+
+        cnt++;
+        if (cnt >= 10)
+            break;
     }
 
     return 0;
@@ -429,7 +439,7 @@ static void process_ack_datagram(const char* buf, int len, PendingMessage* msgs,
     if ((len % 4) != 0)
         return;
 
-    for (i = 0; i < len; i += 4)
+    for (i = 0; i + 4 <= len; i += 4)
     {
         u32 idx;
 
@@ -461,7 +471,7 @@ static int wait_for_one_ack(int sock, PendingMessage* msgs, int total, int* conf
     fd_set rfds;
     struct timeval tv;
     int sel;
-    char ackbuf[2048];
+    char ackbuf[65535];
     int n;
 
     FD_ZERO(&rfds);
