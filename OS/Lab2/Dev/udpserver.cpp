@@ -4,12 +4,11 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <stdint.h>
+#include <time.h>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -18,8 +17,8 @@ typedef uint16_t u16;
 typedef uint8_t u8;
 typedef int32_t s32;
 
-#define CLIENT_TTL_SEC 30
 #define MAX_RECENT_ACK 20
+#define CLIENT_TTL_SEC 30
 #define STOP_GRACE_MS 500
 
 typedef struct Message
@@ -29,8 +28,8 @@ typedef struct Message
     u8 hh;
     u8 mm;
     u8 ss;
-    char* text;
-    u32 text_len;
+    char* message;
+    u32 message_len;
 } Message;
 
 typedef struct ParsedMessage
@@ -44,11 +43,9 @@ typedef struct ClientInfo
 {
     struct sockaddr_in addr;
     time_t last_seen;
-
     u32* seen_ids;
     int seen_count;
     int seen_cap;
-
     u32 recent_ids[MAX_RECENT_ACK];
     int recent_count;
 } ClientInfo;
@@ -56,8 +53,26 @@ typedef struct ClientInfo
 static ClientInfo* g_clients = NULL;
 static int g_client_count = 0;
 static int g_client_cap = 0;
-static int g_running = 1;
+static int g_stopping = 0;
 static DWORD g_stop_deadline = 0;
+
+static void message_init(Message* msg)
+{
+    msg->aa = 0;
+    msg->bbb = 0;
+    msg->hh = 0;
+    msg->mm = 0;
+    msg->ss = 0;
+    msg->message = NULL;
+    msg->message_len = 0;
+}
+
+static void message_free(Message* msg)
+{
+    if (msg->message)
+        free(msg->message);
+    message_init(msg);
+}
 
 static void print_wsa_error(const char* where)
 {
@@ -80,17 +95,9 @@ static void deinit_winsock(void)
     WSACleanup();
 }
 
-static void message_init(Message* msg)
+static u16 read_u16_be(const unsigned char* p)
 {
-    memset(msg, 0, sizeof(*msg));
-}
-
-static void message_free(Message* msg)
-{
-    if (msg->text)
-        free(msg->text);
-    msg->text = NULL;
-    msg->text_len = 0;
+    return (u16)(((u16)p[0] << 8) | (u16)p[1]);
 }
 
 static u32 read_u32_be(const unsigned char* p)
@@ -99,11 +106,6 @@ static u32 read_u32_be(const unsigned char* p)
            ((u32)p[1] << 16) |
            ((u32)p[2] << 8) |
            (u32)p[3];
-}
-
-static s32 read_s32_be(const unsigned char* p)
-{
-    return (s32)read_u32_be(p);
 }
 
 static void write_u32_be(char* p, u32 v)
@@ -117,7 +119,6 @@ static void write_u32_be(char* p, u32 v)
 static void peer_to_string(const struct sockaddr_in* addr, char* out, int out_size)
 {
     const unsigned char* ip;
-
     ip = (const unsigned char*)&addr->sin_addr.s_addr;
     _snprintf(out, out_size, "%u.%u.%u.%u:%u",
               (unsigned int)ip[0],
@@ -130,69 +131,67 @@ static void peer_to_string(const struct sockaddr_in* addr, char* out, int out_si
 
 static int same_client_id(const struct sockaddr_in* a, const struct sockaddr_in* b)
 {
-    if (a->sin_family != b->sin_family)
-        return 0;
-    if (a->sin_port != b->sin_port)
-        return 0;
-    if (a->sin_addr.s_addr != b->sin_addr.s_addr)
-        return 0;
-    return 1;
+    return a->sin_family == b->sin_family &&
+           a->sin_port == b->sin_port &&
+           a->sin_addr.s_addr == b->sin_addr.s_addr;
 }
 
 static int parse_datagram(const char* buf, int len, ParsedMessage* out)
 {
-    u32 text_len;
-    char* text_copy;
+    u32 msg_len;
+    u32 bbb_bits;
+    char* text;
 
-    message_init(&out->msg);
-    out->idx = 0;
-    out->is_stop = 0;
+    message_free(&out->msg);
 
     if (len < 17)
         return -1;
 
+    msg_len = read_u32_be((const unsigned char*)(buf + 13));
+    if (msg_len > 65535U)
+        return -1;
+    if ((int)(17 + msg_len) != len)
+        return -1;
+    if ((u8)buf[10] > 23 || (u8)buf[11] > 59 || (u8)buf[12] > 59)
+        return -1;
+
+    text = (char*)malloc((size_t)msg_len + 1);
+    if (!text)
+        return -1;
+    if (msg_len > 0)
+        memcpy(text, buf + 17, (size_t)msg_len);
+    text[msg_len] = '\0';
+
     out->idx = read_u32_be((const unsigned char*)(buf + 0));
-    out->msg.aa = (u16)(((u16)(unsigned char)buf[4] << 8) |
-                        (u16)(unsigned char)buf[5]);
-    out->msg.bbb = read_s32_be((const unsigned char*)(buf + 6));
+    out->msg.aa = read_u16_be((const unsigned char*)(buf + 4));
+    bbb_bits = read_u32_be((const unsigned char*)(buf + 6));
+    memcpy(&out->msg.bbb, &bbb_bits, sizeof(out->msg.bbb));
     out->msg.hh = (u8)buf[10];
     out->msg.mm = (u8)buf[11];
     out->msg.ss = (u8)buf[12];
-    text_len = read_u32_be((const unsigned char*)(buf + 13));
-
-    if (out->msg.hh > 23 || out->msg.mm > 59 || out->msg.ss > 59)
-        return -1;
-    if (len != 17 + (int)text_len)
-        return -1;
-
-    text_copy = (char*)malloc((size_t)text_len + 1);
-    if (!text_copy)
-        return -1;
-
-    memcpy(text_copy, buf + 17, (size_t)text_len);
-    text_copy[text_len] = '\0';
-    out->msg.text = text_copy;
-    out->msg.text_len = text_len;
-    out->is_stop = (strcmp(out->msg.text, "stop") == 0);
+    out->msg.message = text;
+    out->msg.message_len = msg_len;
+    out->is_stop = (strcmp(text, "stop") == 0);
     return 0;
 }
 
 static void msglog_unique(const char* peer, const ParsedMessage* m)
 {
     FILE* f;
-
-    f = fopen("msg.txt", "a");
+    f = fopen("msg.txt", "ab");
     if (!f)
         return;
 
-    fprintf(f, "%s %u %d %02u:%02u:%02u %s\n",
+    fprintf(f, "%s %u %d %02u:%02u:%02u ",
             peer,
             (unsigned int)m->msg.aa,
             (int)m->msg.bbb,
             (unsigned int)m->msg.hh,
             (unsigned int)m->msg.mm,
-            (unsigned int)m->msg.ss,
-            m->msg.text);
+            (unsigned int)m->msg.ss);
+    if (m->msg.message_len > 0)
+        fwrite(m->msg.message, 1, (size_t)m->msg.message_len, f);
+    fputc('\n', f);
     fclose(f);
 }
 
@@ -208,7 +207,6 @@ static int ensure_client_capacity(void)
     tmp = (ClientInfo*)realloc(g_clients, (size_t)new_cap * sizeof(ClientInfo));
     if (!tmp)
         return -1;
-
     g_clients = tmp;
     g_client_cap = new_cap;
     return 0;
@@ -226,7 +224,6 @@ static int ensure_seen_capacity(ClientInfo* c)
     tmp = (u32*)realloc(c->seen_ids, (size_t)new_cap * sizeof(u32));
     if (!tmp)
         return -1;
-
     c->seen_ids = tmp;
     c->seen_cap = new_cap;
     return 0;
@@ -235,20 +232,17 @@ static int ensure_seen_capacity(ClientInfo* c)
 static ClientInfo* find_client(const struct sockaddr_in* addr)
 {
     int i;
-
     for (i = 0; i < g_client_count; ++i)
     {
         if (same_client_id(&g_clients[i].addr, addr))
             return &g_clients[i];
     }
-
     return NULL;
 }
 
 static ClientInfo* find_or_add_client(const struct sockaddr_in* addr)
 {
     ClientInfo* c;
-
     c = find_client(addr);
     if (c)
         return c;
@@ -260,11 +254,6 @@ static ClientInfo* find_or_add_client(const struct sockaddr_in* addr)
     memset(c, 0, sizeof(*c));
     c->addr = *addr;
     c->last_seen = time(NULL);
-    c->seen_ids = NULL;
-    c->seen_count = 0;
-    c->seen_cap = 0;
-    c->recent_count = 0;
-
     g_client_count++;
     return c;
 }
@@ -272,13 +261,11 @@ static ClientInfo* find_or_add_client(const struct sockaddr_in* addr)
 static int client_has_seen(const ClientInfo* c, u32 idx)
 {
     int i;
-
     for (i = 0; i < c->seen_count; ++i)
     {
         if (c->seen_ids[i] == idx)
             return 1;
     }
-
     return 0;
 }
 
@@ -286,79 +273,54 @@ static int client_add_seen(ClientInfo* c, u32 idx)
 {
     if (ensure_seen_capacity(c) != 0)
         return -1;
-
-    c->seen_ids[c->seen_count] = idx;
-    c->seen_count++;
-    return 0;
-}
-
-static int client_recent_contains(const ClientInfo* c, u32 idx)
-{
-    int i;
-
-    for (i = 0; i < c->recent_count; ++i)
-    {
-        if (c->recent_ids[i] == idx)
-            return 1;
-    }
+    c->seen_ids[c->seen_count++] = idx;
     return 0;
 }
 
 static void client_add_recent(ClientInfo* c, u32 idx)
 {
-    if (client_recent_contains(c, idx))
-        return;
-
     if (c->recent_count < MAX_RECENT_ACK)
     {
-        c->recent_ids[c->recent_count] = idx;
-        c->recent_count++;
+        c->recent_ids[c->recent_count++] = idx;
         return;
     }
-
-    memmove(c->recent_ids,
-            c->recent_ids + 1,
-            (MAX_RECENT_ACK - 1) * (int)sizeof(u32));
+    memmove(c->recent_ids, c->recent_ids + 1, (MAX_RECENT_ACK - 1) * sizeof(u32));
     c->recent_ids[MAX_RECENT_ACK - 1] = idx;
 }
 
 static int send_ack(SOCKET s, const struct sockaddr_in* addr, const ClientInfo* c, u32 current_idx)
 {
-    char buf[(MAX_RECENT_ACK + 1) * 4];
-    int len;
+    char buf[MAX_RECENT_ACK * 4];
+    int count;
     int i;
     int rc;
 
-    len = 0;
-    write_u32_be(buf + len, current_idx);
-    len += 4;
+    count = 0;
+    write_u32_be(buf + count * 4, current_idx);
+    count++;
 
-    for (i = c->recent_count - 1; i >= 0; --i)
+    for (i = c->recent_count - 1; i >= 0 && count < MAX_RECENT_ACK; --i)
     {
         if (c->recent_ids[i] == current_idx)
             continue;
-
-        write_u32_be(buf + len, c->recent_ids[i]);
-        len += 4;
+        write_u32_be(buf + count * 4, c->recent_ids[i]);
+        count++;
     }
 
-    rc = sendto(s, buf, len, 0, (const struct sockaddr*)addr, sizeof(*addr));
+    rc = sendto(s, buf, count * 4, 0, (const struct sockaddr*)addr, sizeof(*addr));
     if (rc == SOCKET_ERROR)
     {
         print_wsa_error("sendto");
         return -1;
     }
-
     return 0;
 }
 
 static void remove_client_at(int idx)
 {
     free(g_clients[idx].seen_ids);
-
     if (idx != g_client_count - 1)
         g_clients[idx] = g_clients[g_client_count - 1];
-
     g_client_count--;
 }
 
@@ -366,10 +328,8 @@ static void cleanup_expired_clients(void)
 {
     time_t now;
     int i;
-
     now = time(NULL);
     i = 0;
-
     while (i < g_client_count)
     {
         if ((now - g_clients[i].last_seen) >= CLIENT_TTL_SEC)
@@ -383,54 +343,55 @@ static void cleanup_expired_clients(void)
 
 static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct sockaddr_in* from)
 {
-    ParsedMessage m;
+    ParsedMessage pm;
     ClientInfo* c;
     char peer[128];
-    int is_duplicate;
-    int rc;
+    int duplicate;
 
-    if (parse_datagram(buf, len, &m) != 0)
+    message_init(&pm.msg);
+    if (parse_datagram(buf, len, &pm) != 0)
+    {
+        message_free(&pm.msg);
         return 0;
+    }
 
     c = find_or_add_client(from);
     if (!c)
     {
         printf("out of memory while adding client\n");
-        message_free(&m.msg);
+        message_free(&pm.msg);
         return -1;
     }
 
     c->last_seen = time(NULL);
-    is_duplicate = client_has_seen(c, m.idx);
+    duplicate = client_has_seen(c, pm.idx);
 
-    if (!is_duplicate)
+    if (!duplicate)
     {
-        rc = client_add_seen(c, m.idx);
-        if (rc != 0)
+        if (client_add_seen(c, pm.idx) != 0)
         {
             printf("out of memory while storing message id\n");
-            message_free(&m.msg);
+            message_free(&pm.msg);
             return -1;
         }
-
-        client_add_recent(c, m.idx);
+        client_add_recent(c, pm.idx);
         peer_to_string(from, peer, sizeof(peer));
-        msglog_unique(peer, &m);
+        msglog_unique(peer, &pm);
     }
 
-    rc = send_ack(s, from, c, m.idx);
-    if (rc != 0)
+    if (send_ack(s, from, c, pm.idx) != 0)
     {
-        message_free(&m.msg);
+        message_free(&pm.msg);
         return -1;
     }
 
-    if (m.is_stop)
+    if (pm.is_stop)
     {
+        g_stopping = 1;
         g_stop_deadline = GetTickCount() + STOP_GRACE_MS;
     }
 
-    message_free(&m.msg);
+    message_free(&pm.msg);
     return 0;
 }
 
@@ -442,16 +403,14 @@ static int handle_readable_socket(SOCKET s)
         struct sockaddr_in from;
         int from_len;
         int rc;
-        int err;
 
         from_len = sizeof(from);
         rc = recvfrom(s, buf, sizeof(buf), 0, (struct sockaddr*)&from, &from_len);
         if (rc == SOCKET_ERROR)
         {
-            err = WSAGetLastError();
+            int err = WSAGetLastError();
             if (err == WSAEWOULDBLOCK)
                 break;
-
             print_wsa_error("recvfrom");
             return -1;
         }
@@ -459,7 +418,6 @@ static int handle_readable_socket(SOCKET s)
         if (handle_one_datagram(s, buf, rc, &from) != 0)
             return -1;
     }
-
     return 0;
 }
 
@@ -485,7 +443,6 @@ int main(int argc, char* argv[])
 
     first_port = atoi(argv[1]);
     last_port = atoi(argv[2]);
-
     if (first_port <= 0 || last_port <= 0 || first_port > 65535 || last_port > 65535 || first_port > last_port)
     {
         printf("invalid port range\n");
@@ -495,7 +452,7 @@ int main(int argc, char* argv[])
     port_count = last_port - first_port + 1;
     if (port_count > WSA_MAXIMUM_WAIT_EVENTS)
     {
-        printf("too many ports for WSAEvents, max supported in one process loop is %d\n", WSA_MAXIMUM_WAIT_EVENTS);
+        printf("too many ports for WSAEvents\n");
         return 1;
     }
 
@@ -519,7 +476,6 @@ int main(int argc, char* argv[])
     for (i = 0; i < port_count; ++i)
     {
         struct sockaddr_in addr;
-
         socks[i] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
         if (socks[i] == INVALID_SOCKET)
         {
@@ -550,11 +506,9 @@ int main(int argc, char* argv[])
             print_wsa_error("WSAEventSelect");
             goto cleanup;
         }
-
-        printf("Listening UDP port: %d\n", first_port + i);
     }
 
-    while (g_running)
+    for (;;)
     {
         DWORD wait_res;
         int idx;
@@ -562,25 +516,12 @@ int main(int argc, char* argv[])
 
         cleanup_expired_clients();
 
-        if (g_stop_deadline != 0)
-        {
-            DWORD now;
-            now = GetTickCount();
-            if ((LONG)(now - g_stop_deadline) >= 0)
-                break;
-        }
+        if (g_stopping && GetTickCount() >= g_stop_deadline)
+            break;
 
-        wait_res = WSAWaitForMultipleEvents(
-            (DWORD)port_count,
-            events,
-            FALSE,
-            100,
-            FALSE
-        );
-
+        wait_res = WSAWaitForMultipleEvents((DWORD)port_count, events, FALSE, 100, FALSE);
         if (wait_res == WSA_WAIT_TIMEOUT)
             continue;
-
         if (wait_res == WSA_WAIT_FAILED)
         {
             print_wsa_error("WSAWaitForMultipleEvents");

@@ -18,11 +18,7 @@ typedef uint16_t u16;
 typedef uint8_t u8;
 typedef int32_t s32;
 
-enum
-{
-    MESSAGE_TEXT_SIZE = 65535,
-    STOP_SEND_ROUNDS = 6
-};
+#define UDP_MAX_PAYLOAD 65507
 
 typedef struct Message
 {
@@ -31,7 +27,8 @@ typedef struct Message
     u8 hh;
     u8 mm;
     u8 ss;
-    char message[MESSAGE_TEXT_SIZE];
+    char* message;
+    u32 message_len;
 } Message;
 
 typedef struct PendingMessage
@@ -39,9 +36,27 @@ typedef struct PendingMessage
     u32 idx;
     char* packet;
     int packet_len;
-    int confirmed;
+    int active;
     int is_stop;
 } PendingMessage;
+
+static void message_init(Message* msg)
+{
+    msg->aa = 0;
+    msg->bbb = 0;
+    msg->hh = 0;
+    msg->mm = 0;
+    msg->ss = 0;
+    msg->message = NULL;
+    msg->message_len = 0;
+}
+
+static void message_free(Message* msg)
+{
+    if (msg->message)
+        free(msg->message);
+    message_init(msg);
+}
 
 static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_ip_size, u16* out_port)
 {
@@ -95,7 +110,6 @@ static int read_line_alloc(FILE* f, char** out_line)
     for (;;)
     {
         ch = fgetc(f);
-
         if (ch == EOF)
         {
             if (len == 0)
@@ -105,10 +119,8 @@ static int read_line_alloc(FILE* f, char** out_line)
             }
             break;
         }
-
         if (ch == '\n')
             break;
-
         if (ch == '\r')
         {
             ch = fgetc(f);
@@ -116,7 +128,6 @@ static int read_line_alloc(FILE* f, char** out_line)
                 ungetc(ch, f);
             break;
         }
-
         if (len + 1 >= cap)
         {
             cap *= 2;
@@ -128,7 +139,6 @@ static int read_line_alloc(FILE* f, char** out_line)
             }
             buf = tmp;
         }
-
         buf[len++] = (char)ch;
     }
 
@@ -140,18 +150,11 @@ static int read_line_alloc(FILE* f, char** out_line)
 static int parse_two_digits(const char* p, u8* out_value)
 {
     int value;
-
     if (!isdigit((unsigned char)p[0]) || !isdigit((unsigned char)p[1]))
         return -1;
-
     value = (p[0] - '0') * 10 + (p[1] - '0');
     *out_value = (u8)value;
     return 0;
-}
-
-static void message_clear(Message* msg)
-{
-    memset(msg, 0, sizeof(*msg));
 }
 
 static int parse_line(const char* line, Message* out_msg)
@@ -159,13 +162,14 @@ static int parse_line(const char* line, Message* out_msg)
     const char* p;
     char* endptr;
     unsigned long aa_ul;
-    long long bbb_ll;
+    long bbb_l;
     u8 hh;
     u8 mm;
     u8 ss;
     size_t msg_len;
+    char* text;
 
-    message_clear(out_msg);
+    message_free(out_msg);
     p = line;
 
     if ((unsigned char)p[0] == 0xEF &&
@@ -187,8 +191,8 @@ static int parse_line(const char* line, Message* out_msg)
     p = endptr + 1;
 
     errno = 0;
-    bbb_ll = strtoll(p, &endptr, 10);
-    if (endptr == p || errno != 0 || bbb_ll < INT32_MIN || bbb_ll > INT32_MAX)
+    bbb_l = strtol(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb_l < INT32_MIN || bbb_l > INT32_MAX)
         return -1;
     if (*endptr != ' ')
         return -1;
@@ -196,14 +200,12 @@ static int parse_line(const char* line, Message* out_msg)
 
     if ((int)strlen(p) < 8)
         return -1;
-
     if (parse_two_digits(p + 0, &hh) != 0 || p[2] != ':')
         return -1;
     if (parse_two_digits(p + 3, &mm) != 0 || p[5] != ':')
         return -1;
     if (parse_two_digits(p + 6, &ss) != 0)
         return -1;
-
     if (hh > 23 || mm > 59 || ss > 59)
         return -1;
 
@@ -212,19 +214,19 @@ static int parse_line(const char* line, Message* out_msg)
         return -1;
     p++;
 
-    if (*p == '\0')
-        return -1;
-
     msg_len = strlen(p);
-    if (msg_len >= MESSAGE_TEXT_SIZE)
+    text = (char*)malloc(msg_len + 1);
+    if (!text)
         return -1;
+    memcpy(text, p, msg_len + 1);
 
     out_msg->aa = (u16)aa_ul;
-    out_msg->bbb = (s32)bbb_ll;
+    out_msg->bbb = (s32)bbb_l;
     out_msg->hh = hh;
     out_msg->mm = mm;
     out_msg->ss = ss;
-    memcpy(out_msg->message, p, msg_len + 1);
+    out_msg->message = text;
+    out_msg->message_len = (u32)msg_len;
     return 0;
 }
 
@@ -244,30 +246,31 @@ static void write_u32_be(char* p, u32 v)
 
 static int build_packet(u32 idx, const Message* msg, char** out_buf, int* out_len)
 {
-    size_t msg_len;
     int packet_len;
     char* buf;
     u32 bbb_bits;
 
-    msg_len = strlen(msg->message);
-    packet_len = 4 + 2 + 4 + 3 + 4 + (int)msg_len;
+    if (msg->message_len > (u32)(UDP_MAX_PAYLOAD - 17))
+    {
+        printf("message too long for one UDP datagram\n");
+        return -1;
+    }
 
+    packet_len = 17 + (int)msg->message_len;
     buf = (char*)malloc((size_t)packet_len);
     if (!buf)
         return -1;
 
     write_u32_be(buf + 0, idx);
     write_u16_be(buf + 4, msg->aa);
-
     memcpy(&bbb_bits, &msg->bbb, sizeof(bbb_bits));
     write_u32_be(buf + 6, bbb_bits);
-
     buf[10] = (char)msg->hh;
     buf[11] = (char)msg->mm;
     buf[12] = (char)msg->ss;
-
-    write_u32_be(buf + 13, (u32)msg_len);
-    memcpy(buf + 17, msg->message, msg_len);
+    write_u32_be(buf + 13, msg->message_len);
+    if (msg->message_len > 0)
+        memcpy(buf + 17, msg->message, (size_t)msg->message_len);
 
     *out_buf = buf;
     *out_len = packet_len;
@@ -297,13 +300,10 @@ static int append_message(PendingMessage** messages, int* count, int* cap, const
 static void free_messages(PendingMessage* messages, int count)
 {
     int i;
-
     if (!messages)
         return;
-
     for (i = 0; i < count; ++i)
         free(messages[i].packet);
-
     free(messages);
 }
 
@@ -330,31 +330,33 @@ static int load_messages_from_file(const char* file_name, PendingMessage** out_m
     for (;;)
     {
         char* line;
-        int line_status;
+        int st;
 
         line = NULL;
-        line_status = read_line_alloc(f, &line);
-        if (line_status < 0)
+        st = read_line_alloc(f, &line);
+        if (st < 0)
         {
             fclose(f);
             free_messages(messages, count);
             return -1;
         }
-        if (line_status == 0)
+        if (st == 0)
             break;
 
         if (line[0] != '\0')
         {
             Message msg;
+            PendingMessage pm;
             char* packet;
             int packet_len;
-            PendingMessage m;
 
+            message_init(&msg);
             packet = NULL;
             if (parse_line(line, &msg) != 0)
             {
                 printf("invalid input line: %s\n", line);
                 free(line);
+                message_free(&msg);
                 fclose(f);
                 free_messages(messages, count);
                 return -1;
@@ -363,29 +365,30 @@ static int load_messages_from_file(const char* file_name, PendingMessage** out_m
             if (build_packet(idx, &msg, &packet, &packet_len) != 0)
             {
                 free(line);
+                message_free(&msg);
                 fclose(f);
                 free_messages(messages, count);
                 return -1;
             }
 
-            m.idx = idx;
-            m.packet = packet;
-            m.packet_len = packet_len;
-            m.confirmed = 0;
-            m.is_stop = (strcmp(msg.message, "stop") == 0);
+            pm.idx = idx;
+            pm.packet = packet;
+            pm.packet_len = packet_len;
+            pm.active = 1;
+            pm.is_stop = (strcmp(msg.message, "stop") == 0);
 
-            if (append_message(&messages, &count, &cap, &m) != 0)
+            if (append_message(&messages, &count, &cap, &pm) != 0)
             {
                 free(packet);
                 free(line);
+                message_free(&msg);
                 fclose(f);
                 free_messages(messages, count);
                 return -1;
             }
-
             idx++;
+            message_free(&msg);
         }
-
         free(line);
     }
 
@@ -395,7 +398,7 @@ static int load_messages_from_file(const char* file_name, PendingMessage** out_m
     return 0;
 }
 
-static int send_pending_messages(int sock, PendingMessage* msgs, int total)
+static int send_next_ten(int sock, PendingMessage* msgs, int total)
 {
     int i;
     int cnt;
@@ -404,22 +407,18 @@ static int send_pending_messages(int sock, PendingMessage* msgs, int total)
     for (i = 0; i < total; ++i)
     {
         int rc;
-
-        if (msgs[i].confirmed)
+        if (!msgs[i].active)
             continue;
-
         rc = (int)send(sock, msgs[i].packet, (size_t)msgs[i].packet_len, 0);
         if (rc < 0)
         {
             printf("send failed: %s\n", strerror(errno));
             return -1;
         }
-
         cnt++;
         if (cnt >= 10)
             break;
     }
-
     return 0;
 }
 
@@ -434,32 +433,25 @@ static u32 read_u32_be(const unsigned char* p)
 static void process_ack_datagram(const char* buf, int len, PendingMessage* msgs, int total)
 {
     int i;
-
-    if (len <= 0)
-        return;
-
-    if ((len % 4) != 0)
+    if (len <= 0 || (len % 4) != 0)
         return;
 
     for (i = 0; i + 4 <= len; i += 4)
     {
-        u32 idx;
-
-        idx = read_u32_be((const unsigned char*)(buf + i));
+        u32 idx = read_u32_be((const unsigned char*)(buf + i));
         if (idx < (u32)total)
-            msgs[idx].confirmed = 1;
+            msgs[idx].active = 0;
     }
 }
 
-static int count_unconfirmed(PendingMessage* msgs, int total)
+static int count_active(PendingMessage* msgs, int total)
 {
     int i;
     int left;
-
     left = 0;
     for (i = 0; i < total; ++i)
     {
-        if (!msgs[i].confirmed)
+        if (msgs[i].active)
             left++;
     }
     return left;
@@ -477,31 +469,30 @@ static int drain_incoming_acks(int sock, PendingMessage* msgs, int total)
 
         FD_ZERO(&rfds);
         FD_SET(sock, &rfds);
-
         tv.tv_sec = 0;
         tv.tv_usec = 100000;
 
         sel = select(sock + 1, &rfds, NULL, NULL, &tv);
         if (sel < 0)
         {
+            if (errno == EINTR)
+                continue;
             printf("select failed: %s\n", strerror(errno));
             return -1;
         }
-
         if (sel == 0)
-            break;
+            return 0;
 
         n = (int)recv(sock, ackbuf, sizeof(ackbuf), 0);
         if (n < 0)
         {
+            if (errno == ECONNREFUSED)
+                return 1;
             printf("recv failed: %s\n", strerror(errno));
             return -1;
         }
-
         process_ack_datagram(ackbuf, n, msgs, total);
     }
-
-    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -516,8 +507,9 @@ int main(int argc, char* argv[])
     int total_messages;
     int target_count;
     int rc;
-    int stop_client_mode;
-    int stop_rounds;
+    int stop_only;
+    int no_progress_rounds;
+    int last_confirmed;
 
     endpoint = NULL;
     file_name = NULL;
@@ -526,8 +518,9 @@ int main(int argc, char* argv[])
     total_messages = 0;
     target_count = 0;
     rc = 1;
-    stop_client_mode = 0;
-    stop_rounds = 0;
+    stop_only = 0;
+    no_progress_rounds = 0;
+    last_confirmed = 0;
 
     if (argc != 3)
     {
@@ -540,7 +533,7 @@ int main(int argc, char* argv[])
 
     if (parse_endpoint(endpoint, server_ip, sizeof(server_ip), &port) != 0)
     {
-        printf("invalid endpoint, expected xx.xx.xx.xx:pppp\n");
+        printf("invalid endpoint\n");
         return 1;
     }
 
@@ -554,8 +547,7 @@ int main(int argc, char* argv[])
     }
 
     target_count = (total_messages < 20) ? total_messages : 20;
-    if (total_messages == 1 && messages[0].is_stop)
-        stop_client_mode = 1;
+    stop_only = (total_messages == 1 && messages[0].is_stop);
 
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0)
@@ -579,45 +571,47 @@ int main(int argc, char* argv[])
         goto cleanup;
     }
 
-    printf("Server address: %s:%u\n", server_ip, (unsigned int)port);
-
     for (;;)
     {
         int left_count;
         int confirmed_total;
+        int drain_rc;
 
-        left_count = count_unconfirmed(messages, total_messages);
-        confirmed_total = total_messages - left_count;
-        printf("%d msg(s) left in queue.\n", left_count);
-
-        if (confirmed_total >= target_count || left_count == 0)
-            break;
-
-        if (send_pending_messages(sock, messages, total_messages) != 0)
-            goto cleanup;
-
-        if (drain_incoming_acks(sock, messages, total_messages) != 0)
-            goto cleanup;
-
-        left_count = count_unconfirmed(messages, total_messages);
+        left_count = count_active(messages, total_messages);
         confirmed_total = total_messages - left_count;
         if (confirmed_total >= target_count || left_count == 0)
             break;
 
-        if (stop_client_mode)
+        if (send_next_ten(sock, messages, total_messages) != 0)
+            goto cleanup;
+
+        drain_rc = drain_incoming_acks(sock, messages, total_messages);
+        if (drain_rc < 0)
+            goto cleanup;
+        if (stop_only && drain_rc == 1)
         {
-            stop_rounds++;
-            if (stop_rounds >= STOP_SEND_ROUNDS)
-            {
-                printf("stop datagram sent, finishing without final ack\n");
-                rc = 0;
-                goto cleanup;
-            }
+            rc = 0;
+            goto cleanup;
+        }
+
+        left_count = count_active(messages, total_messages);
+        confirmed_total = total_messages - left_count;
+        if (confirmed_total == last_confirmed)
+            no_progress_rounds++;
+        else
+        {
+            last_confirmed = confirmed_total;
+            no_progress_rounds = 0;
+        }
+
+        if (stop_only && no_progress_rounds >= 5)
+        {
+            rc = 0;
+            goto cleanup;
         }
     }
 
     rc = 0;
-    printf("UDP client finished.\n");
 
 cleanup:
     if (sock >= 0)
