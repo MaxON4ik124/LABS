@@ -20,7 +20,8 @@ typedef int32_t s32;
 
 enum
 {
-    MESSAGE_TEXT_SIZE = 65535
+    MESSAGE_TEXT_SIZE = 65535,
+    STOP_SEND_ROUNDS = 6
 };
 
 typedef struct Message
@@ -39,6 +40,7 @@ typedef struct PendingMessage
     char* packet;
     int packet_len;
     int confirmed;
+    int is_stop;
 } PendingMessage;
 
 static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_ip_size, u16* out_port)
@@ -68,7 +70,6 @@ static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_ip_size
 
     strcpy(port_buf, colon + 1);
     port_ul = strtoul(port_buf, &endptr, 10);
-
     if (*port_buf == '\0' || *endptr != '\0' || port_ul == 0 || port_ul > 65535UL)
         return -1;
 
@@ -371,6 +372,7 @@ static int load_messages_from_file(const char* file_name, PendingMessage** out_m
             m.packet = packet;
             m.packet_len = packet_len;
             m.confirmed = 0;
+            m.is_stop = (strcmp(msg.message, "stop") == 0);
 
             if (append_message(&messages, &count, &cap, &m) != 0)
             {
@@ -429,7 +431,7 @@ static u32 read_u32_be(const unsigned char* p)
            (u32)p[3];
 }
 
-static void process_ack_datagram(const char* buf, int len, PendingMessage* msgs, int total, int* confirmed_count)
+static void process_ack_datagram(const char* buf, int len, PendingMessage* msgs, int total)
 {
     int i;
 
@@ -444,11 +446,8 @@ static void process_ack_datagram(const char* buf, int len, PendingMessage* msgs,
         u32 idx;
 
         idx = read_u32_be((const unsigned char*)(buf + i));
-        if (idx < (u32)total && !msgs[idx].confirmed)
-        {
+        if (idx < (u32)total)
             msgs[idx].confirmed = 1;
-            (*confirmed_count)++;
-        }
     }
 }
 
@@ -466,39 +465,43 @@ static int count_unconfirmed(PendingMessage* msgs, int total)
     return left;
 }
 
-static int wait_for_one_ack(int sock, PendingMessage* msgs, int total, int* confirmed_count)
+static int drain_incoming_acks(int sock, PendingMessage* msgs, int total)
 {
-    fd_set rfds;
-    struct timeval tv;
-    int sel;
-    char ackbuf[65535];
-    int n;
-
-    FD_ZERO(&rfds);
-    FD_SET(sock, &rfds);
-
-    tv.tv_sec = 0;
-    tv.tv_usec = 100000;
-
-    sel = select(sock + 1, &rfds, NULL, NULL, &tv);
-    if (sel < 0)
+    for (;;)
     {
-        printf("select failed: %s\n", strerror(errno));
-        return -1;
+        fd_set rfds;
+        struct timeval tv;
+        int sel;
+        char ackbuf[65535];
+        int n;
+
+        FD_ZERO(&rfds);
+        FD_SET(sock, &rfds);
+
+        tv.tv_sec = 0;
+        tv.tv_usec = 100000;
+
+        sel = select(sock + 1, &rfds, NULL, NULL, &tv);
+        if (sel < 0)
+        {
+            printf("select failed: %s\n", strerror(errno));
+            return -1;
+        }
+
+        if (sel == 0)
+            break;
+
+        n = (int)recv(sock, ackbuf, sizeof(ackbuf), 0);
+        if (n < 0)
+        {
+            printf("recv failed: %s\n", strerror(errno));
+            return -1;
+        }
+
+        process_ack_datagram(ackbuf, n, msgs, total);
     }
 
-    if (sel == 0)
-        return 0;
-
-    n = (int)recv(sock, ackbuf, sizeof(ackbuf), 0);
-    if (n < 0)
-    {
-        printf("recv failed: %s\n", strerror(errno));
-        return -1;
-    }
-
-    process_ack_datagram(ackbuf, n, msgs, total, confirmed_count);
-    return 1;
+    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -512,8 +515,9 @@ int main(int argc, char* argv[])
     PendingMessage* messages;
     int total_messages;
     int target_count;
-    int confirmed_count;
     int rc;
+    int stop_client_mode;
+    int stop_rounds;
 
     endpoint = NULL;
     file_name = NULL;
@@ -521,8 +525,9 @@ int main(int argc, char* argv[])
     messages = NULL;
     total_messages = 0;
     target_count = 0;
-    confirmed_count = 0;
     rc = 1;
+    stop_client_mode = 0;
+    stop_rounds = 0;
 
     if (argc != 3)
     {
@@ -549,6 +554,8 @@ int main(int argc, char* argv[])
     }
 
     target_count = (total_messages < 20) ? total_messages : 20;
+    if (total_messages == 1 && messages[0].is_stop)
+        stop_client_mode = 1;
 
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0)
@@ -572,38 +579,45 @@ int main(int argc, char* argv[])
         goto cleanup;
     }
 
-    printf("Sending UDP messages to %s:%u\n", server_ip, (unsigned int)port);
+    printf("Server address: %s:%u\n", server_ip, (unsigned int)port);
 
     for (;;)
     {
-        int wait_rc;
         int left_count;
+        int confirmed_total;
 
         left_count = count_unconfirmed(messages, total_messages);
-        printf("Messages left: %d\n", left_count);
-        if ((total_messages - left_count) >= target_count || left_count == 0)
+        confirmed_total = total_messages - left_count;
+        printf("%d msg(s) left in queue.\n", left_count);
+
+        if (confirmed_total >= target_count || left_count == 0)
             break;
 
         if (send_pending_messages(sock, messages, total_messages) != 0)
             goto cleanup;
 
-        for (;;)
+        if (drain_incoming_acks(sock, messages, total_messages) != 0)
+            goto cleanup;
+
+        left_count = count_unconfirmed(messages, total_messages);
+        confirmed_total = total_messages - left_count;
+        if (confirmed_total >= target_count || left_count == 0)
+            break;
+
+        if (stop_client_mode)
         {
-            left_count = count_unconfirmed(messages, total_messages);
-            if ((total_messages - left_count) >= target_count || left_count == 0)
-                break;
-
-            wait_rc = wait_for_one_ack(sock, messages, total_messages, &confirmed_count);
-            if (wait_rc < 0)
+            stop_rounds++;
+            if (stop_rounds >= STOP_SEND_ROUNDS)
+            {
+                printf("stop datagram sent, finishing without final ack\n");
+                rc = 0;
                 goto cleanup;
-
-            if (wait_rc == 0)
-                break;
+            }
         }
-        printf("confirmed and finished\n");
     }
 
     rc = 0;
+    printf("UDP client finished.\n");
 
 cleanup:
     if (sock >= 0)
