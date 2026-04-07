@@ -20,7 +20,7 @@ typedef int32_t s32;
 
 enum
 {
-    MESSAGE_TEXT_SIZE = 2048
+    MESSAGE_TEXT_SIZE = 65535
 };
 
 typedef struct Message

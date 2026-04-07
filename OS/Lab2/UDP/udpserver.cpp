@@ -20,7 +20,7 @@ typedef int32_t s32;
 
 #define MAX_RECENT_ACK 20
 #define CLIENT_TTL_SEC 30
-#define MAX_TEXT_SIZE (1024 * 1024)
+#define MAX_TEXT_SIZE 65535
 #define MAX_DGRAM_SIZE (17 + MAX_TEXT_SIZE)
 
 typedef struct Message

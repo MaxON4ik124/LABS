@@ -22,7 +22,7 @@ typedef int32_t s32;
 enum
 {
     READ_CHUNK_SIZE = 512,
-    MAX_TEXT_SIZE = 1024 * 1024
+    MAX_TEXT_SIZE = 65535
 };
 
 typedef struct Message
