@@ -109,7 +109,19 @@ static int message_set_text(Message* msg, const char* text, u32 len)
     msg->text_len = len;
     return 0;
 }
+static int count_unconfirmed(PendingMessage* msgs, int total)
+{
+    int i;
+    int left;
 
+    left = 0;
+    for (i = 0; i < total; ++i)
+    {
+        if (!msgs[i].confirmed)
+            left++;
+    }
+    return left;
+}
 static int read_line_alloc(FILE* f, char** out_line)
 {
     int ch;
@@ -591,13 +603,30 @@ int main(int argc, char* argv[])
 
     printf("Sending UDP messages to %s:%u\n", server_ip, (unsigned int)port);
 
-    while (confirmed_count < target_count)
-    {
-        if (send_pending_messages(sock, messages, total_messages) != 0)
-            goto cleanup;
+    for (;;)
+{
+    int wait_rc;
+    int left_count;
 
-        if (wait_for_ack_burst(sock, messages, total_messages, &confirmed_count) < 0)
+    left_count = count_unconfirmed(messages, total_messages);
+    if ((total_messages - left_count) >= target_count || left_count == 0)
+        break;
+
+    if (send_pending_messages(sock, &addr, messages, total_messages) != 0)
+        goto cleanup;
+
+    for (;;)
+    {
+        wait_rc = wait_for_one_ack(sock, messages, total_messages, &confirmed_count);
+        if (wait_rc < 0)
             goto cleanup;
+        if (wait_rc == 0)
+            break;
+    }
+
+    left_count = count_unconfirmed(messages, total_messages);
+    if ((total_messages - left_count) >= target_count || left_count == 0)
+        break;
     }
 
     rc = 0;

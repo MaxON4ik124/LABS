@@ -134,6 +134,37 @@ static int recv_exact(SOCKET s, char* data, int len)
     return 0;
 }
 
+static void graceful_disconnect(SOCKET s)
+{
+    char buf[256];
+    int rc;
+
+    if (shutdown(s, SD_SEND) == SOCKET_ERROR)
+    {
+        print_wsa_error_text("shutdown", WSAGetLastError());
+        return;
+    }
+
+    for (;;)
+    {
+        rc = recv(s, buf, (int)sizeof(buf), 0);
+
+        if (rc == 0)
+            break;
+
+        if (rc == SOCKET_ERROR)
+        {
+            int err = WSAGetLastError();
+
+            if (err == WSAETIMEDOUT || err == WSAECONNRESET || err == WSAECONNABORTED)
+                break;
+
+            print_wsa_error_text("recv", err);
+            break;
+        }
+    }
+}
+
 static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_ip_size, u16* out_port)
 {
     const char* colon;
@@ -162,7 +193,7 @@ static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_ip_size
     strcpy(port_buf, colon + 1);
     port_ul = strtoul(port_buf, &endptr, 10);
 
-    if (*port_buf == '\0' || *endptr != '\0' || port_ul == 0 || port_ul > 65535UL)
+    if (*port_buf == '\0' || *endptr != '\0' || port_ul > 65535UL)
         return -1;
 
     *out_port = (u16)port_ul;
@@ -425,6 +456,7 @@ static int build_message_bytes(u32 idx, const Message* msg, char** out_buf, int*
     buf[11] = (char)msg->mm;
     buf[12] = (char)msg->ss;
     write_u32_be(buf + 13, msg->text_len);
+
     if (msg->text_len > 0)
         memcpy(buf + 17, msg->text, (size_t)msg->text_len);
 
@@ -506,6 +538,11 @@ int main(int argc, char* argv[])
     if (sock == INVALID_SOCKET)
         goto cleanup;
 
+    {
+        DWORD timeout_ms = 3000;
+        setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout_ms, sizeof(timeout_ms));
+    }
+
     if (send_all(sock, "put", 3) != 0)
         goto cleanup;
 
@@ -571,8 +608,14 @@ int main(int argc, char* argv[])
 cleanup:
     if (f)
         fclose(f);
+
     if (sock != INVALID_SOCKET)
+    {
+        if (rc == 0)
+            graceful_disconnect(sock);
         closesocket(sock);
+    }
+
     deinit_winsock();
     return rc;
 }
