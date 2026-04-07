@@ -11,11 +11,11 @@ def main():
         if sys.platform == "win32":
             os.system(f".\\tcpclient.exe 192.168.67.130:9000 file_{i}.txt")
         elif sys.platform == "linux":
-            os.system(f"./udpclient 192.168.67.130:9005 file_{i}.txt")
+            os.system(f"./udpclient 192.168.1.82:9005 file_{i}.txt")
     if sys.platform == "win32":
         os.system(f".\\tcpclient.exe 192.168.67.130:9000 file_{clients+1}.txt")
     elif sys.platform == "linux":
-        os.system(f"./udpclient 192.168.67.130:9005 file_{clients+1}.txt")
+        os.system(f"./udpclient 192.168.1.82:9005 file_{clients+1}.txt")
 
 
 main()
