@@ -576,24 +576,29 @@ int main(int argc, char* argv[])
 
     for (;;)
     {
+        int wait_rc;
         int left_count;
-        int confirmed_total;
 
         left_count = count_unconfirmed(messages, total_messages);
-        confirmed_total = total_messages - left_count;
-        if (confirmed_total >= target_count || left_count == 0)
+        if ((total_messages - left_count) >= target_count || left_count == 0)
             break;
 
-        if (send_next_ten(sock, messages, total_messages) != 0)
+        if (send_pending_messages(sock, messages, total_messages) != 0)
             goto cleanup;
 
-        if (drain_incoming_acks(sock, messages, total_messages) != 0)
-            goto cleanup;
+        for (;;)
+        {
+            left_count = count_unconfirmed(messages, total_messages);
+            if ((total_messages - left_count) >= target_count || left_count == 0)
+                break;
 
-        left_count = count_unconfirmed(messages, total_messages);
-        confirmed_total = total_messages - left_count;
-        if (confirmed_total >= target_count || left_count == 0)
-            break;
+            wait_rc = wait_for_one_ack(sock, messages, total_messages, &confirmed_count);
+            if (wait_rc < 0)
+                goto cleanup;
+
+            if (wait_rc == 0)
+                break;
+        }
     }
 
     rc = 0;
