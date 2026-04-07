@@ -112,14 +112,14 @@ static int message_set_text(Message* msg, const char* text, u32 len)
 static int count_unconfirmed(PendingMessage* msgs, int total)
 {
     int i;
-    int left;
+    int left = 0;
 
-    left = 0;
     for (i = 0; i < total; ++i)
     {
         if (!msgs[i].confirmed)
             left++;
     }
+
     return left;
 }
 static int read_line_alloc(FILE* f, char** out_line)
@@ -491,7 +491,40 @@ static void process_ack_datagram(const char* buf, int len, PendingMessage* msgs,
         }
     }
 }
+static int wait_for_one_ack(int sock, PendingMessage* msgs, int total, int* confirmed_count)
+{
+    fd_set rfds;
+    struct timeval tv;
+    int sel;
+    char ackbuf[2048];
+    int n;
 
+    FD_ZERO(&rfds);
+    FD_SET(sock, &rfds);
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000;
+
+    sel = select(sock + 1, &rfds, NULL, NULL, &tv);
+    if (sel < 0)
+    {
+        printf("select failed: %s\n", strerror(errno));
+        return -1;
+    }
+
+    if (sel == 0)
+        return 0;
+
+    n = (int)recv(sock, ackbuf, sizeof(ackbuf), 0);
+    if (n < 0)
+    {
+        printf("recv failed: %s\n", strerror(errno));
+        return -1;
+    }
+
+    process_ack_datagram(ackbuf, n, msgs, total, confirmed_count);
+    return 1;
+}
 static int wait_for_ack_burst(int sock, PendingMessage* msgs, int total, int* confirmed_count)
 {
     fd_set rfds;
@@ -612,7 +645,7 @@ int main(int argc, char* argv[])
     if ((total_messages - left_count) >= target_count || left_count == 0)
         break;
 
-    if (send_pending_messages(sock, &addr, messages, total_messages) != 0)
+    if (send_pending_messages(sock, messages, total_messages) != 0)
         goto cleanup;
 
     for (;;)
