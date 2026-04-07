@@ -46,34 +46,32 @@ typedef struct Message
     u32 message_len;
 } Message;
 
-static void message_init(Message* msg)
+static void message_init(Message* m)
 {
-    msg->aa = 0;
-    msg->bbb = 0;
-    msg->hh = 0;
-    msg->mm = 0;
-    msg->ss = 0;
-    msg->message = NULL;
-    msg->message_len = 0;
+    memset(m, 0, sizeof(*m));
 }
 
-static void message_free(Message* msg)
+static void message_free(Message* m)
 {
-    if (msg->message)
-        free(msg->message);
-    message_init(msg);
+    if (m->message)
+    {
+        free(m->message);
+    }
+
+    message_init(m);
 }
 
 static int net_init(void)
 {
 #ifdef _WIN32
     WSADATA wsa;
+
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
     {
-        printf("WSAStartup failed: %d\n", WSAGetLastError());
         return -1;
     }
 #endif
+
     return 0;
 }
 
@@ -104,120 +102,138 @@ static int socket_last_error(void)
 
 static int send_all(socket_t s, const char* data, int len)
 {
-    int sent_total;
+    int off;
 
-    sent_total = 0;
-    while (sent_total < len)
+    off = 0;
+    while (off < len)
     {
         int rc;
+
 #ifdef _WIN32
-        rc = send(s, data + sent_total, len - sent_total, 0);
+        rc = send(s, data + off, len - off, 0);
 #else
-        rc = send(s, data + sent_total, (size_t)(len - sent_total), MSG_NOSIGNAL);
+        rc = send(s, data + off, (size_t)(len - off), MSG_NOSIGNAL);
 #endif
+
         if (rc <= 0)
         {
             printf("send failed: %d\n", socket_last_error());
             return -1;
         }
-        sent_total += rc;
+
+        off += rc;
     }
 
     return 0;
 }
 
-static int recv_all(socket_t s, char* data, int len)
+static int recv_exact(socket_t s, char* data, int len)
 {
-    int got_total;
+    int off;
 
-    got_total = 0;
-    while (got_total < len)
+    off = 0;
+    while (off < len)
     {
         int rc;
-        rc = recv(s, data + got_total, len - got_total, 0);
+
+        rc = recv(s, data + off, len - off, 0);
         if (rc < 0)
         {
             printf("recv failed: %d\n", socket_last_error());
             return -1;
         }
+
         if (rc == 0)
         {
             printf("connection closed unexpectedly\n");
             return -1;
         }
-        got_total += rc;
+
+        off += rc;
     }
 
     return 0;
 }
 
-static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_ip_size, u16* out_port)
+static int parse_endpoint(const char* endpoint, char* out_ip, size_t out_sz, u16* out_port)
 {
-    const char* colon;
-    size_t ip_len;
+    const char* c;
+    size_t n;
     char port_buf[16];
     char* endptr;
-    unsigned long port_ul;
+    unsigned long p;
 
-    colon = strchr(endpoint, ':');
-    if (!colon)
+    c = strchr(endpoint, ':');
+    if (!c)
+    {
         return -1;
+    }
 
-    ip_len = (size_t)(colon - endpoint);
-    if (ip_len == 0 || ip_len >= out_ip_size)
+    n = (size_t)(c - endpoint);
+    if (n == 0 || n >= out_sz)
+    {
         return -1;
+    }
 
-    memcpy(out_ip, endpoint, ip_len);
-    out_ip[ip_len] = '\0';
+    memcpy(out_ip, endpoint, n);
+    out_ip[n] = '\0';
 
-    if (*(colon + 1) == '\0')
+    if (*(c + 1) == '\0')
+    {
         return -1;
+    }
 
-    if (strlen(colon + 1) >= sizeof(port_buf))
+    if (strlen(c + 1) >= sizeof(port_buf))
+    {
         return -1;
+    }
 
-    strcpy(port_buf, colon + 1);
-    port_ul = strtoul(port_buf, &endptr, 10);
-    if (*port_buf == '\0' || *endptr != '\0' || port_ul == 0 || port_ul > 65535UL)
+    strcpy(port_buf, c + 1);
+
+    p = strtoul(port_buf, &endptr, 10);
+    if (*port_buf == '\0' || *endptr != '\0' || p == 0 || p > 65535UL)
+    {
         return -1;
+    }
 
-    *out_port = (u16)port_ul;
+    *out_port = (u16)p;
     return 0;
 }
 
 static socket_t connect_with_retry(const char* ip, u16 port)
 {
     struct sockaddr_in addr;
-    int attempt;
+    int i;
 
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
     addr.sin_addr.s_addr = inet_addr(ip);
+
     if (addr.sin_addr.s_addr == INADDR_NONE)
     {
-        printf("invalid IPv4 address\n");
         return INVALID_SOCKET;
     }
 
-    for (attempt = 0; attempt < 10; ++attempt)
+    for (i = 0; i < 10; ++i)
     {
         socket_t s;
+
         s = socket(AF_INET, SOCK_STREAM, 0);
         if (s == INVALID_SOCKET)
         {
-            printf("socket failed: %d\n", socket_last_error());
             return INVALID_SOCKET;
         }
 
         if (connect(s, (struct sockaddr*)&addr, sizeof(addr)) == 0)
+        {
             return s;
+        }
 
         CLOSESOCK(s);
         msleep_short(100);
     }
 
-    printf("connect failed\n");
     return INVALID_SOCKET;
 }
 
@@ -234,11 +250,14 @@ static int read_line_alloc(FILE* f, char** out_line)
     cap = 256;
     buf = (char*)malloc((size_t)cap);
     if (!buf)
+    {
         return -1;
+    }
 
     for (;;)
     {
         ch = fgetc(f);
+
         if (ch == EOF)
         {
             if (len == 0)
@@ -246,17 +265,26 @@ static int read_line_alloc(FILE* f, char** out_line)
                 free(buf);
                 return 0;
             }
+
             break;
         }
+
         if (ch == '\n')
+        {
             break;
+        }
+
         if (ch == '\r')
         {
             ch = fgetc(f);
             if (ch != '\n' && ch != EOF)
+            {
                 ungetc(ch, f);
+            }
+
             break;
         }
+
         if (len + 1 >= cap)
         {
             cap *= 2;
@@ -266,8 +294,10 @@ static int read_line_alloc(FILE* f, char** out_line)
                 free(buf);
                 return -1;
             }
+
             buf = tmp;
         }
+
         buf[len++] = (char)ch;
     }
 
@@ -276,31 +306,35 @@ static int read_line_alloc(FILE* f, char** out_line)
     return 1;
 }
 
-static int parse_two_digits(const char* p, u8* out_value)
+static int parse_two_digits(const char* p, u8* out)
 {
-    int value;
+    int v;
+
     if (!isdigit((unsigned char)p[0]) || !isdigit((unsigned char)p[1]))
+    {
         return -1;
-    value = (p[0] - '0') * 10 + (p[1] - '0');
-    *out_value = (u8)value;
+    }
+
+    v = (p[0] - '0') * 10 + (p[1] - '0');
+    *out = (u8)v;
     return 0;
 }
 
-static int parse_line(const char* line, Message* out_msg)
+static int parse_line(const char* line, Message* out)
 {
     const char* p;
     char* endptr;
     unsigned long aa_ul;
-    long bbb_l;
+    long long bbb_ll;
     u8 hh;
     u8 mm;
     u8 ss;
     size_t msg_len;
     char* text;
 
-    message_free(out_msg);
-    p = line;
+    message_free(out);
 
+    p = line;
     if ((unsigned char)p[0] == 0xEF &&
         (unsigned char)p[1] == 0xBB &&
         (unsigned char)p[2] == 0xBF)
@@ -309,54 +343,94 @@ static int parse_line(const char* line, Message* out_msg)
     }
 
     if (*p == '\0')
+    {
         return -1;
+    }
 
     errno = 0;
     aa_ul = strtoul(p, &endptr, 10);
     if (endptr == p || errno != 0 || aa_ul > 65535UL)
+    {
         return -1;
+    }
+
     if (*endptr != ' ')
+    {
         return -1;
+    }
+
     p = endptr + 1;
 
     errno = 0;
-    bbb_l = strtol(p, &endptr, 10);
-    if (endptr == p || errno != 0 || bbb_l < INT32_MIN || bbb_l > INT32_MAX)
+    bbb_ll = strtoll(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb_ll < INT32_MIN || bbb_ll > INT32_MAX)
+    {
         return -1;
+    }
+
     if (*endptr != ' ')
+    {
         return -1;
+    }
+
     p = endptr + 1;
 
     if ((int)strlen(p) < 8)
+    {
         return -1;
+    }
 
-    if (parse_two_digits(p + 0, &hh) != 0 || p[2] != ':')
+    if (parse_two_digits(p, &hh) != 0 || p[2] != ':')
+    {
         return -1;
+    }
+
     if (parse_two_digits(p + 3, &mm) != 0 || p[5] != ':')
+    {
         return -1;
+    }
+
     if (parse_two_digits(p + 6, &ss) != 0)
+    {
         return -1;
+    }
+
     if (hh > 23 || mm > 59 || ss > 59)
+    {
         return -1;
+    }
 
     p += 8;
+
     if (*p != ' ')
+    {
         return -1;
-    p++;
+    }
+
+    ++p;
+
+    if (*p == '\0')
+    {
+        return -1;
+    }
 
     msg_len = strlen(p);
     text = (char*)malloc(msg_len + 1);
     if (!text)
+    {
         return -1;
+    }
+
     memcpy(text, p, msg_len + 1);
 
-    out_msg->aa = (u16)aa_ul;
-    out_msg->bbb = (s32)bbb_l;
-    out_msg->hh = hh;
-    out_msg->mm = mm;
-    out_msg->ss = ss;
-    out_msg->message = text;
-    out_msg->message_len = (u32)msg_len;
+    out->aa = (u16)aa_ul;
+    out->bbb = (s32)bbb_ll;
+    out->hh = hh;
+    out->mm = mm;
+    out->ss = ss;
+    out->message = text;
+    out->message_len = (u32)msg_len;
+
     return 0;
 }
 
@@ -378,41 +452,54 @@ static int send_message(socket_t s, u32 idx, const Message* msg)
 {
     int packet_len;
     char* buf;
-    u32 bbb_bits;
+    u32 bits;
     int rc;
 
     packet_len = 4 + 2 + 4 + 3 + 4 + (int)msg->message_len;
     buf = (char*)malloc((size_t)packet_len);
     if (!buf)
+    {
         return -1;
+    }
 
     write_u32_be(buf + 0, idx);
     write_u16_be(buf + 4, msg->aa);
-    memcpy(&bbb_bits, &msg->bbb, sizeof(bbb_bits));
-    write_u32_be(buf + 6, bbb_bits);
+
+    memcpy(&bits, &msg->bbb, sizeof(bits));
+    write_u32_be(buf + 6, bits);
+
     buf[10] = (char)msg->hh;
     buf[11] = (char)msg->mm;
     buf[12] = (char)msg->ss;
+
     write_u32_be(buf + 13, msg->message_len);
+
     if (msg->message_len > 0)
+    {
         memcpy(buf + 17, msg->message, (size_t)msg->message_len);
+    }
 
     rc = send_all(s, buf, packet_len);
     free(buf);
+
     return rc;
 }
 
 static int wait_ok(socket_t s)
 {
     char ok[2];
-    if (recv_all(s, ok, 2) != 0)
-        return -1;
-    if (ok[0] != 'o' || ok[1] != 'k')
+
+    if (recv_exact(s, ok, 2) != 0)
     {
-        printf("invalid confirmation\n");
         return -1;
     }
-    return 0;
+
+    if (ok[0] == 'o' && ok[1] == 'k')
+    {
+        return 0;
+    }
+
+    return -1;
 }
 
 int main(int argc, char* argv[])
@@ -426,8 +513,6 @@ int main(int argc, char* argv[])
     u32 idx;
     int rc;
 
-    endpoint = NULL;
-    file_name = NULL;
     sock = INVALID_SOCKET;
     f = NULL;
     idx = 0;
@@ -444,24 +529,29 @@ int main(int argc, char* argv[])
 
     if (parse_endpoint(endpoint, ip, sizeof(ip), &port) != 0)
     {
-        printf("invalid endpoint\n");
         return 1;
     }
 
     if (net_init() != 0)
+    {
         return 1;
+    }
 
     sock = connect_with_retry(ip, port);
     if (sock == INVALID_SOCKET)
-        goto cleanup;
+    {
+        net_deinit();
+        return 1;
+    }
 
     if (send_all(sock, "put", 3) != 0)
+    {
         goto cleanup;
+    }
 
     f = fopen(file_name, "rb");
     if (!f)
     {
-        printf("cannot open file\n");
         goto cleanup;
     }
 
@@ -473,13 +563,14 @@ int main(int argc, char* argv[])
 
         line = NULL;
         message_init(&msg);
+
         st = read_line_alloc(f, &line);
         if (st < 0)
         {
-            printf("failed to read file\n");
             message_free(&msg);
             goto cleanup;
         }
+
         if (st == 0)
         {
             message_free(&msg);
@@ -490,7 +581,6 @@ int main(int argc, char* argv[])
         {
             if (parse_line(line, &msg) != 0)
             {
-                printf("invalid input line\n");
                 free(line);
                 message_free(&msg);
                 goto cleanup;
@@ -510,21 +600,27 @@ int main(int argc, char* argv[])
                 goto cleanup;
             }
 
-            idx++;
+            ++idx;
         }
 
         free(line);
         message_free(&msg);
     }
 
-    rc = 0;
     printf("%u message(s) has been sent.\n", (unsigned int)idx);
+    rc = 0;
 
 cleanup:
     if (f)
+    {
         fclose(f);
+    }
+
     if (sock != INVALID_SOCKET)
+    {
         CLOSESOCK(sock);
+    }
+
     net_deinit();
     return rc;
 }
