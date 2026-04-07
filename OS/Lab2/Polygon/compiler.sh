@@ -1,3 +1,3 @@
 cd ..
 gcc TCP/tcpserver.cpp -o Polygon/tcpserver
-gcc UDP/udpclient.cpp -o Polygon/udpclient
+g++ -std=c++17 -Wall -Wextra -pedantic udpclient_fixed_v2.cpp -o udpclient
