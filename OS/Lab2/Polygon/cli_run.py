@@ -9,11 +9,11 @@ def main():
         # if i == clients:
         #     cligen.write_to_file(f"file_{clients+1}.txt", "stop")
         if sys.platform == "win32":
-            os.system(f"ruby tcpclientemul.rb 192.168.67.130:9000 file_{i}.txt")
+            os.system(f".\\tcpclient.exe 192.168.67.130:9011 file_{i}.txt")
         elif sys.platform == "linux":
             os.system(f"./udpclient 192.168.1.82:9005 file_{i}.txt")
     if sys.platform == "win32":
-        os.system(f"ruby tcpclientemul.rb 192.168.67.130:9000 file_{clients+1}.txt")
+        os.system(f".\\tcpclient.exe 192.168.67.130:9011 file_{clients+1}.txt")
     elif sys.platform == "linux":
         os.system(f"./udpclient 192.168.1.82:9005 file_{clients+1}.txt")
 
