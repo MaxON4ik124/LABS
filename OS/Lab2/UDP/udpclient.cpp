@@ -599,6 +599,7 @@ int main(int argc, char* argv[])
             if (wait_rc == 0)
                 break;
         }
+        printf("confirmed and finished\n");
     }
 
     rc = 0;
