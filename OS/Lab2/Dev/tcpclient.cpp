@@ -49,23 +49,15 @@ static void message_free(Message* m)
 
 static int net_init(void)
 {
-#ifdef _WIN32
     WSADATA wsa;
 
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-    {
-        return -1;
-    }
-#endif
-
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return -1;
     return 0;
 }
 
 static void net_deinit(void)
 {
-#ifdef _WIN32
     WSACleanup();
-#endif
 }
 
 static void msleep_short(int ms)
@@ -299,7 +291,7 @@ static int parse_line(const char* line, Message* out)
     const char* p;
     char* endptr;
     unsigned long aa_ul;
-    long long bbb_ll;
+    long bbb_l;
     u8 hh;
     u8 mm;
     u8 ss;
@@ -311,94 +303,36 @@ static int parse_line(const char* line, Message* out)
     p = line;
     if ((unsigned char)p[0] == 0xEF &&
         (unsigned char)p[1] == 0xBB &&
-        (unsigned char)p[2] == 0xBF)
-    {
-        p += 3;
-    }
-
-    if (*p == '\0')
-    {
-        return -1;
-    }
-
+        (unsigned char)p[2] == 0xBF) p += 3;
+    if (*p == '\0') return -1;
     errno = 0;
     aa_ul = strtoul(p, &endptr, 10);
-    if (endptr == p || errno != 0 || aa_ul > 65535UL)
-    {
-        return -1;
-    }
-
-    if (*endptr != ' ')
-    {
-        return -1;
-    }
-
+    if (endptr == p || errno != 0 || aa_ul > 65535UL) return -1;
+    if (*endptr != ' ') return -1;
     p = endptr + 1;
-
     errno = 0;
-    bbb_ll = strtoll(p, &endptr, 10);
-    if (endptr == p || errno != 0 || bbb_ll < INT32_MIN || bbb_ll > INT32_MAX)
-    {
-        return -1;
-    }
-
-    if (*endptr != ' ')
-    {
-        return -1;
-    }
-
+    bbb_l = strtol(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb_l < INT32_MIN || bbb_l > INT32_MAX) return -1;
+    if (*endptr != ' ') return -1;
     p = endptr + 1;
-
-    if ((int)strlen(p) < 8)
-    {
-        return -1;
-    }
-
-    if (parse_two_digits(p, &hh) != 0 || p[2] != ':')
-    {
-        return -1;
-    }
-
-    if (parse_two_digits(p + 3, &mm) != 0 || p[5] != ':')
-    {
-        return -1;
-    }
-
-    if (parse_two_digits(p + 6, &ss) != 0)
-    {
-        return -1;
-    }
-
-    if (hh > 23 || mm > 59 || ss > 59)
-    {
-        return -1;
-    }
-
+    if ((int)strlen(p) < 8) return -1;
+    if (parse_two_digits(p, &hh) != 0 || p[2] != ':') return -1;
+    if (parse_two_digits(p + 3, &mm) != 0 || p[5] != ':') return -1;
+    if (parse_two_digits(p + 6, &ss) != 0) return -1;
+    if (hh > 23 || mm > 59 || ss > 59) return -1;
     p += 8;
-
-    if (*p != ' ')
-    {
-        return -1;
-    }
-
+    if (*p != ' ') return -1;
     ++p;
-
-    if (*p == '\0')
-    {
-        return -1;
-    }
-
+    if (*p == '\0') return -1;
+    
     msg_len = strlen(p);
     text = (char*)malloc(msg_len + 1);
-    if (!text)
-    {
-        return -1;
-    }
-
+    if (!text) return -1;
+    
     memcpy(text, p, msg_len + 1);
-
+    
     out->aa = (u16)aa_ul;
-    out->bbb = (s32)bbb_ll;
+    out->bbb = (s32)bbb_l;
     out->hh = hh;
     out->mm = mm;
     out->ss = ss;

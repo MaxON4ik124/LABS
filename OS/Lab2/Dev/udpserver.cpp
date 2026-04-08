@@ -17,9 +17,12 @@ typedef uint16_t u16;
 typedef uint8_t u8;
 typedef int32_t s32;
 
-#define MAX_RECENT_ACK 20
+
 #define CLIENT_TTL_SEC 30
 #define STOP_GRACE_MS 500
+
+static int g_running = 1;
+
 
 typedef struct Message
 {
@@ -46,8 +49,6 @@ typedef struct ClientInfo
     u32* seen_ids;
     int seen_count;
     int seen_cap;
-    u32 recent_ids[MAX_RECENT_ACK];
-    int recent_count;
 } ClientInfo;
 
 static ClientInfo* g_clients = NULL;
@@ -243,6 +244,7 @@ static ClientInfo* find_client(const struct sockaddr_in* addr)
 static ClientInfo* find_or_add_client(const struct sockaddr_in* addr)
 {
     ClientInfo* c;
+
     c = find_client(addr);
     if (c)
         return c;
@@ -254,6 +256,10 @@ static ClientInfo* find_or_add_client(const struct sockaddr_in* addr)
     memset(c, 0, sizeof(*c));
     c->addr = *addr;
     c->last_seen = time(NULL);
+    c->seen_ids = NULL;
+    c->seen_count = 0;
+    c->seen_cap = 0;
+
     g_client_count++;
     return c;
 }
@@ -277,42 +283,37 @@ static int client_add_seen(ClientInfo* c, u32 idx)
     return 0;
 }
 
-static void client_add_recent(ClientInfo* c, u32 idx)
-{
-    if (c->recent_count < MAX_RECENT_ACK)
-    {
-        c->recent_ids[c->recent_count++] = idx;
-        return;
-    }
-    memmove(c->recent_ids, c->recent_ids + 1, (MAX_RECENT_ACK - 1) * sizeof(u32));
-    c->recent_ids[MAX_RECENT_ACK - 1] = idx;
-}
 
-static int send_ack(SOCKET s, const struct sockaddr_in* addr, const ClientInfo* c, u32 current_idx)
+static int send_ack(SOCKET s, const struct sockaddr_in* addr, const ClientInfo* c)
 {
-    char buf[MAX_RECENT_ACK * 4];
-    int count;
+    char* buf;
+    int len;
     int i;
     int rc;
 
-    count = 0;
-    write_u32_be(buf + count * 4, current_idx);
-    count++;
+    if (c->seen_count <= 0)
+        return 0;
 
-    for (i = c->recent_count - 1; i >= 0 && count < MAX_RECENT_ACK; --i)
+    len = c->seen_count * 4;
+    buf = (char*)malloc((size_t)len);
+    if (!buf)
     {
-        if (c->recent_ids[i] == current_idx)
-            continue;
-        write_u32_be(buf + count * 4, c->recent_ids[i]);
-        count++;
+        printf("out of memory while building ack\n");
+        return -1;
     }
 
-    rc = sendto(s, buf, count * 4, 0, (const struct sockaddr*)addr, sizeof(*addr));
+    for (i = 0; i < c->seen_count; ++i)
+        write_u32_be(buf + i * 4, c->seen_ids[i]);
+
+    rc = sendto(s, buf, len, 0, (const struct sockaddr*)addr, sizeof(*addr));
+    free(buf);
+
     if (rc == SOCKET_ERROR)
     {
         print_wsa_error("sendto");
         return -1;
     }
+
     return 0;
 }
 
@@ -340,61 +341,46 @@ static void cleanup_expired_clients(void)
         i++;
     }
 }
-
 static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct sockaddr_in* from)
 {
-    ParsedMessage pm;
+    ParsedMessage m;
     ClientInfo* c;
     char peer[128];
-    int duplicate;
+    int is_duplicate;
 
-    message_init(&pm.msg);
-    if (parse_datagram(buf, len, &pm) != 0)
-    {
-        message_free(&pm.msg);
+    if (parse_datagram(buf, len, &m) != 0)
         return 0;
-    }
 
     c = find_or_add_client(from);
     if (!c)
     {
         printf("out of memory while adding client\n");
-        message_free(&pm.msg);
         return -1;
     }
 
     c->last_seen = time(NULL);
-    duplicate = client_has_seen(c, pm.idx);
+    is_duplicate = client_has_seen(c, m.idx);
 
-    if (!duplicate)
+    if (!is_duplicate)
     {
-        if (client_add_seen(c, pm.idx) != 0)
+        if (client_add_seen(c, m.idx) != 0)
         {
             printf("out of memory while storing message id\n");
-            message_free(&pm.msg);
             return -1;
         }
-        client_add_recent(c, pm.idx);
+
         peer_to_string(from, peer, sizeof(peer));
-        msglog_unique(peer, &pm);
+        msglog_unique(peer, &m);
     }
 
-    if (send_ack(s, from, c, pm.idx) != 0)
-    {
-        message_free(&pm.msg);
+    if (send_ack(s, from, c) != 0)
         return -1;
-    }
 
-    if (pm.is_stop)
-    {
-        g_stopping = 1;
-        g_stop_deadline = GetTickCount() + STOP_GRACE_MS;
-    }
+    if (m.is_stop)
+        g_running = 0;
 
-    message_free(&pm.msg);
     return 0;
 }
-
 static int handle_readable_socket(SOCKET s)
 {
     for (;;)

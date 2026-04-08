@@ -184,7 +184,7 @@ static int parse_line(const char* line, Message* out)
     const char* p;
     char* endptr;
     unsigned long aa_ul;
-    long long bbb_ll;
+    long bbb_l;
     u8 hh;
     u8 mm;
     u8 ss;
@@ -221,8 +221,8 @@ static int parse_line(const char* line, Message* out)
     p = endptr + 1;
 
     errno = 0;
-    bbb_ll = strtoll(p, &endptr, 10);
-    if (endptr == p || errno != 0 || bbb_ll < INT32_MIN || bbb_ll > INT32_MAX)
+    bbb_l = strtol(p, &endptr, 10);
+    if (endptr == p || errno != 0 || bbb_l < INT32_MIN || bbb_l > INT32_MAX)
     {
         return -1;
     }
@@ -283,7 +283,7 @@ static int parse_line(const char* line, Message* out)
     memcpy(text, p, msg_len + 1);
 
     out->aa = (u16)aa_ul;
-    out->bbb = (s32)bbb_ll;
+    out->bbb = (s32)bbb_l;
     out->hh = hh;
     out->mm = mm;
     out->ss = ss;
@@ -527,7 +527,7 @@ static int send_next_ten(int sock, const struct sockaddr_in* addr, PendingMessag
 
         if (rc < 0)
         {
-            printf("send failed: %s\n", strerror(errno));
+            printf("sendto failed: %s\n", strerror(errno));
             return -1;
         }
 
@@ -593,11 +593,24 @@ static int drain_acks(int sock, PendingMessage* arr, int total)
         if (FD_ISSET(sock, &rfds))
         {
             int n;
+            struct sockaddr_in from;
+            socklen_t from_len;
 
-            n = (int)recv(sock, ackbuf, sizeof(ackbuf), 0);
+            memset(&from, 0, sizeof(from));
+            from_len = sizeof(from);
+
+            n = (int)recvfrom(
+                sock,
+                ackbuf,
+                sizeof(ackbuf),
+                0,
+                (struct sockaddr*)&from,
+                &from_len
+            );
+
             if (n < 0)
             {
-                printf("recv failed: %s\n", strerror(errno));
+                printf("recvfrom failed: %s\n", strerror(errno));
                 return -1;
             }
 
