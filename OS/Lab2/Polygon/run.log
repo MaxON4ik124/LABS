@@ -1,0 +1,8 @@
+Starting: ruby /home/max0n/LABS/LABS/OS/Lab2/Polygon/tcpserveremul.rb 9011
+Starting: /home/max0n/LABS/LABS/OS/Lab2/Polygon/tcpclient.exe 127.0.0.1:9011 cli1.txt
+Exception: #<ChildProcess::LaunchError: Permission denied - /home/max0n/LABS/LABS/OS/Lab2/Polygon/tcpclient.exe>
+/usr/lib/ruby/vendor_ruby/childprocess/unix/fork_exec_process.rb:66:in `launch_process'
+/usr/lib/ruby/vendor_ruby/childprocess/abstract_process.rb:81:in `start'
+/home/max0n/LABS/LABS/OS/Lab2/Polygon/base.rb:38:in `process'
+/home/max0n/LABS/LABS/OS/Lab2/Polygon/base.rb:51:in `client'
+run.rb:8:in `block in <main>'
