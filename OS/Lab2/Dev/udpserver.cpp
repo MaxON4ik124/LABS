@@ -20,6 +20,7 @@ typedef int32_t s32;
 
 #define CLIENT_TTL_SEC 30
 #define STOP_GRACE_MS 500
+#define MAX_ACK_IDS_PER_DATAGRAM 10
 
 static int g_running = 1;
 
@@ -287,14 +288,20 @@ static int client_add_seen(ClientInfo* c, u32 idx)
 static int send_ack(SOCKET s, const struct sockaddr_in* addr, const ClientInfo* c)
 {
     char* buf;
+    int ack_count;
     int len;
+    int start_idx;
     int i;
     int rc;
 
     if (c->seen_count <= 0)
         return 0;
 
-    len = c->seen_count * 4;
+    ack_count = c->seen_count;
+    if (ack_count > MAX_ACK_IDS_PER_DATAGRAM)
+        ack_count = MAX_ACK_IDS_PER_DATAGRAM;
+
+    len = ack_count * 4;
     buf = (char*)malloc((size_t)len);
     if (!buf)
     {
@@ -302,8 +309,9 @@ static int send_ack(SOCKET s, const struct sockaddr_in* addr, const ClientInfo* 
         return -1;
     }
 
-    for (i = 0; i < c->seen_count; ++i)
-        write_u32_be(buf + i * 4, c->seen_ids[i]);
+    start_idx = c->seen_count - ack_count;
+    for (i = 0; i < ack_count; ++i)
+        write_u32_be(buf + i * 4, c->seen_ids[start_idx + i]);
 
     rc = sendto(s, buf, len, 0, (const struct sockaddr*)addr, sizeof(*addr));
     free(buf);
@@ -347,6 +355,9 @@ static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct 
     ClientInfo* c;
     char peer[128];
     int is_duplicate;
+    int rc;
+
+    memset(&m, 0, sizeof(m));
 
     if (parse_datagram(buf, len, &m) != 0)
         return 0;
@@ -355,6 +366,7 @@ static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct 
     if (!c)
     {
         printf("out of memory while adding client\n");
+        message_free(&m.msg);
         return -1;
     }
 
@@ -366,6 +378,7 @@ static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct 
         if (client_add_seen(c, m.idx) != 0)
         {
             printf("out of memory while storing message id\n");
+            message_free(&m.msg);
             return -1;
         }
 
@@ -373,12 +386,21 @@ static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct 
         msglog_unique(peer, &m);
     }
 
-    if (send_ack(s, from, c) != 0)
+    rc = send_ack(s, from, c);
+    if (rc != 0)
+    {
+        message_free(&m.msg);
         return -1;
+    }
 
     if (m.is_stop)
+    {
         g_running = 0;
+        g_stopping = 1;
+        g_stop_deadline = GetTickCount() + STOP_GRACE_MS;
+    }
 
+    message_free(&m.msg);
     return 0;
 }
 static int handle_readable_socket(SOCKET s)

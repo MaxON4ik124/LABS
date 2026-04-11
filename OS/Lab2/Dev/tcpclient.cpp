@@ -70,6 +70,25 @@ static int socket_last_error(void)
     return WSAGetLastError();
 }
 
+
+static int set_socket_timeouts(socket_t s, int ms)
+{
+    DWORD tv;
+
+    tv = (DWORD)ms;
+    if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) != 0)
+    {
+        return -1;
+    }
+
+    if (setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv)) != 0)
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
 static int send_all(socket_t s, const char* data, int len)
 {
     int off;
@@ -448,8 +467,15 @@ int main(int argc, char* argv[])
     sock = connect_with_retry(ip, port);
     if (sock == INVALID_SOCKET)
     {
+        printf("connect failed after 10 attempts\n");
         net_deinit();
         return 1;
+    }
+
+    if (set_socket_timeouts(sock, 5000) != 0)
+    {
+        printf("failed to set socket timeouts: %d\n", socket_last_error());
+        goto cleanup;
     }
 
     if (send_all(sock, "put", 3) != 0)

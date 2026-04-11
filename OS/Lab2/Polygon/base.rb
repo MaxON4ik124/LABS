@@ -18,7 +18,7 @@ def log(msg)
 end
 
 def process(stdout_fn, bin, *ext_args)
-  bin = "#{bin}.exe" if File.exists?("#{bin}.exe")
+  bin = "#{bin}.exe" if File.exist?("#{bin}.exe")
   args = ["#{$pwd}/#{bin}"] + ext_args
   if bin.index(".rb")
     args = ["ruby"] + args
@@ -62,7 +62,7 @@ def testing(options = {}, &block)
 
   {"win_profiler.txt" => "mem.txt", "lin_profiler.txt" => "mem.txt" }.each do |src,dst|
     begin
-      if File.exists?("#{$pwd}/#{src}")
+      if File.exist?("#{$pwd}/#{src}")
         FileUtils.cp("#{$pwd}/#{src}", "#{$pwd}/#{dst}") 
         log "File #{dst} copied."
       end

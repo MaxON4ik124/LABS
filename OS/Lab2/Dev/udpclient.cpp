@@ -702,6 +702,7 @@ int main(int argc, char* argv[])
         }
     }
 
+    printf("%d message(s) reached the server.\n", total_cnt - queue_count(msgs, total));
     rc = 0;
 
 cleanup:

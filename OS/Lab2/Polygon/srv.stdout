@@ -1,0 +1,10 @@
+/mnt/c/Users/Maks/Desktop/Labs/OS/Lab2/Polygon/tcpserveremul.rb:212:in `accept': Interrupt
+	from /mnt/c/Users/Maks/Desktop/Labs/OS/Lab2/Polygon/tcpserveremul.rb:212:in `block in server'
+	from /mnt/c/Users/Maks/Desktop/Labs/OS/Lab2/Polygon/tcpserveremul.rb:211:in `loop'
+	from /mnt/c/Users/Maks/Desktop/Labs/OS/Lab2/Polygon/tcpserveremul.rb:211:in `server'
+	from /mnt/c/Users/Maks/Desktop/Labs/OS/Lab2/Polygon/tcpserveremul.rb:229:in `<main>'
+Listening TCP port: 9011
+  Peer connected  : 127.0.0.1:39210
+  Peer disconnected: 127.0.0.1:39210
+  Peer connected  : 127.0.0.1:33074
+  Peer disconnected: 127.0.0.1:33074

@@ -1,8 +1,9 @@
-Starting: ruby /home/max0n/LABS/LABS/OS/Lab2/Polygon/tcpserveremul.rb 9011
-Starting: /home/max0n/LABS/LABS/OS/Lab2/Polygon/tcpclient.exe 127.0.0.1:9011 cli1.txt
-Exception: #<ChildProcess::LaunchError: Permission denied - /home/max0n/LABS/LABS/OS/Lab2/Polygon/tcpclient.exe>
-/usr/lib/ruby/vendor_ruby/childprocess/unix/fork_exec_process.rb:66:in `launch_process'
-/usr/lib/ruby/vendor_ruby/childprocess/abstract_process.rb:81:in `start'
-/home/max0n/LABS/LABS/OS/Lab2/Polygon/base.rb:38:in `process'
-/home/max0n/LABS/LABS/OS/Lab2/Polygon/base.rb:51:in `client'
-run.rb:8:in `block in <main>'
+Starting: /mnt/c/Users/Maks/Desktop/Labs/OS/Lab2/Polygon/tcpclient.exe 127.0.0.1:9011 cli3.txt
+Client 3 waiting...
+Server waiting...
+Exception: Interrupt
+/usr/lib/ruby/vendor_ruby/childprocess/unix/process.rb:53:in `waitpid2'
+/usr/lib/ruby/vendor_ruby/childprocess/unix/process.rb:53:in `wait'
+run.rb:20:in `block in <main>'
+/mnt/c/Users/Maks/Desktop/Labs/OS/Lab2/Polygon/base.rb:57:in `testing'
+run.rb:5:in `<main>'
