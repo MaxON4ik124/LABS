@@ -20,6 +20,7 @@ typedef int32_t s32;
 
 #define CLIENT_TTL_SEC 30
 #define STOP_GRACE_MS 500
+#define MAX_ACK_IDS_PER_DATAGRAM 20
 
 static int g_running = 1;
 
@@ -143,14 +144,17 @@ static int parse_datagram(const char* buf, int len, ParsedMessage* out)
     u32 bbb_bits;
     char* text;
 
-    message_free(&out->msg);
+    // message_free(&out->msg);
 
     if (len < 17)
         return -1;
 
     msg_len = read_u32_be((const unsigned char*)(buf + 13));
     if (msg_len > 65535U)
+    {
+        printf("Too long message: %u\n", (u32)msg_len);
         return -1;
+    }
     if ((int)(17 + msg_len) != len)
         return -1;
     if ((u8)buf[10] > 23 || (u8)buf[11] > 59 || (u8)buf[12] > 59)
@@ -172,7 +176,7 @@ static int parse_datagram(const char* buf, int len, ParsedMessage* out)
     out->msg.ss = (u8)buf[12];
     out->msg.message = text;
     out->msg.message_len = msg_len;
-    out->is_stop = (strcmp(text, "stop") == 0);
+    out->is_stop = (msg_len == 4 && memcmp(text, "stop", 4) == 0);
     return 0;
 }
 
@@ -203,7 +207,6 @@ static int ensure_client_capacity(void)
 
     if (g_client_count < g_client_cap)
         return 0;
-
     new_cap = (g_client_cap == 0) ? 32 : (g_client_cap * 2);
     tmp = (ClientInfo*)realloc(g_clients, (size_t)new_cap * sizeof(ClientInfo));
     if (!tmp)
@@ -220,7 +223,8 @@ static int ensure_seen_capacity(ClientInfo* c)
 
     if (c->seen_count < c->seen_cap)
         return 0;
-
+    if(c->seen_cap > INT_MAX / 2)
+        return -1;
     new_cap = (c->seen_cap == 0) ? 32 : (c->seen_cap * 2);
     tmp = (u32*)realloc(c->seen_ids, (size_t)new_cap * sizeof(u32));
     if (!tmp)
@@ -279,6 +283,11 @@ static int client_add_seen(ClientInfo* c, u32 idx)
 {
     if (ensure_seen_capacity(c) != 0)
         return -1;
+    if(c->seen_count >= 1024)
+    {
+        printf("Messages limit from one client achived\n");
+        return -1;
+    }
     c->seen_ids[c->seen_count++] = idx;
     return 0;
 }
@@ -287,14 +296,20 @@ static int client_add_seen(ClientInfo* c, u32 idx)
 static int send_ack(SOCKET s, const struct sockaddr_in* addr, const ClientInfo* c)
 {
     char* buf;
+    int ack_count;
     int len;
+    int start_idx;
     int i;
     int rc;
 
     if (c->seen_count <= 0)
         return 0;
 
-    len = c->seen_count * 4;
+    ack_count = c->seen_count;
+    if (ack_count > MAX_ACK_IDS_PER_DATAGRAM)
+        ack_count = MAX_ACK_IDS_PER_DATAGRAM;
+
+    len = ack_count * 4;
     buf = (char*)malloc((size_t)len);
     if (!buf)
     {
@@ -302,8 +317,9 @@ static int send_ack(SOCKET s, const struct sockaddr_in* addr, const ClientInfo* 
         return -1;
     }
 
-    for (i = 0; i < c->seen_count; ++i)
-        write_u32_be(buf + i * 4, c->seen_ids[i]);
+    start_idx = c->seen_count - ack_count;
+    for (i = 0; i < ack_count; ++i)
+        write_u32_be(buf + i * 4, c->seen_ids[start_idx + i]);
 
     rc = sendto(s, buf, len, 0, (const struct sockaddr*)addr, sizeof(*addr));
     free(buf);
@@ -347,14 +363,21 @@ static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct 
     ClientInfo* c;
     char peer[128];
     int is_duplicate;
+    int rc;
 
+    memset(&m, 0, sizeof(m));
+    
     if (parse_datagram(buf, len, &m) != 0)
+    {
+        printf("Invalid datagram: l=%d\n", len);
         return 0;
+    }
 
     c = find_or_add_client(from);
     if (!c)
     {
         printf("out of memory while adding client\n");
+        message_free(&m.msg);
         return -1;
     }
 
@@ -366,6 +389,7 @@ static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct 
         if (client_add_seen(c, m.idx) != 0)
         {
             printf("out of memory while storing message id\n");
+            message_free(&m.msg);
             return -1;
         }
 
@@ -373,12 +397,21 @@ static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct 
         msglog_unique(peer, &m);
     }
 
-    if (send_ack(s, from, c) != 0)
-        return -1;
+    rc = send_ack(s, from, c);
+    if (rc != 0)
+    {
+        message_free(&m.msg);
+        return 0;
+    }
 
     if (m.is_stop)
+    {
         g_running = 0;
+        g_stopping = 1;
+        g_stop_deadline = GetTickCount() + STOP_GRACE_MS;
+    }
 
+    message_free(&m.msg);
     return 0;
 }
 static int handle_readable_socket(SOCKET s)
@@ -392,13 +425,14 @@ static int handle_readable_socket(SOCKET s)
 
         from_len = sizeof(from);
         rc = recvfrom(s, buf, sizeof(buf), 0, (struct sockaddr*)&from, &from_len);
-        if (rc == SOCKET_ERROR)
+        memset(&from, 0, sizeof(from));
+        if (rc == SOCKET_ERROR || rc != sizeof(buf))
         {
             int err = WSAGetLastError();
             if (err == WSAEWOULDBLOCK)
                 break;
             print_wsa_error("recvfrom");
-            return -1;
+            return 0;
         }
 
         if (handle_one_datagram(s, buf, rc, &from) != 0)
@@ -526,6 +560,12 @@ int main(int argc, char* argv[])
 
         if (ne.lNetworkEvents & FD_READ)
         {
+
+            if(ne.iErrorCode[FD_READ_BIT] != 0)
+            {
+                printf("FD_READ error: %d\n", ne.iErrorCode[FD_READ_BIT]);
+                goto cleanup;
+            }
             if (handle_readable_socket(socks[idx]) != 0)
                 goto cleanup;
         }
@@ -559,6 +599,9 @@ cleanup:
         for (i = 0; i < g_client_count; ++i)
             free(g_clients[i].seen_ids);
         free(g_clients);
+        g_clients = NULL;
+        g_client_count = 0;
+        g_client_cap = 0;
     }
 
     deinit_winsock();

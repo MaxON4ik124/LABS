@@ -1,21 +1,23 @@
 require './base.rb'
-# timelim(4)
-# clients(3)
+# timelim(8) 
+# clients(41)
 
 testing do 
-  srv = server(TCPSRVEMUL, "9011")
+  srv = server(UDPSRVBIN, "9950", "9957")
 
-  cli1 = client(TCPCLIBIN, "127.0.0.1:9011", "cli1.txt")
-  cli2 = client(TCPCLIBIN, "10.0.176.107:9011", "cli2.txt")
+  log "Starting clients..."
+  cli = []
+  1.upto(40) do |i| 
+    cli[i] = client(UDPCLIEMUL, "127.0.0.1:9950", "cli%d.txt" % i)
+  end
 
-  log "Clients 1,2 waiting..."
-  cli1.wait
-  cli2.wait
+  log "Waiting clients..."
+  1.upto(40) { |i| cli[i].wait }
 
-  cli3 = client(TCPCLIBIN, "127.0.0.1:9011", "cli3.txt")
-  log "Client 3 waiting..."
-  cli3.wait
-  
+  log "Stopping..."
+  cli = client(UDPCLIEMUL, "127.0.0.1:9950", "cli41.txt")
+  cli.wait  
+
   log "Server waiting..."
   srv.wait
   log "Server exit code: #{srv.exit_code}"
