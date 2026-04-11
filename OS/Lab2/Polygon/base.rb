@@ -6,11 +6,17 @@ $pwd = Dir.pwd
 
 TCPSRVEMUL = "tcpserveremul.rb"
 TCPCLIEMUL = "tcpclientemul.rb"
+UDPSRVEMUL = "udpserveremul.rb"
+UDPCLIEMUL = "udpclientemul.rb"
 
 TCPCLIBIN = "tcpclient"
 TCPSRVBIN = "tcpserver"
+UDPCLIBIN = "udpclient"
+UDPSRVBIN = "udpserver"
 #TCPCLIBIN = "tcpclientemul.rb"
 #TCPSRVBIN = "tcpserveremul.rb"
+#UDPCLIBIN = "udpclientemul.rb"
+#UDPSRVBIN = "udpserveremul.rb"
 
 
 def log(msg)

@@ -17,6 +17,7 @@ typedef uint16_t u16;
 typedef uint8_t u8;
 typedef int32_t s32;
 
+#define MAX_DATAGRAM2SEND 20
 typedef struct Message
 {
     u16 aa;
@@ -532,7 +533,7 @@ static int send_next_ten(int sock, const struct sockaddr_in* addr, PendingMessag
         }
 
         ++cnt;
-        if (cnt >= 10)
+        if (cnt >= MAX_DATAGRAM2SEND)
         {
             break;
         }

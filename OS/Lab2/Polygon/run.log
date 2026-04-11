@@ -1,9 +1,0 @@
-Starting: /mnt/c/Users/Maks/Desktop/Labs/OS/Lab2/Polygon/tcpclient.exe 127.0.0.1:9011 cli3.txt
-Client 3 waiting...
-Server waiting...
-Exception: Interrupt
-/usr/lib/ruby/vendor_ruby/childprocess/unix/process.rb:53:in `waitpid2'
-/usr/lib/ruby/vendor_ruby/childprocess/unix/process.rb:53:in `wait'
-run.rb:20:in `block in <main>'
-/mnt/c/Users/Maks/Desktop/Labs/OS/Lab2/Polygon/base.rb:57:in `testing'
-run.rb:5:in `<main>'
