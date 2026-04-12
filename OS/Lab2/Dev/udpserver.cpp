@@ -20,7 +20,7 @@ typedef int32_t s32;
 
 #define CLIENT_TTL_SEC 30
 #define STOP_GRACE_MS 500
-#define MAX_ACK_IDS_PER_DATAGRAM 20
+#define MAX_ACK_IDS_PER_DATAGRAM 10
 
 static int g_running = 1;
 
@@ -76,9 +76,9 @@ static void message_free(Message* msg)
     message_init(msg);
 }
 
-static void print_wsa_error(const char* where)
+static void print_wsa_error_code(const char* where, int err)
 {
-    printf("%s failed, WSA=%d\n", where, WSAGetLastError());
+    printf("%s failed, WSA=%d\n", where, err);
 }
 
 static int init_winsock(void)
@@ -86,7 +86,7 @@ static int init_winsock(void)
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
     {
-        print_wsa_error("WSAStartup");
+        print_wsa_error_code("WSAStartup", WSAGetLastError());
         return -1;
     }
     return 0;
@@ -151,10 +151,7 @@ static int parse_datagram(const char* buf, int len, ParsedMessage* out)
 
     msg_len = read_u32_be((const unsigned char*)(buf + 13));
     if (msg_len > 65535U)
-    {
-        printf("Too long message: %u\n", (u32)msg_len);
         return -1;
-    }
     if ((int)(17 + msg_len) != len)
         return -1;
     if ((u8)buf[10] > 23 || (u8)buf[11] > 59 || (u8)buf[12] > 59)
@@ -176,7 +173,7 @@ static int parse_datagram(const char* buf, int len, ParsedMessage* out)
     out->msg.ss = (u8)buf[12];
     out->msg.message = text;
     out->msg.message_len = msg_len;
-    out->is_stop = (msg_len == 4 && memcmp(text, "stop", 4) == 0);
+    out->is_stop = (strcmp(text, "stop") == 0);
     return 0;
 }
 
@@ -207,6 +204,7 @@ static int ensure_client_capacity(void)
 
     if (g_client_count < g_client_cap)
         return 0;
+
     new_cap = (g_client_cap == 0) ? 32 : (g_client_cap * 2);
     tmp = (ClientInfo*)realloc(g_clients, (size_t)new_cap * sizeof(ClientInfo));
     if (!tmp)
@@ -223,8 +221,7 @@ static int ensure_seen_capacity(ClientInfo* c)
 
     if (c->seen_count < c->seen_cap)
         return 0;
-    if(c->seen_cap > INT_MAX / 2)
-        return -1;
+
     new_cap = (c->seen_cap == 0) ? 32 : (c->seen_cap * 2);
     tmp = (u32*)realloc(c->seen_ids, (size_t)new_cap * sizeof(u32));
     if (!tmp)
@@ -283,11 +280,6 @@ static int client_add_seen(ClientInfo* c, u32 idx)
 {
     if (ensure_seen_capacity(c) != 0)
         return -1;
-    if(c->seen_count >= 1024)
-    {
-        printf("Messages limit from one client achived\n");
-        return -1;
-    }
     c->seen_ids[c->seen_count++] = idx;
     return 0;
 }
@@ -326,7 +318,7 @@ static int send_ack(SOCKET s, const struct sockaddr_in* addr, const ClientInfo* 
 
     if (rc == SOCKET_ERROR)
     {
-        print_wsa_error("sendto");
+        print_wsa_error_code("sendto", WSAGetLastError());
         return -1;
     }
 
@@ -366,12 +358,9 @@ static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct 
     int rc;
 
     memset(&m, 0, sizeof(m));
-    
+
     if (parse_datagram(buf, len, &m) != 0)
-    {
-        printf("Invalid datagram: l=%d\n", len);
         return 0;
-    }
 
     c = find_or_add_client(from);
     if (!c)
@@ -401,7 +390,7 @@ static int handle_one_datagram(SOCKET s, const char* buf, int len, const struct 
     if (rc != 0)
     {
         message_free(&m.msg);
-        return 0;
+        return -1;
     }
 
     if (m.is_stop)
@@ -424,16 +413,16 @@ static int handle_readable_socket(SOCKET s)
         int rc;
 
         from_len = sizeof(from);
-        rc = recvfrom(s, buf, sizeof(buf), 0, (struct sockaddr*)&from, &from_len);
-        memset(&from, 0, sizeof(from));
-        if (rc == SOCKET_ERROR || rc != sizeof(buf))
-        {
-            int err = WSAGetLastError();
-            if (err == WSAEWOULDBLOCK)
-                break;
-            print_wsa_error("recvfrom");
-            return 0;
-        }
+    rc = recvfrom(s, buf, sizeof(buf), 0, (struct sockaddr*)&from, &from_len);
+    if (rc == SOCKET_ERROR)
+    {
+        int err = WSAGetLastError();
+        if (err == WSAEWOULDBLOCK)
+            break;
+
+        print_wsa_error_code("recvfrom", err);
+        return -1;
+    }
 
         if (handle_one_datagram(s, buf, rc, &from) != 0)
             return -1;
@@ -499,7 +488,7 @@ int main(int argc, char* argv[])
         socks[i] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
         if (socks[i] == INVALID_SOCKET)
         {
-            print_wsa_error("socket");
+            print_wsa_error_code("socket", WSAGetLastError());
             goto cleanup;
         }
 
@@ -510,20 +499,20 @@ int main(int argc, char* argv[])
 
         if (bind(socks[i], (struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
         {
-            print_wsa_error("bind");
+            print_wsa_error_code("bind", WSAGetLastError());
             goto cleanup;
         }
 
         events[i] = WSACreateEvent();
         if (events[i] == WSA_INVALID_EVENT)
         {
-            print_wsa_error("WSACreateEvent");
+            print_wsa_error_code("WSACreateEvent", WSAGetLastError());
             goto cleanup;
         }
 
         if (WSAEventSelect(socks[i], events[i], FD_READ) == SOCKET_ERROR)
         {
-            print_wsa_error("WSAEventSelect");
+            print_wsa_error_code("WSAEventSelect", WSAGetLastError());
             goto cleanup;
         }
     }
@@ -544,7 +533,7 @@ int main(int argc, char* argv[])
             continue;
         if (wait_res == WSA_WAIT_FAILED)
         {
-            print_wsa_error("WSAWaitForMultipleEvents");
+            print_wsa_error_code("WSAWaitForMultipleEvents", WSAGetLastError());
             goto cleanup;
         }
 
@@ -554,16 +543,15 @@ int main(int argc, char* argv[])
 
         if (WSAEnumNetworkEvents(socks[idx], events[idx], &ne) == SOCKET_ERROR)
         {
-            print_wsa_error("WSAEnumNetworkEvents");
+            print_wsa_error_code("WSAEnumNetworkEvents", WSAGetLastError());
             goto cleanup;
         }
 
         if (ne.lNetworkEvents & FD_READ)
         {
-
             if(ne.iErrorCode[FD_READ_BIT] != 0)
             {
-                printf("FD_READ error: %d\n", ne.iErrorCode[FD_READ_BIT]);
+                print_wsa_error_code("FD_READ", ne.iErrorCode[FD_READ_BIT]);
                 goto cleanup;
             }
             if (handle_readable_socket(socks[idx]) != 0)
@@ -599,9 +587,6 @@ cleanup:
         for (i = 0; i < g_client_count; ++i)
             free(g_clients[i].seen_ids);
         free(g_clients);
-        g_clients = NULL;
-        g_client_count = 0;
-        g_client_cap = 0;
     }
 
     deinit_winsock();
