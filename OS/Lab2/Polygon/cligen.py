@@ -21,3 +21,8 @@ def create_own_client():
 
 # create_own_client()
 
+for i in range(1, 41):
+    for g in range(1, 21):
+        mess = f"cli{i}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}."
+        write_to_file(f"cli{i}.txt", mess)
+write_to_file("cli41.txt", "stop")
