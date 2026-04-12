@@ -1,240 +1,538 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include <windows.h>
 #include <winsock2.h>
-#include <WS2tcpip.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
+#include <ws2tcpip.h>
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 #include <string>
 #include <map>
 #include <set>
-#include <iomanip>
-#include <string.h>
-#include <stdint.h>
+#include <vector>
+
 #pragma comment(lib, "ws2_32.lib")
 
-#define USHORT_MAX 0xffff
-#define UDP_MAX_LEN 65507
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t  u8;
+typedef int32_t  s32;
+
 #define FILE_LOGGER "msg.txt"
-using namespace std;
+#define CLIENT_TTL_SEC 30
+#define MAX_RECENT_ACK 20
+#define MAX_PORTS 64
+#define MAX_DGRAMS_PER_SOCKET_TICK 4096
 
-map<string, set<uint32_t, greater<uint32_t>>> clients;
-SOCKET *sockets_desc = new SOCKET[100];
-struct sockaddr_in *addr = new struct sockaddr_in[100];
-
-uint16_t last_index;
-bool stop_hook = false;
-
-union
+struct ParsedMessage
 {
-    uint32_t integer;
-    char buffer[4];
-} convert;
+    u32 idx;
+    u16 aa;
+    s32 bbb;
+    u8 hh;
+    u8 mm;
+    u8 ss;
+    std::string message;
+    int is_stop;
+};
 
-union
+struct ClientInfo
 {
-    char buffer[2];
-    uint16_t integer;
-    int16_t ninteger;
-} short_ints;
+    time_t last_seen;
+    std::set<u32> seen;
+    std::vector<u32> recent;
+};
 
-string findClient(struct sockaddr_in *addr)
+static std::map<std::string, ClientInfo> g_clients;
+static SOCKET g_sockets[MAX_PORTS];
+static WSAEVENT g_events[MAX_PORTS];
+static int g_port_count = 0;
+
+static u16 read_u16_be(const unsigned char* p)
 {
-    char ip[16];
-    char port[5];
-    string client;
-    inet_ntop(AF_INET, &addr->sin_addr, ip, sizeof(ip));
-    client.clear();
-    _itoa(htons(addr->sin_port), port, 10);
-    client.append((char *)ip, strlen(ip));
-    client += ':';
-    client.append((char *)port, strlen(port));
-    return client;
+    return (u16)(((u16)p[0] << 8) | (u16)p[1]);
 }
 
-int writeToFile(string buffer, string client)
+static u32 read_u32_be(const unsigned char* p)
 {
-    ofstream file_desc;
-    file_desc.open(FILE_LOGGER, ios::app);
-    uint16_t day, month, year = 0;
-    day = buffer[0];
-    month = buffer[1];
-    short_ints.buffer[0] = buffer[3];
-    short_ints.buffer[1] = buffer[2];
-    year = short_ints.integer;
-    file_desc << client << " ";
-    file_desc << setw(2) << setfill('0') << day << '.' << setw(2) << setfill('0') << month << '.' << year << " ";
+    return ((u32)p[0] << 24) |
+           ((u32)p[1] << 16) |
+           ((u32)p[2] << 8)  |
+           (u32)p[3];
+}
 
-    short_ints.buffer[0] = buffer[5];
-    short_ints.buffer[1] = buffer[4];
-    int16_t AA = short_ints.ninteger;
-    file_desc << AA << " ";
-    file_desc << string(buffer.begin() + 6, buffer.begin() + 18) << " " << string(buffer.begin() + 18, buffer.end() -1) << endl;
-    file_desc.close();
-    if (string(buffer.begin() + 18, buffer.end() -1) == "stop")
+static void write_u32_be(char* p, u32 v)
+{
+    p[0] = (char)((v >> 24) & 0xFF);
+    p[1] = (char)((v >> 16) & 0xFF);
+    p[2] = (char)((v >> 8) & 0xFF);
+    p[3] = (char)(v & 0xFF);
+}
+
+static std::string make_client_id(const struct sockaddr_in* addr)
+{
+    char ip[64];
+    char buf[96];
+    u32 host_ip;
+    unsigned int b1, b2, b3, b4;
+    unsigned int port;
+
+    memset(ip, 0, sizeof(ip));
+    if (inet_ntop(AF_INET, (void*)&addr->sin_addr, ip, sizeof(ip)) == NULL)
+    {
+        host_ip = ntohl(addr->sin_addr.s_addr);
+        b1 = (host_ip >> 24) & 0xFF;
+        b2 = (host_ip >> 16) & 0xFF;
+        b3 = (host_ip >> 8) & 0xFF;
+        b4 = host_ip & 0xFF;
+        _snprintf(ip, sizeof(ip), "%u.%u.%u.%u", b1, b2, b3, b4);
+        ip[sizeof(ip) - 1] = '\0';
+    }
+
+    port = (unsigned int)ntohs(addr->sin_port);
+    _snprintf(buf, sizeof(buf), "%s:%u", ip, port);
+    buf[sizeof(buf) - 1] = '\0';
+    return std::string(buf);
+}
+
+static int parse_datagram(const char* buf, int len, ParsedMessage* out)
+{
+    u32 msg_len;
+    u32 bbb_bits;
+
+    if (len < 17)
     {
         return -1;
     }
+
+    msg_len = read_u32_be((const unsigned char*)(buf + 13));
+    if (msg_len > 65535U)
+    {
+        return -1;
+    }
+
+    if ((int)(17 + msg_len) != len)
+    {
+        return -1;
+    }
+
+    if ((u8)buf[10] > 23 || (u8)buf[11] > 59 || (u8)buf[12] > 59)
+    {
+        return -1;
+    }
+
+    out->idx = read_u32_be((const unsigned char*)(buf + 0));
+    out->aa = read_u16_be((const unsigned char*)(buf + 4));
+
+    bbb_bits = read_u32_be((const unsigned char*)(buf + 6));
+    memcpy(&out->bbb, &bbb_bits, sizeof(out->bbb));
+
+    out->hh = (u8)buf[10];
+    out->mm = (u8)buf[11];
+    out->ss = (u8)buf[12];
+
+    out->message.assign(buf + 17, buf + 17 + msg_len);
+    out->is_stop = (msg_len == 4 && memcmp(buf + 17, "stop", 4) == 0);
+
     return 0;
 }
 
-int analyseDatagram(SOCKET sock, int index)
+static int append_to_file(const std::string& client_id, const ParsedMessage& msg)
 {
-    char *buf_input = new char[UDP_MAX_LEN];
-    socklen_t addrLen = sizeof(addr[index]);
-    int status = recvfrom(sock, buf_input, UDP_MAX_LEN, 0, (struct sockaddr *)&addr[index], &addrLen);
-    char num_bytes[4];
-    int number = 0, result = 0, i;
-    string buf;
-    string client;
-    buf.append((char *)buf_input, status);
-    for (i = 0; i < 3; i++)
+    FILE* f;
+
+    f = fopen(FILE_LOGGER, "ab");
+    if (!f)
     {
-        number += buf_input[i] & 0xff;
-        number = (number << 8);
+        return -1;
     }
-    number += buf_input[i] & 0xff;
-    if (status > 0)
+
+    fprintf(f,
+            "%s %u %d %02u:%02u:%02u ",
+            client_id.c_str(),
+            (unsigned int)msg.aa,
+            (int)msg.bbb,
+            (unsigned int)msg.hh,
+            (unsigned int)msg.mm,
+            (unsigned int)msg.ss);
+
+    if (!msg.message.empty())
     {
-        set<uint32_t, greater<uint32_t>> msgs;
-        client = findClient(&addr[index]);
-        if (clients.find(client) == clients.end())
-        {
-            cout << "New client connected: " << client << endl;
-            clients.insert(make_pair(client, msgs));
-        }
-        if (clients[client].find(number) == clients[client].end())
-        {
-            clients[client].insert(number);
-            result = writeToFile(string(buf.begin() + 4, buf.end()), client);
-        }
+        fwrite(msg.message.data(), 1, msg.message.size(), f);
     }
-    buf.clear();
-    delete[] buf_input;
-    return (result == -1 ? -1 : 0);
+
+    fputc('\n', f);
+    fclose(f);
+    return 0;
 }
 
-void configListeners(uint16_t port_start, uint16_t port_end)
+static void cleanup_old_clients(void)
 {
-    uint16_t ports_count = 0;
-    uint16_t step;
-    if (port_start > port_end)
+    time_t now;
+    std::map<std::string, ClientInfo>::iterator it;
+    std::map<std::string, ClientInfo>::iterator next_it;
+
+    now = time(NULL);
+    it = g_clients.begin();
+
+    while (it != g_clients.end())
     {
-        uint16_t tmp = port_start;
-        port_start = port_end;
-        port_end = tmp;
-    }
-    ports_count = port_end - port_start;
-	if (port_end == port_start) 
-	{
-		ports_count = 1;
-	}
-    cout << "Listening on ports: ";
-    for (step = 0; step <= ports_count; step++)
-    {
-        unsigned long mode = 1;
-        SOCKET s = socket(AF_INET, SOCK_DGRAM, 0);
-        if (s < 0) {
-            cout << "socket() func error " << WSAGetLastError() << endl;
-            return;
-        }
-        sockets_desc[step] = s;
-        ioctlsocket(sockets_desc[step], FIONBIO, &mode);
-        memset(&addr[step], 0, sizeof(addr[step]));
-        addr[step].sin_family = AF_INET;
-        addr[step].sin_addr.s_addr = htonl(INADDR_ANY);
-        addr[step].sin_port = htons(port_start + step);
-        if (bind(sockets_desc[step], (struct sockaddr *)&addr[step], sizeof(addr[step])) < 0)
+        next_it = it;
+        ++next_it;
+
+        if ((now - it->second.last_seen) >= CLIENT_TTL_SEC)
         {
-            cout << "bind() func error " << WSAGetLastError() << endl;
-            return;
+            g_clients.erase(it);
         }
-        cout << port_start + step << ' ';
+
+        it = next_it;
     }
-    cout << endl;
 }
 
-void sendToClient(SOCKET s, int index)
+static void push_recent(ClientInfo& c, u32 idx)
 {
-    string client = findClient(&addr[index]);
-    char *buffer = new char[80];
-    memset(buffer, 0, 80);
-    int i = 0;
-    for (auto it = clients[client].begin(); it != clients[client].end(); it++)
+    if (c.recent.size() == MAX_RECENT_ACK)
     {
-        convert.integer = htonl(*it);
-        for (int j = 0; j < 4; j++)
+        c.recent.erase(c.recent.begin());
+    }
+    c.recent.push_back(idx);
+}
+
+static int send_ack(SOCKET s, const struct sockaddr_in* to, int tolen, const ClientInfo& c)
+{
+    size_t cnt;
+    size_t i;
+    std::vector<char> buf;
+    int rc;
+
+    cnt = c.recent.size();
+    if (cnt > MAX_RECENT_ACK)
+    {
+        cnt = MAX_RECENT_ACK;
+    }
+
+    buf.resize(cnt * 4);
+    for (i = 0; i < cnt; ++i)
+    {
+        /* newest first, как в ruby-эмуляторе */
+        u32 idx = c.recent[c.recent.size() - 1 - i];
+        write_u32_be(&buf[i * 4], idx);
+    }
+
+    rc = sendto(
+        s,
+        cnt > 0 ? &buf[0] : "",
+        (int)(cnt * 4),
+        0,
+        (const struct sockaddr*)to,
+        tolen
+    );
+
+    if (rc == SOCKET_ERROR)
+    {
+        int err = WSAGetLastError();
+
+        /* На UDP/Wine такое лучше не считать фатальным для всего сервера */
+        if (err == WSAECONNRESET || err == WSAENETRESET || err == WSAEHOSTUNREACH || err == 0)
         {
-            buffer[i] = convert.buffer[j];
-            i++;
+            return -1;
         }
+
+        return -1;
     }
-    sendto(s, buffer, clients[client].size() * 4, 0, (struct sockaddr *)&addr[index], sizeof(addr[index]));
-    delete[] buffer;
+
+    return 0;
 }
 
-void disconnectClient(int index)
+static int handle_one_datagram(SOCKET s)
 {
-    string client = findClient(&addr[index]);
-    clients.erase(client);
-    cout << "Old client disconnected: " << client << endl;
-}
+    char buf[65535];
+    struct sockaddr_in from;
+    int from_len;
+    int r;
+    ParsedMessage msg;
+    std::string client_id;
+    std::map<std::string, ClientInfo>::iterator it;
+    int is_new;
+    int ack_ok;
 
-int main(int argc, char **argv)
-{
-    if (argc != 3)
+    memset(&from, 0, sizeof(from));
+    from_len = sizeof(from);
+
+    r = recvfrom(
+        s,
+        buf,
+        sizeof(buf),
+        0,
+        (struct sockaddr*)&from,
+        &from_len
+    );
+
+    if (r == SOCKET_ERROR)
     {
-        cout << "Usage: ./udpserver <port1> <port2>" << endl;
+        int err = WSAGetLastError();
+
+        if (err == WSAEWOULDBLOCK)
+        {
+            return 1;
+        }
+
+        if (err == WSAECONNRESET || err == WSAENETRESET || err == 0)
+        {
+            return 0;
+        }
+
+        printf("recvfrom failed: %d\n", err);
+        return -1;
+    }
+
+    if (parse_datagram(buf, r, &msg) != 0)
+    {
         return 0;
     }
-    WSADATA ws;
-    WSAStartup(MAKEWORD(2, 2), &ws);
-    uint16_t port1, port2, ports_count;
-    port1 = atoi(argv[1]);
-    port2 = atoi(argv[2]);
-    ports_count = port2 - port1;
-    configListeners(port1, port2);
-    WSAEVENT *event = new WSAEVENT[ports_count];
-    for (int i = 0; i < ports_count; i++)
-    {
-		event[i] = WSACreateEvent();
-        WSAEventSelect(sockets_desc[i], event[i], FD_READ | FD_WRITE | FD_CLOSE);
-    }
-    while (true)
-    {
-		WSANETWORKEVENTS ne;
-        DWORD dw = WSAWaitForMultipleEvents(ports_count, event, FALSE, 1000, FALSE);
-		DWORD res = 0;
-        for (int i = 0; i < ports_count; i++)
-        {
-            if ((res = WSAEnumNetworkEvents(sockets_desc[i], event[i], &ne)) == 0)
-            {
-                if (ne.lNetworkEvents & FD_READ)
-                {
-                    int value = analyseDatagram(sockets_desc[i], i);
-                    sendToClient(sockets_desc[i], i);
-                    if (value == -1)
-                    {
-                        cout << "stop message detected. Power off...." << endl;
-						for (int i = 0; i < ports_count; i++) 
-						{
-							WSACloseEvent(event[i]);
-							closesocket(sockets_desc[i]);
-						}
 
-                        WSACleanup();
-                        delete[] sockets_desc;
-                        return 0;
-                    }
-                }
-                if (ne.lNetworkEvents & FD_CLOSE)
+    cleanup_old_clients();
+
+    client_id = make_client_id(&from);
+    it = g_clients.find(client_id);
+    if (it == g_clients.end())
+    {
+        ClientInfo info;
+        info.last_seen = time(NULL);
+        g_clients.insert(std::make_pair(client_id, info));
+        it = g_clients.find(client_id);
+    }
+
+    it->second.last_seen = time(NULL);
+
+    is_new = (it->second.seen.find(msg.idx) == it->second.seen.end()) ? 1 : 0;
+    if (is_new)
+    {
+        it->second.seen.insert(msg.idx);
+        push_recent(it->second, msg.idx);
+
+        if (append_to_file(client_id, msg) != 0)
+        {
+            printf("failed to write msg.txt\n");
+            return -1;
+        }
+    }
+
+    ack_ok = (send_ack(s, &from, from_len, it->second) == 0) ? 1 : 0;
+
+    if (ack_ok && msg.is_stop)
+    {
+        return 2;
+    }
+
+    return 0;
+}
+
+static int drain_socket(SOCKET s)
+{
+    int budget;
+    int rc;
+
+    budget = MAX_DGRAMS_PER_SOCKET_TICK;
+    while (budget-- > 0)
+    {
+        rc = handle_one_datagram(s);
+        if (rc == 1)
+        {
+            break;
+        }
+        if (rc == 2)
+        {
+            return 2;
+        }
+        if (rc < 0)
+        {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int main(int argc, char** argv)
+{
+    WSADATA ws;
+    int first_port;
+    int last_port;
+    int i;
+    int running;
+    int rc;
+
+    if (argc != 3)
+    {
+        printf("Usage: udpserver <port1> <port2>\n");
+        return 1;
+    }
+
+    first_port = atoi(argv[1]);
+    last_port = atoi(argv[2]);
+
+    if (first_port < 1 || last_port < 1 || first_port > 65535 || last_port > 65535)
+    {
+        printf("bad port range\n");
+        return 1;
+    }
+
+    if (first_port > last_port)
+    {
+        int tmp = first_port;
+        first_port = last_port;
+        last_port = tmp;
+    }
+
+    g_port_count = last_port - first_port + 1;
+    if (g_port_count <= 0 || g_port_count > MAX_PORTS || g_port_count > WSA_MAXIMUM_WAIT_EVENTS)
+    {
+        printf("too many ports\n");
+        return 1;
+    }
+
+    remove(FILE_LOGGER);
+
+    if (WSAStartup(MAKEWORD(2, 2), &ws) != 0)
+    {
+        printf("WSAStartup failed: %d\n", WSAGetLastError());
+        return 1;
+    }
+
+    for (i = 0; i < g_port_count; ++i)
+    {
+        struct sockaddr_in addr;
+
+        g_sockets[i] = INVALID_SOCKET;
+        g_events[i] = WSA_INVALID_EVENT;
+
+        g_sockets[i] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        if (g_sockets[i] == INVALID_SOCKET)
+        {
+            printf("socket failed: %d\n", WSAGetLastError());
+            rc = 1;
+            goto cleanup;
+        }
+
+        memset(&addr, 0, sizeof(addr));
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        addr.sin_port = htons((u16)(first_port + i));
+
+        if (bind(g_sockets[i], (struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
+        {
+            printf("bind failed on port %d: %d\n", first_port + i, WSAGetLastError());
+            rc = 1;
+            goto cleanup;
+        }
+
+        g_events[i] = WSACreateEvent();
+        if (g_events[i] == WSA_INVALID_EVENT)
+        {
+            printf("WSACreateEvent failed: %d\n", WSAGetLastError());
+            rc = 1;
+            goto cleanup;
+        }
+
+        if (WSAEventSelect(g_sockets[i], g_events[i], FD_READ) == SOCKET_ERROR)
+        {
+            printf("WSAEventSelect failed: %d\n", WSAGetLastError());
+            rc = 1;
+            goto cleanup;
+        }
+    }
+
+    running = 1;
+    rc = 0;
+
+    while (running)
+    {
+        DWORD dw;
+        int idx;
+        WSANETWORKEVENTS ne;
+
+        dw = WSAWaitForMultipleEvents(
+            (DWORD)g_port_count,
+            g_events,
+            FALSE,
+            1000,
+            FALSE
+        );
+
+        if (dw == WSA_WAIT_TIMEOUT)
+        {
+            cleanup_old_clients();
+            continue;
+        }
+
+        if (dw == WSA_WAIT_FAILED)
+        {
+            printf("WSAWaitForMultipleEvents failed: %d\n", WSAGetLastError());
+            rc = 1;
+            break;
+        }
+
+        idx = (int)(dw - WSA_WAIT_EVENT_0);
+        if (idx < 0 || idx >= g_port_count)
+        {
+            continue;
+        }
+
+        memset(&ne, 0, sizeof(ne));
+        if (WSAEnumNetworkEvents(g_sockets[idx], g_events[idx], &ne) == SOCKET_ERROR)
+        {
+            printf("WSAEnumNetworkEvents failed: %d\n", WSAGetLastError());
+            rc = 1;
+            break;
+        }
+
+        if (ne.lNetworkEvents & FD_READ)
+        {
+            if (ne.iErrorCode[FD_READ_BIT] != 0 &&
+                ne.iErrorCode[FD_READ_BIT] != WSAECONNRESET &&
+                ne.iErrorCode[FD_READ_BIT] != WSAENETRESET)
+            {
+                printf("FD_READ error: %d\n", ne.iErrorCode[FD_READ_BIT]);
+                rc = 1;
+                break;
+            }
+
+            {
+                int d = drain_socket(g_sockets[idx]);
+                if (d == 2)
                 {
-                    disconnectClient(i);
+                    running = 0;
+                    break;
+                }
+                if (d < 0)
+                {
+                    rc = 1;
+                    break;
                 }
             }
         }
     }
-    return 0;
+
+cleanup:
+    for (i = 0; i < g_port_count; ++i)
+    {
+        if (g_events[i] != WSA_INVALID_EVENT)
+        {
+            WSACloseEvent(g_events[i]);
+        }
+        if (g_sockets[i] != INVALID_SOCKET)
+        {
+            closesocket(g_sockets[i]);
+        }
+    }
+
+    WSACleanup();
+    return rc;
 }
