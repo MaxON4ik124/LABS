@@ -3,19 +3,27 @@ require './base.rb'
 # clients(41)
 
 testing do 
-  srv = server(UDPSRVBIN, "9950", "9957")
+  srv = server(UDPSRVBIN, "9960", "9969")
+
+  myip = "192.168.67.130"
 
   log "Starting clients..."
+
   cli = []
+  ips = ["127.0.0.1", myip]
+  ports = 9960.upto(9969).collect {|p| p}
+
   1.upto(40) do |i| 
-    cli[i] = client(UDPCLIEMUL, "127.0.0.1:9950", "cli%d.txt" % i)
+    ip = ips[i % ips.size]
+    port = ports[i % ports.size]                                          
+    cli[i] = client(UDPCLIEMUL, "#{ip}:#{port}", "cli%d.txt" % i)
   end
 
   log "Waiting clients..."
   1.upto(40) { |i| cli[i].wait }
 
   log "Stopping..."
-  cli = client(UDPCLIEMUL, "127.0.0.1:9950", "cli41.txt")
+  cli = client(UDPCLIEMUL, "127.0.0.1:9960", "cli41.txt")
   cli.wait  
 
   log "Server waiting..."
