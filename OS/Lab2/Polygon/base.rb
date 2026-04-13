@@ -3,7 +3,7 @@ require 'fileutils'
 require 'childprocess'
 
 $pwd = Dir.pwd
-WINEBIN = 'wine'
+# WINEBIN = 'wine'
 TCPSRVEMUL = "tcpserveremul.rb"
 TCPCLIEMUL = "tcpclientemul.rb"
 UDPSRVEMUL = "udpserveremul.rb"

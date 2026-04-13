@@ -16,7 +16,7 @@ def write_to_file(file: str, message: str):
 
 # 1 тест TCP клиента
 for g in range(1, 3):
-    for k in range(2):
+    for k in range(1, 3):
         write_to_file(f"1cli{g}.txt", f"msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k}")
 write_to_file("1cli3.txt", "stop")
 # 2 тест UDP клиента

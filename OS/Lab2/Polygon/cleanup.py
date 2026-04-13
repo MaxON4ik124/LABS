@@ -3,6 +3,9 @@ import os
 for file in os.listdir():
     if file.split('.')[-1] == "stdout":
         os.remove(file)
-    if file == 'msg.txt':
+    if 'msg.txt' in file:
         os.remove("msg.txt")
-os.remove("run.log")
+    if "cli" and ".txt" in file:
+        os.remove(file)
+    if "run.log" in file:
+        os.remove("run.log")
