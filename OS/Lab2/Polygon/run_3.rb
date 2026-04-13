@@ -5,7 +5,7 @@ require './base.rb'
 testing do 
   srv = server(UDPSRVBIN, "9960", "9969")
 
-  myip = "192.168.67.130"
+  myip = "10.0.170.90"
 
   log "Starting clients..."
 
@@ -16,14 +16,14 @@ testing do
   1.upto(40) do |i| 
     ip = ips[i % ips.size]
     port = ports[i % ports.size]                                          
-    cli[i] = client(UDPCLIEMUL, "#{ip}:#{port}", "cli%d.txt" % i)
+    cli[i] = client(UDPCLIEMUL, "#{ip}:#{port}", "3cli%d.txt" % i)
   end
 
   log "Waiting clients..."
   1.upto(40) { |i| cli[i].wait }
 
   log "Stopping..."
-  cli = client(UDPCLIEMUL, "127.0.0.1:9960", "cli41.txt")
+  cli = client(UDPCLIEMUL, "127.0.0.1:9960", "3cli41.txt")
   cli.wait  
 
   log "Server waiting..."

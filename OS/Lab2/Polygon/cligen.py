@@ -9,20 +9,24 @@ def write_to_file(file: str, message: str):
         curtime = time.ctime().split()[-2]
         f.write(f"{aa} {bbb} {curtime} {message}\n")
 
-def create_own_client():
-    msg = ""
-    while msg != "stop":
-        msg = input("Enter message (stop for cancel):")
-        with open("file.txt", "a") as f:
-            aa = random.randint(0, 65536)
-            bbb = random.randint(-2147483648, 2147483648)
-            curtime = time.ctime().split()[-2]
-            f.write(f"{aa} {bbb} {curtime} {msg}\n")
 
-# create_own_client()
 
-for i in range(1, 41):
+
+
+
+# 1 тест TCP клиента
+for g in range(1, 3):
+    for k in range(2):
+        write_to_file(f"1cli{g}.txt", f"msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k} msg {g+k}")
+write_to_file("1cli3.txt", "stop")
+# 2 тест UDP клиента
+for i in range(1, 11):
     for g in range(1, 21):
-        mess = f"cli{i}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}.msg{g}."
-        write_to_file(f"cli{i}.txt", mess)
-write_to_file("cli41.txt", "stop")
+        write_to_file(f"2cli{i}.txt", f"{i}___msg{g}.")
+write_to_file("2cli11.txt", "stop")
+# 3 теста UDP сервера
+for i in range(1, 4):
+    for g in range(1, 41):
+        for k in range(1, 21):
+            write_to_file(f"{i+2}cli{g}.txt", f"cli{g}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.")
+    write_to_file(f"{i+2}cli41.txt", "stop")
