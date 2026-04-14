@@ -16,7 +16,7 @@
 #include <map>
 #include <set>
 #include <vector>
-
+using namespace std;
 #pragma comment(lib, "ws2_32.lib")
 
 typedef uint32_t u32;
@@ -38,18 +38,18 @@ struct ParsedMessage
     u8 hh;
     u8 mm;
     u8 ss;
-    std::string message;
+    string message;
     int is_stop;
 };
 
 struct ClientInfo
 {
     time_t last_seen;
-    std::set<u32> seen;
-    std::vector<u32> recent;
+    set<u32> seen;
+    vector<u32> recent;
 };
 
-static std::map<std::string, ClientInfo> g_clients;
+static map<string, ClientInfo> g_clients;
 static SOCKET g_sockets[MAX_PORTS];
 static WSAEVENT g_events[MAX_PORTS];
 static int g_port_count = 0;
@@ -75,7 +75,7 @@ static void write_u32_be(char* p, u32 v)
     p[3] = (char)(v & 0xFF);
 }
 
-static std::string make_client_id(const struct sockaddr_in* addr)
+static string make_client_id(const struct sockaddr_in* addr)
 {
     char ip[64];
     char buf[96];
@@ -98,7 +98,7 @@ static std::string make_client_id(const struct sockaddr_in* addr)
     port = (unsigned int)ntohs(addr->sin_port);
     _snprintf(buf, sizeof(buf), "%s:%u", ip, port);
     buf[sizeof(buf) - 1] = '\0';
-    return std::string(buf);
+    return string(buf);
 }
 
 static int parse_datagram(const char* buf, int len, ParsedMessage* out)
@@ -143,7 +143,7 @@ static int parse_datagram(const char* buf, int len, ParsedMessage* out)
     return 0;
 }
 
-static int append_to_file(const std::string& client_id, const ParsedMessage& msg)
+static int append_to_file(const string& client_id, const ParsedMessage& msg)
 {
     FILE* f;
 
@@ -175,8 +175,8 @@ static int append_to_file(const std::string& client_id, const ParsedMessage& msg
 static void cleanup_old_clients(void)
 {
     time_t now;
-    std::map<std::string, ClientInfo>::iterator it;
-    std::map<std::string, ClientInfo>::iterator next_it;
+    map<string, ClientInfo>::iterator it;
+    map<string, ClientInfo>::iterator next_it;
 
     now = time(NULL);
     it = g_clients.begin();
@@ -208,7 +208,7 @@ static int send_ack(SOCKET s, const struct sockaddr_in* to, int tolen, const Cli
 {
     size_t cnt;
     size_t i;
-    std::vector<char> buf;
+    vector<char> buf;
     int rc;
 
     cnt = c.recent.size();
@@ -257,8 +257,8 @@ static int handle_one_datagram(SOCKET s)
     int from_len;
     int r;
     ParsedMessage msg;
-    std::string client_id;
-    std::map<std::string, ClientInfo>::iterator it;
+    string client_id;
+    map<string, ClientInfo>::iterator it;
     int is_new;
     int ack_ok;
 
@@ -305,7 +305,7 @@ static int handle_one_datagram(SOCKET s)
     {
         ClientInfo info;
         info.last_seen = time(NULL);
-        g_clients.insert(std::make_pair(client_id, info));
+        g_clients.insert(make_pair(client_id, info));
         it = g_clients.find(client_id);
     }
 
@@ -398,7 +398,6 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    remove(FILE_LOGGER);
 
     if (WSAStartup(MAKEWORD(2, 2), &ws) != 0)
     {
