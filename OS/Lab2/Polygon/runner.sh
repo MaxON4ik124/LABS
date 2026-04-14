@@ -58,7 +58,7 @@ run_test() {
 }
 
 trap cleanup_all EXIT
-
+python CLgen.py
 run_test run_1.rb
 run_test run_2.rb
 run_test run_3.rb
