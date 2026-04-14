@@ -63,3 +63,4 @@ run_test run_2.rb
 run_test run_3.rb
 run_test run_4.rb
 run_test run_5.rb
+run_test run_6.rb

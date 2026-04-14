@@ -31,3 +31,8 @@ for i in range(1, 4):
         for k in range(1, 21):
             write_to_file(f"{i+2}cli{g}.txt", f"cli{g}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.msg{k}.")
     write_to_file(f"{i+2}cli41.txt", "stop")
+
+write_to_file("msg0", "6cli1.txt")
+write_to_file("msg1", "6cli2.txt")
+write_to_file("msg2", "6cli2.txt")
+write_to_file("stop", "6cli2.txt")
