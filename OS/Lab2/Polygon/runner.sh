@@ -9,7 +9,7 @@ cleanup_port() {
   local proto="$1"
   local port="$2"
 
-  echo "Cleaning ${proto^^} port $port"
+#   echo "Cleaning ${proto^^} port $port"
 
   if [ "$proto" = "tcp" ]; then
     fuser -k "${port}/tcp" 2>/dev/null || true
@@ -31,23 +31,11 @@ cleanup_range() {
 cleanup_all() {
   echo "=== START CLEANUP ==="
   echo "IPs used in tests: $IP1, $IP2"
-
-  # 1) TCP client port 9011
   cleanup_port tcp 9011
-
-  # 2) UDP client port 9050
   cleanup_port udp 9050
-
-  # 3) UDP server ports 9960-9969
   cleanup_range udp 9960 9969
-
-  # 4) UDP server ports 9970-9979
   cleanup_range udp 9970 9979
-
-  # 5) UDP server ports 9980-9989
   cleanup_range udp 9980 9989
-
-  # Дополнительно можно убить зависшие ruby-эмуляторы, если они есть
   pkill -f tcpserveremul.rb 2>/dev/null || true
   pkill -f udpserveremul.rb 2>/dev/null || true
   pkill -f tcpsrvemul 2>/dev/null || true
