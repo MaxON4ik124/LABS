@@ -147,7 +147,7 @@ static int append_to_file(const std::string& client_id, const ParsedMessage& msg
 {
     FILE* f;
 
-    f = fopen(FILE_LOGGER, "ab");
+    f = fopen(FILE_LOGGER, "a");
     if (!f)
     {
         return -1;

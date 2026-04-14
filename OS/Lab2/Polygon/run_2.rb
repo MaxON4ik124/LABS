@@ -8,7 +8,7 @@ testing do
   log "Starting clients..."
   cli = []
   1.upto(10) do |i| 
-    ip = (i >= 3 && i <= 6) ? "127.0.0.1" : "10.0.176.107"
+    ip = (i >= 3 && i <= 6) ? "127.0.0.1" : "192.168.67.130"
     cli[i] = client(UDPCLIBIN, "#{ip}:9150", "2cli%d.txt" % i)
   end
 

@@ -6,7 +6,7 @@ testing do
   srv = server(TCPSRVEMUL, "9011")
 
   cli1 = client(TCPCLIBIN, "127.0.0.1:9011", "1cli1.txt")
-  cli2 = client(TCPCLIBIN, "10.0.176.107:9011", "1cli2.txt")
+  cli2 = client(TCPCLIBIN, "192.168.67.130:9011", "1cli2.txt")
 
   log "Clients 1,2 waiting..."
   cli1.wait
