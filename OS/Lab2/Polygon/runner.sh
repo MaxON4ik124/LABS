@@ -9,7 +9,6 @@ cleanup_port() {
   local proto="$1"
   local port="$2"
 
-#   echo "Cleaning ${proto^^} port $port"
 
   if [ "$proto" = "tcp" ]; then
     fuser -k "${port}/tcp" 2>/dev/null || true

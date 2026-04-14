@@ -446,6 +446,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    int sent_count = 0;
     sock = connect_with_retry(ip, port);
     if (sock == INVALID_SOCKET)
     {
@@ -466,13 +467,13 @@ int main(int argc, char* argv[])
         goto cleanup;
     }
 
+
     for (;;)
     {
-        char* line;
+        char* line = NULL;
         int st;
         Message msg;
 
-        line = NULL;
         message_init(&msg);
 
         st = read_line_alloc(f, &line);
@@ -504,20 +505,18 @@ int main(int argc, char* argv[])
                 goto cleanup;
             }
 
-            if (wait_ok(sock) != 0)
-            {
-                free(line);
-                message_free(&msg);
-                goto cleanup;
-            }
-
             ++idx;
+            ++sent_count;
         }
 
         free(line);
         message_free(&msg);
     }
-
+    for (int i = 0; i < sent_count; ++i)
+    {
+        if (wait_ok(sock) != 0)
+            goto cleanup;
+    }
     printf("%u message(s) has been sent.\n", (unsigned int)idx);
     rc = 0;
 

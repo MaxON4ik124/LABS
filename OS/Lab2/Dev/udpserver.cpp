@@ -220,7 +220,6 @@ static int send_ack(SOCKET s, const struct sockaddr_in* to, int tolen, const Cli
     buf.resize(cnt * 4);
     for (i = 0; i < cnt; ++i)
     {
-        /* newest first, как в ruby-эмуляторе */
         u32 idx = c.recent[c.recent.size() - 1 - i];
         write_u32_be(&buf[i * 4], idx);
     }
@@ -238,11 +237,10 @@ static int send_ack(SOCKET s, const struct sockaddr_in* to, int tolen, const Cli
     {
         int err = WSAGetLastError();
 
-        /* На UDP/Wine такое лучше не считать фатальным для всего сервера */
-        if (err == WSAECONNRESET || err == WSAENETRESET || err == WSAEHOSTUNREACH || err == 0)
-        {
-            return -1;
-        }
+        // if (err == WSAECONNRESET || err == WSAENETRESET || err == WSAEHOSTUNREACH || err == 0)
+        // {
+        //     return -1;
+        // }
 
         return -1;
     }

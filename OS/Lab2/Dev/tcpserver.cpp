@@ -485,16 +485,10 @@ static int dispatch(socket_t cn, const char* peer)
             mode[3] = '\0';
             buf_consume(&buf, 3);
             mode_set = 1;
-            if (strcmp(mode, "put") != 0 && strcmp(mode, "get") != 0)
+            if (strcmp(mode, "put") != 0)
             {
                 buf_free(&buf);
                 return -1;
-            }
-            if (strcmp(mode, "get") == 0)
-            {
-                int rc = send_msgs(cn);
-                buf_free(&buf);
-                return rc;
             }
         }
 
@@ -557,16 +551,13 @@ static int server_run(u16 port)
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-    {
-        int opt = 1;
-        setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt));
-    }
-
+    int opt = 1;
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt));
     if (bind(s, (struct sockaddr*)&addr, sizeof(addr)) < 0)
     {
         close(s);
         return sock_err("bind");
+        
     }
 
     if (listen(s, 16) < 0)
