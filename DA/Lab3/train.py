@@ -21,7 +21,7 @@ class HuggingFaceImageDataset(Dataset):
     def __getitem__(self, idx):
 
         item = self.dataset[idx]
-        image = item['image']
+        image = item['image'].convert("RGB")
         if self.transform:
             image = self.transform(image)
         return image, self.label
@@ -36,8 +36,8 @@ args = parser.parse_args()
 
 
 print("Loading datasets...")
-ds_peop = load_dataset("ashraq/tmdb-people-image")['train']
-ds_dogs = load_dataset("alexrosen45/dogs")['train']
+ds_peop = load_dataset("HK83/real_people_3000")['train']
+ds_dogs = load_dataset("nasserCha/dog_dataset")['train']
 
 
 transform = transforms.Compose([
@@ -54,7 +54,7 @@ dogs_dataset = HuggingFaceImageDataset(ds_dogs, label=1, transform=transform)
 full_dataset = people_dataset + dogs_dataset
 
 
-train_size = int(0.8 * len(full_dataset))
+train_size = int(0.9 * len(full_dataset))
 val_size = len(full_dataset) - train_size
 train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size])
 
