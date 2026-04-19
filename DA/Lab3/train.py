@@ -9,7 +9,9 @@ from torchvision import transforms
 from PIL import Image
 from model import get_model
 from datasets import load_dataset
-
+from datasets import ClassLabel
+import os
+N = 500
 def set_seed(seed=42):
     random.seed(seed)
     np.random.seed(seed)
@@ -44,8 +46,16 @@ def main():
 
 
     print("Loading datasets...")
-    ds_peop = load_dataset("beurkinger/autotrain-data-human-action-recognition")['train'].shuffle(seed=42).select(range(1000))
-    ds_dogs = load_dataset("nasserCha/dog_dataset")['train'].shuffle(seed=42).select(range(1000))
+    ds_peop = load_dataset("beurkinger/autotrain-data-human-action-recognition")['train'].shuffle(seed=42).select(range(N))
+    ds_dogs = load_dataset("chandocchi/dog-dataset")['train'].shuffle(seed=42).select(range(N))   
+    
+    save_dir = 'predict'
+    for i in range(int(N*0.2)):
+        img = ds_peop[i]["image"]
+        img.save(f"{save_dir}\\image_{i}P.jpg")
+    for i in range(int(N*0.2)):
+        img = ds_dogs[i]["image"]
+        img.save(f"{save_dir}\\image_{i}D.jpg")
 
     split_people = ds_peop.train_test_split(test_size=0.2, seed=42)
     split_dogs   = ds_dogs.train_test_split(test_size=0.2, seed=42)
@@ -153,7 +163,7 @@ def main():
         return correct / total
 
     best_acc = 0
-    patience = 10
+    patience = 5
     epochs_no_improve = 0
 
     for epoch in range(args.epochs):

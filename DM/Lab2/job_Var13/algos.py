@@ -17,9 +17,7 @@ with open("job_Var13.in", "r") as f:
 Visited = []
 Unvisited = [x for x in range(n)]
 
-# D[i] = расстояние из start в i
-# Так как в строке i записаны входящие в i ребра,
-# ребро start -> i хранится в G[i][start-1]
+
 D = [INF] * n
 P = [start for i in range(n)]
 
