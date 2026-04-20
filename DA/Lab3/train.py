@@ -11,7 +11,10 @@ from model import get_model
 from datasets import load_dataset
 from datasets import ClassLabel
 import os
-N = 500
+
+N = 1000
+
+
 def set_seed(seed=42):
     random.seed(seed)
     np.random.seed(seed)
@@ -46,8 +49,8 @@ def main():
 
 
     print("Loading datasets...")
-    ds_peop = load_dataset("beurkinger/autotrain-data-human-action-recognition")['train'].shuffle(seed=42).select(range(N))
-    ds_dogs = load_dataset("chandocchi/dog-dataset")['train'].shuffle(seed=42).select(range(N))   
+    ds_peop = load_dataset("beurkinger/autotrain-data-human-action-recognition")['train'].shuffle(seed=42)
+    ds_dogs = load_dataset("chandocchi/dog-dataset")['train'].shuffle(seed=42) 
     
     save_dir = 'predict'
     for i in range(int(N*0.2)):
@@ -56,6 +59,10 @@ def main():
     for i in range(int(N*0.2)):
         img = ds_dogs[i]["image"]
         img.save(f"{save_dir}\\image_{i}D.jpg")
+
+    ds_dogs = ds_dogs.select(range(N))
+    ds_peop = ds_peop.select(range(N))
+
 
     split_people = ds_peop.train_test_split(test_size=0.2, seed=42)
     split_dogs   = ds_dogs.train_test_split(test_size=0.2, seed=42)
