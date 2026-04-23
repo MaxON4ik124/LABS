@@ -11,6 +11,7 @@ from model import get_model
 from datasets import load_dataset
 from datasets import ClassLabel
 import os
+import tqdm
 
 N = 1000
 
@@ -173,7 +174,7 @@ def main():
     patience = 5
     epochs_no_improve = 0
 
-    for epoch in range(args.epochs):
+    for epoch in tqdm.tqdm(range(args.epochs)):
 
         train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device)
         val_acc = validate(model, val_loader, device)
