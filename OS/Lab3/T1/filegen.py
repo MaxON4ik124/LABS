@@ -1,7 +1,7 @@
 import random
-N = 1*10**5
+N = 2*10**4
 with open('input.txt', 'w') as f:
-    f.write('8\n')
+    f.write('32\n')
     f.write(f"{N}\n")
     for i in range(N):
         f.write(f"{random.randint(0,N)} ")

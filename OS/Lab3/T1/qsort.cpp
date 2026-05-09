@@ -25,25 +25,33 @@ int THREADS;
 
 const int INSERTION_THRESHOLD = 1000;
 
-int partition_qs(vector<int>* arr, int beg, int end)
+int partition_qs(Task task)
 {
-    int pivot = (*arr)[end];
-    int i = beg - 1;
+    int pivot = (*task.arr)[task.end];
+    int i = task.beg - 1;
 
-    for(int j = beg; j < end; j++)
-        if((*arr)[j] <= pivot)
-            swap((*arr)[++i], (*arr)[j]);
+    for(int j = task.beg; j < task.end; j++)
+    {
+        if((*task.arr)[j] <= pivot)
+        {
+            swap((*task.arr)[++i], (*task.arr)[j]);
+        }
+    }
 
-    swap((*arr)[i+1], (*arr)[end]);
-    return i+1;
+    swap((*task.arr)[i + 1], (*task.arr)[task.end]);
+
+    return i + 1;
 }
 
-void quicksort_seq(vector<int>* arr, int beg, int end)
+void quicksort_seq(Task task)
 {
-    if(beg >= end) return;
-    int p = partition_qs(arr,beg,end);
-    quicksort_seq(arr,beg,p-1);
-    quicksort_seq(arr,p+1,end);
+    if(task.beg >= task.end)
+        return;
+
+    int p = partition_qs(task);
+
+    quicksort_seq({task.arr, task.beg, p - 1});
+    quicksort_seq({task.arr, p + 1, task.end});
 }
 
 void* worker(void*)
@@ -71,20 +79,24 @@ void* worker(void*)
 
         if(size <= INSERTION_THRESHOLD)
         {
-            quicksort_seq(task.arr, task.beg, task.end);
+            quicksort_seq(task);
         }
         else
         {
-            int piv = partition_qs(task.arr, task.beg, task.end);
+            int piv = partition_qs(task);
 
             pthread_mutex_lock(&queue_mutex);
-            taskQueue.push({task.arr, task.beg, piv-1});
-            taskQueue.push({task.arr, piv+1, task.end});
+
+            taskQueue.push({task.arr, task.beg, piv - 1});
+            taskQueue.push({task.arr, piv + 1, task.end});
+
             pthread_cond_broadcast(&queue_cond);
+
             pthread_mutex_unlock(&queue_mutex);
         }
 
         pthread_mutex_lock(&queue_mutex);
+
         working_threads--;
 
         if(taskQueue.empty() && working_threads == 0)
@@ -96,49 +108,69 @@ void* worker(void*)
 
 int main()
 {
-    pthread_mutex_init(&queue_mutex,NULL);
-    pthread_cond_init(&queue_cond,NULL);
-    pthread_cond_init(&done_cond,NULL);
+    pthread_mutex_init(&queue_mutex, NULL);
+    pthread_cond_init(&queue_cond, NULL);
+    pthread_cond_init(&done_cond, NULL);
 
     ifstream file("input.txt");
+
     int N;
+
     file >> THREADS >> N;
 
     vector<int> arr(N);
-    for(int i=0;i<N;i++) file>>arr[i];
+
+    for(int i = 0; i < N; i++)
+        file >> arr[i];
 
     vector<pthread_t> workers(THREADS);
-    for(int i=0;i<THREADS;i++)
-        pthread_create(&workers[i],NULL,worker,NULL);
+
+    for(int i = 0; i < THREADS; i++)
+        pthread_create(&workers[i], NULL, worker, NULL);
 
     auto start = chrono::high_resolution_clock::now();
 
     pthread_mutex_lock(&queue_mutex);
-    taskQueue.push({&arr,0,N-1});
+
+    taskQueue.push({&arr, 0, N - 1});
+
     pthread_cond_broadcast(&queue_cond);
+
     pthread_mutex_unlock(&queue_mutex);
 
     pthread_mutex_lock(&queue_mutex);
-    while(!(taskQueue.empty() && working_threads==0))
-        pthread_cond_wait(&done_cond,&queue_mutex);
+
+    while(!(taskQueue.empty() && working_threads == 0))
+        pthread_cond_wait(&done_cond, &queue_mutex);
+
     pthread_mutex_unlock(&queue_mutex);
 
     auto end = chrono::high_resolution_clock::now();
-    double time = chrono::duration<double>(end-start).count();
+
+    long long time = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+
 
     pthread_mutex_lock(&queue_mutex);
+
     stop_all = true;
+
     pthread_cond_broadcast(&queue_cond);
+
     pthread_mutex_unlock(&queue_mutex);
 
-    for(auto &t : workers) pthread_join(t,NULL);
+    for(auto &t : workers)
+        pthread_join(t, NULL);
 
     ofstream out("output.txt");
-    out<<THREADS<<"\n"<<N<<"\n";
-    for(int x:arr) out<<x<<" ";
+
+    out << THREADS << "\n" << N << "\n";
+
+    for(int x : arr)
+        out << x << " ";
 
     ofstream tout("time.txt");
-    tout<<time;
+
+    tout << time;
 
     pthread_mutex_destroy(&queue_mutex);
     pthread_cond_destroy(&queue_cond);
