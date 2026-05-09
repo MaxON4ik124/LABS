@@ -6,6 +6,7 @@ import numpy as np
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
+
 from PIL import Image
 from model import get_model
 from datasets import load_dataset
@@ -53,13 +54,13 @@ def main():
     ds_peop = load_dataset("beurkinger/autotrain-data-human-action-recognition")['train'].shuffle(seed=42)
     ds_dogs = load_dataset("chandocchi/dog-dataset")['train'].shuffle(seed=42) 
     
-    save_dir = 'predict'
-    for i in range(int(N*0.2)):
-        img = ds_peop[i]["image"]
-        img.save(f"{save_dir}\\image_{i}P.jpg")
-    for i in range(int(N*0.2)):
-        img = ds_dogs[i]["image"]
-        img.save(f"{save_dir}\\image_{i}D.jpg")
+    # save_dir = 'predict'
+    # for i in range(int(N*0.2)):
+    #     img = ds_peop[i]["image"]
+    #     img.save(f"{save_dir}\\image_{i}P.jpg")
+    # for i in range(int(N*0.2)):
+    #     img = ds_dogs[i]["image"]
+    #     img.save(f"{save_dir}\\image_{i}D.jpg")
 
     ds_dogs = ds_dogs.select(range(N))
     ds_peop = ds_peop.select(range(N))
@@ -147,7 +148,7 @@ def main():
     def train_one_epoch(model, loader, optimizer, criterion, device):
         model.train()
         running_loss = 0.0
-        for images, labels in loader:
+        for images, labels in tqdm.tqdm(loader):
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(images)
@@ -174,7 +175,7 @@ def main():
     patience = 5
     epochs_no_improve = 0
 
-    for epoch in tqdm.tqdm(range(args.epochs)):
+    for epoch in range(args.epochs):
 
         train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device)
         val_acc = validate(model, val_loader, device)
@@ -185,7 +186,7 @@ def main():
 
         if val_acc > best_acc:
             best_acc = val_acc
-            torch.save(model.state_dict(), args.save_path)
+            torch.save(model, args.save_path)
             print("Best model saved!")
             epochs_no_improve = 0
         else:

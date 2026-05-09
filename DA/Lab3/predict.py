@@ -34,8 +34,7 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model = get_model(pretrained=False, num_classes=2)
-    model.load_state_dict(torch.load(args.model_path, map_location=device))
+    model = torch.load(args.model_path, map_location=device, weights_only=False)
     model.to(device)
     model.eval()
 

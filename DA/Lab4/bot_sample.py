@@ -2,37 +2,32 @@ import logging
 import asyncio
 from typing import Dict, Optional
 from flask import Flask, Response
-
+from requests import request
 import telebot
 from telebot import TeleBot
+import torch
 
 from predict import predict_image
 
-TOKEN = ""
-WEBHOOK_URL = ""
+TOKEN = "8710564247:AAE7kg3b8YUt1aCgPUdEgPtjrl-eINlLYmI"
+WEBHOOK_URL = "@da4CompVis_bot"
 PORT = 8080
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-
 user_storage: Dict[int, Dict[str, Optional[str | bool]]] = {}
-model = None
-
-bot: Optional[TeleBot] = None
+model = torch.load("DAModel.pth", map_location="cpu", weights_only=False)
+logged_users: Dict[int, list] = {}
+bot: Optional[TeleBot] = TeleBot(TOKEN)
 flask_app = None
 
 
-def get_bot() -> TeleBot:
-    global bot
-    if bot is None:
-        bot = TeleBot(TOKEN)
-        _register_handlers(bot)
-    return bot
 
 
-def _register_handlers(bot: TeleBot) -> None:
+
+def register_handlers(bot: TeleBot) -> None:
     @bot.message_handler(commands=['start', 'help'])
     def handle_start(message):
         help_text = """
@@ -52,15 +47,41 @@ def _register_handlers(bot: TeleBot) -> None:
 
     @bot.message_handler(commands=['register'])
     def handle_register(message):
-        pass
+        bot.register_next_step_handler(message, register)
+    
+    def register(message):
+        new_usr_id = list(user_storage.keys())[-1]+1 if user_storage != {} else 1
+        user_storage[new_usr_id] = {"password": message.text, "authentificated" : False}
+        bot.send_message(message.chat.id, "Пользователь зарегестрирован.")
 
     @bot.message_handler(commands=['login'])
     def handle_login(message):
-        pass
+        bot.register_next_step_handler(message, login)
+    
+    def login(message):
+        found = 0
+        for i in list(user_storage.keys()):
+            if user_storage[i]["password"] == message.text:
+                user_storage[i]["authentificated"] = True
+                logged_users[message.from_user.id].append(i)
+                bot.send_message(message.chat.id, "Вы авторизованы")
+                found = 1
+                break
+        if found == 0:
+            bot.send_message(message.chat.id, "Пользователь не найден")
 
     @bot.message_handler(commands=['logout'])
     def handle_logout(message):
-        pass
+        bot.register_next_step_handler(message, logout)
+    
+    def logout(message):
+        found = 0
+        if message.from_user.id in list(logged_users.keys()):
+            logout_id = logged_users[message.from_user.id].pop()
+            user_storage[logout_id]["authentificated"] = False
+            bot.send_message(message.chat.id, "Вы успешно вышли")
+        else:
+            bot.send_message(message.chat.id, "Вы не авторизованы")
 
     @bot.message_handler(commands=['predict'], content_types=['photo'])
     def handle_predict(message):
@@ -96,4 +117,16 @@ def _setup_routes(app: Flask) -> None:
     @app.route("/health", methods=['GET'])
     def healthcheck():
         return Response("OK")
+
+def get_bot() -> TeleBot:
+    global bot
+    if bot is None:
+        bot = TeleBot(TOKEN)
+        register_handlers(bot)
+    return bot
+
+
+# get_bot()
+
+bot.infinity_polling()
 
