@@ -6,8 +6,8 @@ from requests import request
 import telebot
 from telebot import TeleBot
 import torch
-
 from predict import predict_image
+
 
 TOKEN = "8710564247:AAE7kg3b8YUt1aCgPUdEgPtjrl-eINlLYmI"
 WEBHOOK_URL = "@da4CompVis_bot"
@@ -16,17 +16,6 @@ PORT = 8080
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
-logger = logging.getLogger(__name__)
-user_storage: Dict[int, Dict[str, Optional[str | bool]]] = {}
-model = torch.load("DAModel.pth", map_location="cpu", weights_only=False)
-logged_users: Dict[int, list] = {}
-bot: Optional[TeleBot] = TeleBot(TOKEN)
-flask_app = None
-
-
-
-
-
 def register_handlers(bot: TeleBot) -> None:
     @bot.message_handler(commands=['start', 'help'])
     def handle_start(message):
@@ -47,7 +36,8 @@ def register_handlers(bot: TeleBot) -> None:
 
     @bot.message_handler(commands=['register'])
     def handle_register(message):
-        bot.register_next_step_handler(message, register)
+        msg = bot.send_message(message.chat.id, "Введите пароль для нового пользователя")
+        bot.register_next_step_handler(msg, register)
     
     def register(message):
         new_usr_id = list(user_storage.keys())[-1]+1 if user_storage != {} else 1
@@ -56,14 +46,15 @@ def register_handlers(bot: TeleBot) -> None:
 
     @bot.message_handler(commands=['login'])
     def handle_login(message):
-        bot.register_next_step_handler(message, login)
+        msg = bot.send_message(message.chat.id, "Введите пароль")
+        bot.register_next_step_handler(msg, login)
     
     def login(message):
         found = 0
         for i in list(user_storage.keys()):
             if user_storage[i]["password"] == message.text:
                 user_storage[i]["authentificated"] = True
-                logged_users[message.from_user.id].append(i)
+                logged_users.setdefault(message.from_user.id, []).append(i)
                 bot.send_message(message.chat.id, "Вы авторизованы")
                 found = 1
                 break
@@ -72,10 +63,6 @@ def register_handlers(bot: TeleBot) -> None:
 
     @bot.message_handler(commands=['logout'])
     def handle_logout(message):
-        bot.register_next_step_handler(message, logout)
-    
-    def logout(message):
-        found = 0
         if message.from_user.id in list(logged_users.keys()):
             logout_id = logged_users[message.from_user.id].pop()
             user_storage[logout_id]["authentificated"] = False
@@ -83,14 +70,28 @@ def register_handlers(bot: TeleBot) -> None:
         else:
             bot.send_message(message.chat.id, "Вы не авторизованы")
 
-    @bot.message_handler(commands=['predict'], content_types=['photo'])
+    @bot.message_handler(content_types=['photo'])
     def handle_predict(message):
-        pass
+        if user_storage == {}:
+            bot.send_message(message.chat.id, "Вы не авторизованы")
+        elif user_storage[logged_users[message.from_user.id][-1]]["authentificated"] == True:
+            if message.caption != "/predict":
+                bot.send_message(message.chat.id, "Отсутствует команда /predict")
+            else:
+                global global_image_bytes
+                file_id = message.photo[-1].file_id
+                file_info = bot.get_file(file_id)
+                global_image_bytes = bot.download_file(file_info.file_path)
+                Classes = ["Человек", "Собака"]
+                pred, conf = predict_image(model, global_image_bytes)
+                bot.send_message(message.chat.id, f"Распознанный тип: {Classes[pred]} {conf*100:.1f}%")
+        else:
+            bot.send_message(message.chat.id, "Вы не авторизованы")
 
     @bot.message_handler(content_types=['photo'])
     def handle_photo(message):
-        pass
-
+        if message.caption != "/predict":
+            bot.send_message(message.chat.id, "Отсутствует команда /predict")
 
 def get_flask_app() -> Flask:
     global flask_app
@@ -118,6 +119,8 @@ def _setup_routes(app: Flask) -> None:
     def healthcheck():
         return Response("OK")
 
+bot: Optional[TeleBot] = None
+
 def get_bot() -> TeleBot:
     global bot
     if bot is None:
@@ -125,8 +128,22 @@ def get_bot() -> TeleBot:
         register_handlers(bot)
     return bot
 
+global_image_bytes = None
+logger = logging.getLogger(__name__)
+user_storage: Dict[int, Dict[str, Optional[str | bool]]] = {}
+model = torch.load("DAModel.pth", map_location="cpu", weights_only=False)
+logged_users: Dict[int, list] = {}
+flask_app = None
+bot = get_bot()
 
-# get_bot()
+
+
+
+
+
+
+
+
 
 bot.infinity_polling()
 

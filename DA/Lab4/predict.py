@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from torchvision import transforms
 from PIL import Image
 from pathlib import Path
+from io import BytesIO
 
 
 def load_image(image_path, transform, device):
@@ -18,7 +19,19 @@ def load_image(image_path, transform, device):
         return None
 
 
-def predict_image(model, image_tensor):
+def predict_image(model, image_bytes):
+    device = "cpu"
+    image = Image.open(BytesIO(image_bytes)).convert("RGB")
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            [0.485, 0.456, 0.406],
+            [0.229, 0.224, 0.225]
+        )
+    ])
+    image_tensor = transform(image).unsqueeze(0).to(device)
+    model.eval()
     with torch.no_grad():
         outputs = model(image_tensor)
         probs = F.softmax(outputs, dim=1)
