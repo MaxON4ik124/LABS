@@ -7,6 +7,7 @@ from flask import Flask, request, redirect, url_for, render_template_string
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 APP_NAME = os.getenv("APP_NAME", "flask-app")
@@ -26,6 +27,7 @@ NAMESPACE = current_namespace()
 write_lock = threading.Lock()
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_host=1, x_proto=1)
 
 
 def load_k8s_client():
@@ -91,13 +93,12 @@ PAGE = """
 </head>
 <body>
   <h1>{{ app_name }}</h1>
-  <p>Это учебное Flask-приложение. Пользователи хранятся в Kubernetes Secret <code>{{ secret_name }}</code>.</p>
 
   {% if message %}
     <div class="msg">{{ message }}</div>
   {% endif %}
 
-  <form method="post" action="{{ base_path }}/register">
+  <form method="post" action="{{ url_for('register') }}">
     <h2>Регистрация</h2>
     <label>Логин</label>
     <input name="username" required minlength="3">
@@ -106,7 +107,7 @@ PAGE = """
     <button type="submit">Зарегистрироваться</button>
   </form>
 
-  <form method="post" action="{{ base_path }}/login">
+  <form method="post" action="{{ url_for('login') }}">
     <h2>Вход</h2>
     <label>Логин</label>
     <input name="username" required>
