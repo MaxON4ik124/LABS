@@ -1,3 +1,5 @@
+kubectl delete secret lua-payload-secret -n app --as=system:serviceaccount:app:limited-user || true
+
 kubectl create secret generic lua-payload-secret \
 -n app \
 --as=system:serviceaccount:app:limited-user \

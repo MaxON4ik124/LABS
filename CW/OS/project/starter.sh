@@ -78,6 +78,11 @@ helm upgrade --install "${INGRESS_RELEASE}" ingress-nginx/ingress-nginx \
   --set controller.service.type=NodePort \
   --set controller.service.nodePorts.http="${HTTP_NODEPORT}" \
   --set controller.service.nodePorts.https="${HTTPS_NODEPORT}" \
+  --set controller.admissionWebhooks.enabled=false \
+  --set controller.image.registry=registry.k8s.io \
+  --set controller.image.image=ingress-nginx/controller \
+  --set controller.image.tag=v1.6.4 \
+  --set controller.image.digest="" \
   --wait \
   --timeout 5m
 
