@@ -1,11 +1,11 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: auth-apps-ingress
+  name: auth-app-one-ingress
   namespace: app
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/x-forwarded-prefix: "true"
+    nginx.ingress.kubernetes.io/x-forwarded-prefix: /app1
 spec:
   ingressClassName: nginx
   rules:
@@ -19,6 +19,21 @@ spec:
                 name: auth-app-one-service
                 port:
                   number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: auth-app-two-ingress
+  namespace: app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/x-forwarded-prefix: /app2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: lab.local
+      http:
+        paths:
           - path: /app2(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
@@ -26,6 +41,21 @@ spec:
                 name: auth-app-two-service
                 port:
                   number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: auth-app-three-ingress
+  namespace: app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/x-forwarded-prefix: /app3
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: lab.local
+      http:
+        paths:
           - path: /app3(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
