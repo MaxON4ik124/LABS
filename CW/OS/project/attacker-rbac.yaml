@@ -1,0 +1,29 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: attacker-workload-manager
+  namespace: tenant-b
+rules:
+  - apiGroups: [""]
+    resources: ["services", "pods", "configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: attacker-workload-manager-binding
+  namespace: tenant-b
+subjects:
+  - kind: ServiceAccount
+    name: attacker
+    namespace: tenant-b
+roleRef:
+  kind: Role
+  name: attacker-workload-manager
+  apiGroup: rbac.authorization.k8s.io
