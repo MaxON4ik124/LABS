@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Магазин за тугрики{% endblock %}</title>
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/styles.css') }}"
+    >
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-content">
+            <a class="brand" href="{{ url_for('index') }}">
+                <span class="brand-title">Магазин за тугрики</span>
+                <span class="brand-subtitle">Flask XML Shop</span>
+            </a>
+
+            {% if current_user %}
+                <nav class="main-navigation" aria-label="Навигация">
+                    <a href="{{ url_for('catalog_page') }}">Каталог</a>
+                    <a href="{{ url_for('history_page') }}">История</a>
+                    <a href="{{ url_for('settings_page') }}">Настройки</a>
+                </nav>
+
+                <div class="user-panel">
+                    <span>{{ current_user.username }}</span>
+                    <span>
+                        <strong id="header-balance">
+                            {{ current_user.balance }}
+                        </strong>
+                        ₮
+                    </span>
+
+                    <form action="{{ url_for('logout') }}" method="post">
+                        <button class="button button-danger" type="submit">
+                            Выйти
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="container page-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <div
+        id="toast"
+        class="toast hidden"
+        role="status"
+        aria-live="polite"
+    ></div>
+
+    <script src="{{ url_for('js_file', filename='common.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

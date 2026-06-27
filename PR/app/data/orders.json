@@ -1,0 +1,69 @@
+{
+  "user1": [
+    {
+      "id": "54248d11-c7e4-4dae-87d0-6f78079b7374",
+      "created_at": "2026-06-27T15:32:53.726474+00:00",
+      "product_id": "map",
+      "product_name": "Карта степей",
+      "unit_price": 90,
+      "quantity": 2,
+      "total": 180
+    },
+    {
+      "id": "67f82d5d-4d5d-428a-b3a8-8dff8b727847",
+      "created_at": "2026-06-27T15:32:50.551338+00:00",
+      "product_id": "map",
+      "product_name": "Карта степей",
+      "unit_price": 90,
+      "quantity": 2,
+      "total": 180
+    },
+    {
+      "id": "792a566d-28c2-46b4-bd4a-e3ae121edb73",
+      "created_at": "2026-06-27T15:31:56.697250+00:00",
+      "product_id": "boots",
+      "product_name": "Походные сапоги",
+      "unit_price": 320,
+      "quantity": 3,
+      "total": 960
+    },
+    {
+      "id": "1073815d-3bbb-49fa-aa75-3e31aadf34db",
+      "created_at": "2026-06-27T15:31:39.084576+00:00",
+      "product_id": "tea",
+      "product_name": "Монгольский чай",
+      "unit_price": 45,
+      "quantity": 3,
+      "total": 135
+    },
+    {
+      "id": "df193fbf-17b6-4df9-b61e-0619c4f2d0ff",
+      "created_at": "2026-06-27T15:31:11.666383+00:00",
+      "product_id": "saddle",
+      "product_name": "Кожаное седло",
+      "unit_price": 610,
+      "quantity": 2,
+      "total": 1220
+    }
+  ],
+  "user2": [
+    {
+      "id": "4b8a93e8-a285-4f8f-96cb-0016268bc72b",
+      "created_at": "2026-06-27T16:51:10.706168+00:00",
+      "product_id": "tea",
+      "product_name": "Монгольский чай",
+      "unit_price": 45,
+      "quantity": 4,
+      "total": 180
+    },
+    {
+      "id": "29c3e217-6c00-4f65-abfc-fe811ced56e5",
+      "created_at": "2026-06-27T16:00:01.335544+00:00",
+      "product_id": "boots",
+      "product_name": "Походные сапоги",
+      "unit_price": 320,
+      "quantity": 1,
+      "total": 320
+    }
+  ]
+}
