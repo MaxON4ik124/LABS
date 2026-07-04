@@ -67,6 +67,24 @@ XML:
 - Закрепить контейнеры с приложениями в Worker Nodes, описать для каждой версии: Pod, Deployment
 - Поместить БД в Volume, Secret и описать для каждой из них Pod, Deployment.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE request [
     <!ENTITY demo SYSTEM "file:///C://Users/Maks/Desktop/app/data/users.json">

@@ -1,0 +1,6 @@
+FROM python:3.12-alpine
+
+WORKDIR /proxy
+COPY tcp_proxy.py /proxy/tcp_proxy.py
+
+CMD ["python", "/proxy/tcp_proxy.py"]

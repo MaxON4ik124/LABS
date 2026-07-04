@@ -1,0 +1,31 @@
+Пересобранная версия приложения
+===============================
+
+1. APP_VARIANT задаётся при docker build через ARG и сохраняется в образе через ENV.
+   Допустимые значения: v1, v2, v3.
+2. v1 возвращает processing_result с разобранными полями заказа.
+3. v2 возвращает только success/error, но разрешает HTTP/HTTPS внешние сущности.
+4. v3 отключает DTD, раскрытие сущностей и сетевые загрузки парсером.
+5. Пользовательский интерфейс не содержит упоминаний XML и результатов парсера.
+6. CSS и изображения не изменены.
+7. PostgreSQL является общей базой users/products/orders для всех трёх приложений.
+8. v1/v2 имеют локальный учебный HTTP-экспорт БД для демонстрации XXE/SSRF.
+9. YAML сгруппированы по kind:
+   namespace.yaml — Namespace;
+   db-secret.yaml — Secret;
+   orders-db.yaml — Service;
+   db.yaml — StatefulSet;
+   apps.yaml — Deployments.
+10. Приложения доступны на localhost:5001, 5002, 5003 через hostPort и локальные Docker TCP-прокси.
+11. Добавлены callback_server.py, tcp_proxy.py и Dockerfile.proxy.
+12. Удалены устаревшие createUsers.py, i.bat и SQLite users.db.
+
+Проверки
+========
+- Python-файлы проходят py_compile.
+- YAML-файлы успешно разбираются и содержат только заявленные kind.
+- CSS побайтно совпадает с исходным архивом.
+- В HTML-шаблонах отсутствуют видимые упоминания XML.
+- v1 direct DB export: успешно.
+- v2 blind callback DB export: успешно.
+- v3 external request suppression: успешно.

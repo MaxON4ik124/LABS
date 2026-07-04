@@ -1,66 +1,16 @@
 {% extends "base.html" %}
-
-{% block title %}Регистрация — магазин за тугрики{% endblock %}
-
+{% block title %}Регистрация{% endblock %}
 {% block content %}
-<section class="auth-wrapper">
-    <article class="card auth-card">
-        <h1>Регистрация</h1>
-        <p class="muted">
-            После регистрации вы получите начальный баланс 1000 ₮.
-        </p>
-
-        <form id="register-form" class="form">
-            <label>
-                Логин
-                <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    minlength="3"
-                    maxlength="30"
-                    autocomplete="username"
-                    required
-                >
-            </label>
-
-            <label>
-                Пароль
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    minlength="6"
-                    autocomplete="new-password"
-                    required
-                >
-            </label>
-
-            <label>
-                Повторите пароль
-                <input
-                    id="password-confirm"
-                    name="passwordConfirm"
-                    type="password"
-                    minlength="6"
-                    autocomplete="new-password"
-                    required
-                >
-            </label>
-
-            <button class="button button-primary" type="submit">
-                Создать аккаунт
-            </button>
-        </form>
-
-        <p class="auth-link">
-            Уже есть аккаунт?
-            <a href="{{ url_for('login_page') }}">Войти</a>
-        </p>
-    </article>
+<section class="card auth">
+    <h1>Регистрация</h1>
+    <form id="register-form">
+        <input id="username" placeholder="Логин" required>
+        <input id="password" type="password" minlength="6" placeholder="Пароль" required>
+        <button>Создать аккаунт</button>
+    </form>
+    <a href="{{ url_for('login_page') }}">Уже есть аккаунт</a>
 </section>
 {% endblock %}
-
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/register.js') }}"></script>
 {% endblock %}

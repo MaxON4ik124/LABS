@@ -1,34 +1,21 @@
-let toastTimer = null;
-
-function showToast(message, type = "success") {
-    const toast = document.getElementById("toast");
-
-    if (!toast) {
-        return;
-    }
-
-    clearTimeout(toastTimer);
-
-    toast.textContent = message;
-    toast.className = `toast ${type}`;
-
-    toastTimer = setTimeout(() => {
-        toast.classList.add("hidden");
-    }, 3500);
+function showMessage(text, error=false) {
+    const box = document.getElementById("message");
+    box.textContent = text;
+    box.className = error ? "error" : "success";
+    setTimeout(() => box.className = "", 3000);
 }
 
-async function parseJsonResponse(response) {
-    let data;
-
-    try {
-        data = await response.json();
-    } catch {
-        throw new Error("Сервер вернул некорректный ответ");
-    }
-
-    if (!response.ok || data.success === false) {
-        throw new Error(data.error || "Ошибка запроса");
-    }
-
+async function json(response) {
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Ошибка");
     return data;
+}
+
+function escapeXml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&apos;");
 }
