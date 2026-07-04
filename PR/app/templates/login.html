@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+<section class="card auth">
+    <h1>Вход</h1>
+    <form id="login-form">
+        <input id="username" placeholder="Логин" required>
+        <input id="password" type="password" placeholder="Пароль" required>
+        <button>Войти</button>
+    </form>
+    <a href="{{ url_for('register_page') }}">Регистрация</a>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
+{% endblock %}

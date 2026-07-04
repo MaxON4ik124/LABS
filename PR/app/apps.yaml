@@ -1,0 +1,250 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-v1
+  namespace: xxe-lab
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: shop-v1
+  template:
+    metadata:
+      labels:
+        app: shop-v1
+        app-variant: v1
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        app-variant: v1
+      initContainers:
+        - name: wait-for-db
+          image: xxe-demo:v1
+          imagePullPolicy: Never
+          command:
+            - python
+            - -c
+            - |
+              import socket, time
+              for _ in range(120):
+                  try:
+                      socket.create_connection(("shop-db", 5432), 2).close()
+                      raise SystemExit(0)
+                  except OSError:
+                      time.sleep(2)
+              raise SystemExit(1)
+      containers:
+        - name: shop
+          image: xxe-demo:v1
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 5000
+              hostPort: 5001
+              protocol: TCP
+          env:
+            - name: LAB_DB_EXPORT_ENABLED
+              value: "true"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: shop-db-secret
+                  key: DATABASE_URL
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: shop-db-secret
+                  key: FLASK_SECRET_KEY
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-v2
+  namespace: xxe-lab
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: shop-v2
+  template:
+    metadata:
+      labels:
+        app: shop-v2
+        app-variant: v2
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        app-variant: v2
+      initContainers:
+        - name: wait-for-db
+          image: xxe-demo:v2
+          imagePullPolicy: Never
+          command:
+            - python
+            - -c
+            - |
+              import socket, time
+              for _ in range(120):
+                  try:
+                      socket.create_connection(("shop-db", 5432), 2).close()
+                      raise SystemExit(0)
+                  except OSError:
+                      time.sleep(2)
+              raise SystemExit(1)
+      containers:
+        - name: shop
+          image: xxe-demo:v2
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 5000
+              hostPort: 5002
+              protocol: TCP
+          env:
+            - name: LAB_DB_EXPORT_ENABLED
+              value: "true"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: shop-db-secret
+                  key: DATABASE_URL
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: shop-db-secret
+                  key: FLASK_SECRET_KEY
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-v3
+  namespace: xxe-lab
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: shop-v3
+  template:
+    metadata:
+      labels:
+        app: shop-v3
+        app-variant: v3
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        app-variant: v3
+      initContainers:
+        - name: wait-for-db
+          image: xxe-demo:v3
+          imagePullPolicy: Never
+          command:
+            - python
+            - -c
+            - |
+              import socket, time
+              for _ in range(120):
+                  try:
+                      socket.create_connection(("shop-db", 5432), 2).close()
+                      raise SystemExit(0)
+                  except OSError:
+                      time.sleep(2)
+              raise SystemExit(1)
+      containers:
+        - name: shop
+          image: xxe-demo:v3
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 5000
+              hostPort: 5003
+              protocol: TCP
+          env:
+            - name: LAB_DB_EXPORT_ENABLED
+              value: "false"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: shop-db-secret
+                  key: DATABASE_URL
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: shop-db-secret
+                  key: FLASK_SECRET_KEY
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

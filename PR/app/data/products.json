@@ -1,0 +1,62 @@
+{
+  "compass": {
+    "name": "Компас",
+    "description": "Компас для путешествий по лесу.",
+    "price": 60,
+    "image_path": "img/compas.png"
+  },
+  "lamp": {
+    "name": "Фонарь",
+    "description": "Фонарь для ночных походов.",
+    "price": 90,
+    "image_path": "img/lantern.png"
+  },
+  "map": {
+    "name": "Карта",
+    "description": "Карта местности.",
+    "price": 125,
+    "image_path": "img/map.png"
+  },
+  "cauldron": {
+    "name": "Котелок",
+    "description": "Котелок для приготовления пищи.",
+    "price": 200,
+    "image_path": "img/cauldron.png"
+  },
+  "axe": {
+    "name": "Топор",
+    "description": "Топор для рубки дров.",
+    "price": 150,
+    "image_path": "img/axe.png"
+  },
+  "knife": {
+    "name": "Нож",
+    "description": "Нож для приготовления пищи.",
+    "price": 100,
+    "image_path": "img/knife.png"
+  },
+  "shovel": {
+    "name": "Лопата",
+    "description": "Лопата для копки земли.",
+    "price": 130,
+    "image_path": "img/shovel.png"
+  },
+  "tent": {
+    "name": "Палатка",
+    "description": "Палатка для ночевки на природе.",
+    "price": 300,
+    "image_path": "img/tent.png"
+  },
+  "flint_and_steel": {
+    "name": "Огниво",
+    "description": "Огниво для разведения огня.",
+    "price": 80,
+    "image_path": "img/flint_and_steel.png"
+  },
+  "pistol": {
+    "name": "Сигнальный пистолет",
+    "description": "Сигнальный пистолет для привлечения внимания.",
+    "price": 500,
+    "image_path": "img/pistol.png"
+  }
+}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Магазин{% endblock %}
+{% block content %}
+<h1>Товары в ассортименте</h1>
+
+<section class="grid">
+{% for product in products %}
+<img
+    class="product-image"
+    src="{{ url_for('static', filename=product.image_path) }}"
+    alt="{{ product.name }}"
+>
+<article class="card">
+    <h2>{{ product.name }}</h2>
+    <p>{{ product.description }}</p>
+    <strong>{{ product.price }} Тугриков</strong>
+    <button
+        class="buy"
+        data-id="{{ product.id }}"
+        data-name="{{ product.name }}"
+        data-price="{{ product.price }}"
+    >Купить</button>
+</article>
+
+{% endfor %}
+</section>
+
+<dialog id="dialog">
+    <form id="purchase-form">
+        <h2 id="selected-name"></h2>
+        <input id="quantity" type="number" min="1" value="1" required>
+        <textarea id="comment" placeholder="Комментарий к заказу"></textarea>
+        <button type="submit">Купить</button>
+        <button type="button" id="cancel">Отмена</button>
+    </form>
+</dialog>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/shop.js') }}"></script>
+{% endblock %}

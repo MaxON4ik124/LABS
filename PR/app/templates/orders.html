@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Заказы{% endblock %}
+{% block content %}
+<h1>История заказов</h1>
+{% if orders %}
+<table>
+    <tr><th>Дата</th><th>Товар</th><th>Количество</th><th>Сумма</th><th>Комментарий</th></tr>
+    {% for order in orders %}
+    <tr>
+        <td>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td>{{ order.product_name }}</td>
+        <td>{{ order.quantity }}</td>
+        <td>{{ order.total }} Тугриков</td>
+        <td><pre>{{ order.comment }}</pre></td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>Заказов пока нет.</p>
+{% endif %}
+{% endblock %}

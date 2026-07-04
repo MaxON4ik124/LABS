@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Магазин для путешественников{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header>
+    <a class="brand" href="{{ url_for('index') }}">Магазин для путешественников</a>
+    {% if current_user %}
+    <nav>
+        <div class="user"><strong>{{ current_user.username }}</strong></div>
+        <a href="{{ url_for('shop_page') }}">Магазин</a>
+        <a href="{{ url_for('orders_page') }}">Заказы</a>
+        <span id="balance">{{ current_balance }}</span>Тугриков
+        <form action="{{ url_for('logout') }}" method="post">
+            <button>Выйти</button>
+        </form>
+    </nav>
+    {% endif %}
+</header>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<div id="message"></div>
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
