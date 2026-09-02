@@ -5,17 +5,17 @@ using namespace std;
 class MyString
 {
     public:
-        int capasity;
+        int capacity;
         string str;
 
     MyString(char* source_str)
     {
         this->str = source_str;
-        this->capasity = str.length();
+        this->capacity = str.length();
     }
-    MyString(char* source_str, int capasity)
+    MyString(char* source_str, int capacity)
     {
         this->str = source_str;
-        this->capasity = capasity;
+        this->capacity = capacity;
     }    
-}
+};
