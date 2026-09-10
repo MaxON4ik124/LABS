@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <string.h>
 using namespace std;
 
 class MyString
@@ -180,7 +181,16 @@ class MyString
 
     void insert(int index, int cnt, char ch)
     {
-        
+        int new_size = this->size + cnt;
+        char* new_str = new char[new_size + 1];
+        strncpy(new_str, this->str, index);
+        for (int i = 0; i < cnt; i++) new_str[index + i] = ch;
+        strncpy(new_str + index + cnt, this->str + index, this->size - index);
+        new_str[new_size] = '\0';
+        delete[] this->str;
+        this->str = new_str;
+        this->size = new_size;
+        this->capacity = new_size + 1;
     }
     
 };
@@ -199,8 +209,11 @@ void pstr(const MyString& my_str)
 int main()
 {
     MyString str;
-    str = "hello";
-    cout << str.empty() << endl;
-    MyString str2;
-    cout << str2.empty() << endl;
+    str = "aaaaa";
+    cout << str.c_str() << endl;
+    str.insert(0,1,'!');
+    pstr(str);
+    str.insert(3,2,'@');
+    pstr(str);
+
 }
