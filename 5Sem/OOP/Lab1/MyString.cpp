@@ -3,6 +3,7 @@
 #include <string.h>
 using namespace std;
 
+
 class MyString
 {
     public:
@@ -19,18 +20,10 @@ class MyString
     }
     MyString(const char* source_str)
     {
-        int size = 0;
-        while (source_str[size] != '\0') size++;
-        this->size = size;
-        this->str = new char[size+1];
-        int i = 0;
-        while (source_str[i] != '\0')
-        {
-            this->str[i] = source_str[i];
-            i++;
-        }
-        this->str[i] = '\0';
-        this->capacity = size+1;
+        this->size = strlen(source_str);
+        this->capacity = this->size + 1;
+        this->str = new char[this->capacity];
+        strcpy(this->str, source_str);
     }
     MyString(const string& source_str)
     {
@@ -192,6 +185,7 @@ class MyString
         this->size = new_size;
         this->capacity = new_size + 1;
     }
+
     
 };
 
@@ -208,12 +202,13 @@ void pstr(const MyString& my_str)
 
 int main()
 {
-    MyString str;
-    str = "aaaaa";
-    cout << str.c_str() << endl;
-    str.insert(0,1,'!');
-    pstr(str);
-    str.insert(3,2,'@');
-    pstr(str);
+    MyString str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    printf("%d", sizeof(str));
+    // str = "aaaaa";
+    // cout << str.c_str() << endl;
+    // str.insert(0,1,'!');
+    // pstr(str);
+    // str.insert(3,2,'@');
+    // pstr(str);
 
 }
