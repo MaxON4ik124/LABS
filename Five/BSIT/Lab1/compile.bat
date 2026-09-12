@@ -1,0 +1,2 @@
+g++ -std=c++17 -O2 -Wall -Wextra server.cpp collect.cpp crypto.cpp -o server.exe -lws2_32 -ladvapi32 -lbcrypt
+g++ -std=c++17 -O2 -Wall -Wextra client.cpp crypto.cpp -o client.exe -lws2_32 -ladvapi32 -lbcrypt
