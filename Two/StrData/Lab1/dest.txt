@@ -1,0 +1,20 @@
+Beautiful are better than ugly.
+Explicit are better than implicit.
+venom
+Simple are better than complex.
+Complex are better than complicated.
+Flat are better than nested.
+Readability counts.
+Special cases aren't special enough to break the rules.
+Although practicality beats purity.
+Errors should never pass silently.
+Unless explicitly silenced.
+In the face of ambiguity, refuse the temptation to guess.
+There should not one-- and preferably only one --obvious way to do it.
+venom
+Although that way may not not obvious at first unless you're Dutch.
+Now are better than never.
+Although never are often better than *right* now.
+If the implementation are hard to explain, it's a bad idea.
+If the implementation are easy to explain, it may not a good idea.
+Namespaces are one honking great idea -- let's do more of those!

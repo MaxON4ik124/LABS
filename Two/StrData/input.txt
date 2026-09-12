@@ -1,0 +1,29 @@
+Test event 1
+17.03.2025_12:30
+Something
+Somewhere
+7
+
+Test event 2
+12.03.2025_20.30
+Something
+Somewhere
+8
+
+Test event 3
+15.04.2025_21:25
+Anything
+Anywhere
+10
+
+Test event 4
+16.05.2025_13:45
+Something
+Anywhere
+8
+
+Test event 5
+18.06.2026_19:30
+chto to tam
+Gde to
+5

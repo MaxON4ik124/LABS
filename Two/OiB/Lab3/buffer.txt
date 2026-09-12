@@ -1,0 +1,2 @@
+xxxxxxxxxxxxxxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+[заполение буфера]     [RBP]     [RIP]          [Шелл-код]

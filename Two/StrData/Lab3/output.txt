@@ -1,0 +1,35 @@
+Test event 1
+17.3.2025_12:30
+Monday
+Something
+Somewhere
+7
+
+Test event 2
+12.3.2025_20:30
+Wednesday
+Something
+Somewhere
+8
+
+Test event 3
+15.4.2025_21:25
+Tuesday
+Anything
+Anywhere
+10
+
+Test event 5
+18.6.2026_19:30
+Thursday
+chto to tam
+Gde to
+5
+
+Test event 3
+15.4.2025_21:25
+Tuesday
+Lab
+Polytech
+10
+
