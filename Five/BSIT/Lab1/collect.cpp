@@ -171,7 +171,7 @@ void GetFreeSpace(DiskData *disks)
 {
     for (DiskData *disk = disks; disk != nullptr; disk = disk->Next)
     {
-        disk->FreeSpaceGb = -1; // Unavailable media or insufficient permissions.
+        disk->FreeSpaceGb = -1;
         DWORD sectorsPerCluster = 0;
         DWORD bytesPerSector = 0;
         DWORD freeClusters = 0;
