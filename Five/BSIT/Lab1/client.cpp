@@ -137,7 +137,6 @@ class Connection
         }
         sendAll(crypto.beginClientHandshake());
         crypto.finishClientHandshake(receiveExact(CryptoSession::HelloSize));
-        // Confirm that both peers derived matching keys before reporting success.
         if (request("time").rfind("OK ", 0) != 0)
         {
             throw runtime_error("Encrypted session confirmation failed");

@@ -81,7 +81,7 @@ wstring GetOS()
     bool hasRevision =
         RegGetValueW(key, nullptr, L"UBR", RRF_RT_REG_DWORD, nullptr, &revision, &size) == ERROR_SUCCESS;
     RegCloseKey(key);
-    // Some Windows 11 installations retain Windows 10 in ProductName.
+    
     if (product.rfind(L"Windows 10", 0) == 0 && !build.empty() &&
         wcstoul(build.c_str(), nullptr, 10) >= 22000)
     {

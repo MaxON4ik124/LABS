@@ -246,18 +246,32 @@ string dispatch(string request)
         {
             out << "server_started=";
             printTime(out, serverStarted);
-            out << " uptime_ms=" << GetTickCount64() - serverStartTick;
+            ULONGLONG uptimeMs = GetTickCount64() - serverStartTick;
+            ULONGLONG seconds = uptimeMs / 1000;
+            ULONGLONG hours = seconds / 3600;
+            ULONGLONG minutes = (seconds % 3600) / 60;
+            ULONGLONG secs = seconds % 60;
+            out << " uptime=" << setfill('0') << setw(2) << hours << ':' << setw(2) << minutes << ':'
+                << setw(2) << secs;
         }
         else if (command == "stime")
         {
-            out << "uptime_ms=" << GetUptime();
+            ULONGLONG uptimeMs = GetUptime();
+            ULONGLONG seconds = uptimeMs / 1000;
+            ULONGLONG hours = seconds / 3600;
+            ULONGLONG minutes = (seconds % 3600) / 60;
+            ULONGLONG secs = seconds % 60;
+            out << "uptime=" << setfill('0') << setw(2) << hours << ':' << setw(2) << minutes << ':' << setw(2)
+                << secs;
         }
         else if (command == "ram")
         {
             auto ram = GetRAMInfo();
-            out << "load_percent=" << ram.dwMemoryLoad << " total_bytes=" << ram.ullTotalPhys
-                << " available_bytes=" << ram.ullAvailPhys
-                << " used_bytes=" << ram.ullTotalPhys - ram.ullAvailPhys;
+            double totalGb = ram.ullTotalPhys / (1024.0 * 1024.0 * 1024.0);
+            double availableGb = ram.ullAvailPhys / (1024.0 * 1024.0 * 1024.0);
+            double usedGb = (ram.ullTotalPhys - ram.ullAvailPhys) / (1024.0 * 1024.0 * 1024.0);
+            out << "load_percent=" << ram.dwMemoryLoad << " total_gb=" << fixed << setprecision(2) << totalGb
+                << " available_gb=" << availableGb << " used_gb=" << usedGb;
         }
         else if (command == "drive" || command == "space")
         {
