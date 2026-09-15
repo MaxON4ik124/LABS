@@ -89,7 +89,7 @@ void derive(BCRYPT_SECRET_HANDLE secret, HCRYPTPROV provider, const string &labe
         throw runtime_error("CryptSetKeyParam failed");
     }
 }
-} // namespace
+}
 
 CryptoSession::~CryptoSession()
 {

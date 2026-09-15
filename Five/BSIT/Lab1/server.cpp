@@ -187,7 +187,7 @@ bool flush(Connection &client)
     }
     if (!client.pendingLog.empty())
     {
-        // Log only after the entire encrypted record has been handed to Winsock.
+        
         logEvent("SENT", client.socket, client.peer,
                  "wire_bytes=" + to_string(client.output.size()) + " " + client.pendingLog);
         SecureZeroMemory(client.pendingLog.data(), client.pendingLog.size());
@@ -438,7 +438,7 @@ bool exchange(Connection &client)
     }
     catch (const exception &error)
     {
-        // Invalid handshake, tag or sequence: close without a plaintext error.
+        
         client.closeReason = string("protocol error: ") + error.what();
         return false;
     }
@@ -610,7 +610,7 @@ int serve(unsigned short port)
     }
     return 0;
 }
-} // namespace
+}
 
 int run_tcp_server(unsigned short port)
 {
