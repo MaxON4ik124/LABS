@@ -377,8 +377,53 @@ class MyString
 
     void replace(int index, int count, const char* source_str, int s_index, int s_count)
     {
-        
+        int new_size = this->size_ - count + s_count;
+        if (new_size + 1 > this->capacity_) this->capacity_ = new_size + 1;
+        char* new_str = new char[new_size + 1];
+        memcpy(new_str, this->str, index);
+        memcpy(new_str + index, source_str + s_index, s_count);
+        strcat(new_str, this->str + index + count);
+        this->size_ = new_size;
+        this->str = new_str;
     }
+    void replace(int index, int count, string source_str, int s_index, int s_count)
+    {
+        replace(index, count, source_str.c_str(), s_index, s_count);
+    }
+    void replace(int index, int count, MyString source_str, int s_index, int s_count)
+    {
+        replace(index, count, source_str.c_str(), s_index, s_count);
+    }
+
+    MyString substr(int index)
+    {
+        MyString res;
+        int substr_size = this->size_ - index;
+        res.str = new char[substr_size + 1];
+        memcpy(res.str, this->str + index, substr_size);
+        res.size_ = substr_size;
+        res.capacity_ = substr_size + 1;
+        return res;
+    }
+
+    MyString substr(int index, int count)
+    {
+        MyString res;
+        res.str = new char[count + 1];
+        memcpy(res.str, this->str + index, count);
+        res.size_ = count;
+        res.capacity_ = count + 1;
+        return res;
+    }
+
+    MyString& operator+(const char* source_str)
+    {
+        append(source_str);
+        return *this;
+    }
+
+
+
 
     
 };
@@ -396,10 +441,12 @@ void pstr(const MyString& my_str)
 
 int main()
 {
-    MyString str("hello amazing world");
-    const char* s1 = "wonderful";
-    str.replace(6, 7, s1, 6);
-    pstr(str);
+   MyString st;
+   const char* s1 = "grrrr";
+   const char* s2 = " mondays";
+   st = st + s1;
+   st = st + s2;
+   pstr(st);
 
 
 }
