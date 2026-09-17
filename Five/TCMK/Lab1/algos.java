@@ -120,8 +120,55 @@ public class algos {
             if(comment)
                 System.out.printf("%d итерация: g=%s, x=%s, y=%s%n", iteration, v, x2, y2);
         }
-
         return new BigInteger[] {common.multiply(v), x2, y2};
+    }
+
+    public static BigInteger[] ExtendedGcdRR(BigInteger a, BigInteger b, boolean comment)
+    {
+        if (a.equals(BigInteger.ZERO)) {
+            return new BigInteger[] { b, BigInteger.ZERO, BigInteger.ONE };
+        }
+        if (b.equals(BigInteger.ZERO)) {
+            return new BigInteger[] { a, BigInteger.ONE, BigInteger.ZERO };
+        }
+
+        BigInteger oldR = a;
+        BigInteger r = b;
+        BigInteger oldX = BigInteger.ONE;
+        BigInteger oldY = BigInteger.ZERO;
+        BigInteger x = BigInteger.ZERO;
+        BigInteger y = BigInteger.ONE;
+        int iteration = 0;
+
+
+        while(!r.equals(BigInteger.ZERO))
+        {
+
+            BigInteger q =
+            (oldR.multiply(BigInteger.valueOf(2L)).add(r)).
+            divide
+            (r.multiply(BigInteger.valueOf(2L)));
+
+            BigInteger nextR = oldR.subtract(q.multiply(r));
+
+            oldR = r.abs();
+            r = nextR.abs();
+
+            BigInteger nextX = oldX.subtract(q.multiply(x));
+            BigInteger nextY = oldY.subtract(q.multiply(y));
+
+
+            oldX = x;
+            x = nextX;
+
+            oldY = y;
+            y = nextY;
+
+            iteration++;
+            if(comment)
+                System.out.printf("%d итерация: r=%s, x=%s, y=%s%n", iteration, oldR, oldX, oldY);
+        }
+        return new BigInteger[] { oldR.abs(), oldX, oldY };
     }
 
     public static void main(String[] args) {
@@ -132,6 +179,9 @@ public class algos {
         System.out.println("Ответ: " + Arrays.toString(result));
         System.out.println("Бинарный расширенный алгоритм Евклида:");
         result = BinaryExtendedGcd(a, b, false);
+        System.out.println("Ответ: " + Arrays.toString(result));
+        System.out.println("Расширенный алгоритм Евклида с усеченными остатками:");
+        result = ExtendedGcdRR(a, b, false);
         System.out.println("Ответ: " + Arrays.toString(result));
     }
 }

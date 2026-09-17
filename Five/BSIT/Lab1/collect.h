@@ -47,9 +47,15 @@ struct ServerInfo
     FileInfo FileData;
 };
 
+struct SystemStartInfo
+{
+    SYSTEMTIME StartTime;
+    ULONGLONG UptimeMs;
+};
+
 wstring GetOS();
 SYSTEMTIME GetTime();
-SYSTEMTIME GetStartTime();
+SystemStartInfo GetStartTime();
 ULONGLONG GetUptime();
 MEMORYSTATUSEX GetRAMInfo();
 DiskData *GetDrives();

@@ -18,14 +18,21 @@ using namespace std;
 namespace
 {
 volatile LONG stopping = 0;
-const SYSTEMTIME serverStarted = GetTime();
-const ULONGLONG serverStartTick = GetTickCount64();
 
 void printTime(ostream &out, const SYSTEMTIME &time)
 {
     out << setfill('0') << setw(4) << time.wYear << '-' << setw(2) << time.wMonth << '-' << setw(2)
         << time.wDay << ' ' << setw(2) << time.wHour << ':' << setw(2) << time.wMinute << ':' << setw(2)
         << time.wSecond;
+}
+
+void printDuration(ostream &out, ULONGLONG milliseconds)
+{
+    ULONGLONG seconds = milliseconds / 1000;
+    ULONGLONG hours = seconds / 3600;
+    ULONGLONG minutes = (seconds % 3600) / 60;
+    ULONGLONG secs = seconds % 60;
+    out << setfill('0') << setw(2) << hours << ':' << setw(2) << minutes << ':' << setw(2) << secs;
 }
 
 const char *driveTypeName(UINT type)
@@ -244,25 +251,17 @@ string dispatch(string request)
         }
         else if (command == "starttime")
         {
-            out << "server_started=";
-            printTime(out, serverStarted);
-            ULONGLONG uptimeMs = GetTickCount64() - serverStartTick;
-            ULONGLONG seconds = uptimeMs / 1000;
-            ULONGLONG hours = seconds / 3600;
-            ULONGLONG minutes = (seconds % 3600) / 60;
-            ULONGLONG secs = seconds % 60;
-            out << " uptime=" << setfill('0') << setw(2) << hours << ':' << setw(2) << minutes << ':'
-                << setw(2) << secs;
+            SystemStartInfo systemStart = GetStartTime();
+            out << "os_started=";
+            printTime(out, systemStart.StartTime);
+            out << " uptime=";
+            printDuration(out, systemStart.UptimeMs);
         }
         else if (command == "stime")
         {
             ULONGLONG uptimeMs = GetUptime();
-            ULONGLONG seconds = uptimeMs / 1000;
-            ULONGLONG hours = seconds / 3600;
-            ULONGLONG minutes = (seconds % 3600) / 60;
-            ULONGLONG secs = seconds % 60;
-            out << "uptime=" << setfill('0') << setw(2) << hours << ':' << setw(2) << minutes << ':' << setw(2)
-                << secs;
+            out << "uptime=";
+            printDuration(out, uptimeMs);
         }
         else if (command == "ram")
         {

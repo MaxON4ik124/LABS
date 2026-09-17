@@ -1,4 +1,6 @@
 #include <stdexcept>
+#include <sstream>
+#include <vector>
 #include "collect.h"
 
 using namespace std;
@@ -44,7 +46,171 @@ DWORD ReadSecurity(const WCHAR *path, SECURITY_INFORMATION information, PSID *ow
     return GetNamedSecurityInfoW(path, SE_FILE_OBJECT, information, owner, nullptr, dacl, nullptr,
                                  descriptor);
 }
-} // namespace
+
+wstring SidToString(PSID sid)
+{
+    LPWSTR text = nullptr;
+    if (!ConvertSidToStringSidW(sid, &text))
+    {
+        return L"<invalid SID>";
+    }
+    wstring result(text);
+    LocalFree(text);
+    return result;
+}
+
+wstring SidToName(PSID sid)
+{
+    DWORD nameSize = 0;
+    DWORD domainSize = 0;
+    SID_NAME_USE type{};
+    LookupAccountSidW(nullptr, sid, nullptr, &nameSize, nullptr, &domainSize, &type);
+    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+    {
+        return L"<unresolved>";
+    }
+
+    wstring name(nameSize, L'\0');
+    wstring domain(domainSize, L'\0');
+    if (!LookupAccountSidW(nullptr, sid, name.data(), &nameSize, domain.data(), &domainSize, &type))
+    {
+        return L"<unresolved>";
+    }
+
+    name.resize(wcslen(name.c_str()));
+    domain.resize(wcslen(domain.c_str()));
+    return domain.empty() ? name : domain + L"\\" + name;
+}
+
+void AppendText(wstringstream &out, bool &first, const WCHAR *text)
+{
+    if (!first)
+    {
+        out << L", ";
+    }
+    out << text;
+    first = false;
+}
+
+wstring AceTypeName(BYTE type)
+{
+    switch (type)
+    {
+    case ACCESS_ALLOWED_ACE_TYPE:
+        return L"ALLOW";
+    case ACCESS_DENIED_ACE_TYPE:
+        return L"DENY";
+    case SYSTEM_AUDIT_ACE_TYPE:
+        return L"AUDIT";
+    case SYSTEM_ALARM_ACE_TYPE:
+        return L"ALARM";
+    case ACCESS_ALLOWED_OBJECT_ACE_TYPE:
+        return L"ALLOW_OBJECT";
+    case ACCESS_DENIED_OBJECT_ACE_TYPE:
+        return L"DENY_OBJECT";
+    case SYSTEM_AUDIT_OBJECT_ACE_TYPE:
+        return L"AUDIT_OBJECT";
+    case ACCESS_ALLOWED_CALLBACK_ACE_TYPE:
+        return L"ALLOW_CALLBACK";
+    case ACCESS_DENIED_CALLBACK_ACE_TYPE:
+        return L"DENY_CALLBACK";
+    case SYSTEM_AUDIT_CALLBACK_ACE_TYPE:
+        return L"AUDIT_CALLBACK";
+    default:
+        return L"UNKNOWN(" + to_wstring(type) + L")";
+    }
+}
+
+wstring AceFlagsName(BYTE flags)
+{
+    wstringstream out;
+    bool first = true;
+    if (flags & OBJECT_INHERIT_ACE) AppendText(out, first, L"OBJECT_INHERIT");
+    if (flags & CONTAINER_INHERIT_ACE) AppendText(out, first, L"CONTAINER_INHERIT");
+    if (flags & NO_PROPAGATE_INHERIT_ACE) AppendText(out, first, L"NO_PROPAGATE_INHERIT");
+    if (flags & INHERIT_ONLY_ACE) AppendText(out, first, L"INHERIT_ONLY");
+    if (flags & INHERITED_ACE) AppendText(out, first, L"INHERITED");
+    if (flags & SUCCESSFUL_ACCESS_ACE_FLAG) AppendText(out, first, L"SUCCESSFUL_ACCESS");
+    if (flags & FAILED_ACCESS_ACE_FLAG) AppendText(out, first, L"FAILED_ACCESS");
+    return first ? L"NONE" : out.str();
+}
+
+wstring FileMaskNames(DWORD mask)
+{
+    struct Bit
+    {
+        DWORD value;
+        const WCHAR *name;
+    };
+    const Bit bits[] = {
+        {FILE_READ_DATA, L"FILE_READ_DATA/FILE_LIST_DIRECTORY"},
+        {FILE_WRITE_DATA, L"FILE_WRITE_DATA/FILE_ADD_FILE"},
+        {FILE_APPEND_DATA, L"FILE_APPEND_DATA/FILE_ADD_SUBDIRECTORY"},
+        {FILE_READ_EA, L"FILE_READ_EA"},
+        {FILE_WRITE_EA, L"FILE_WRITE_EA"},
+        {FILE_EXECUTE, L"FILE_EXECUTE/FILE_TRAVERSE"},
+        {FILE_DELETE_CHILD, L"FILE_DELETE_CHILD"},
+        {FILE_READ_ATTRIBUTES, L"FILE_READ_ATTRIBUTES"},
+        {FILE_WRITE_ATTRIBUTES, L"FILE_WRITE_ATTRIBUTES"},
+        {DELETE, L"DELETE"},
+        {READ_CONTROL, L"READ_CONTROL"},
+        {WRITE_DAC, L"WRITE_DAC"},
+        {WRITE_OWNER, L"WRITE_OWNER"},
+        {SYNCHRONIZE, L"SYNCHRONIZE"},
+        {ACCESS_SYSTEM_SECURITY, L"ACCESS_SYSTEM_SECURITY"},
+        {GENERIC_READ, L"GENERIC_READ"},
+        {GENERIC_WRITE, L"GENERIC_WRITE"},
+        {GENERIC_EXECUTE, L"GENERIC_EXECUTE"},
+        {GENERIC_ALL, L"GENERIC_ALL"},
+    };
+
+    wstringstream out;
+    bool first = true;
+    for (const auto &bit : bits)
+    {
+        if ((mask & bit.value) == bit.value)
+        {
+            AppendText(out, first, bit.name);
+        }
+    }
+    return first ? L"NONE" : out.str();
+}
+
+wstring BitNumbers(DWORD mask)
+{
+    wstringstream out;
+    bool first = true;
+    for (DWORD bit = 0; bit < 32; ++bit)
+    {
+        if ((mask & (1u << bit)) != 0)
+        {
+            if (!first)
+            {
+                out << L",";
+            }
+            out << bit;
+            first = false;
+        }
+    }
+    return first ? L"none" : out.str();
+}
+
+PSID AceSid(PVOID ace)
+{
+    auto header = static_cast<PACE_HEADER>(ace);
+    switch (header->AceType)
+    {
+    case ACCESS_ALLOWED_OBJECT_ACE_TYPE:
+        return reinterpret_cast<PSID>(&static_cast<ACCESS_ALLOWED_OBJECT_ACE *>(ace)->SidStart);
+    case ACCESS_DENIED_OBJECT_ACE_TYPE:
+        return reinterpret_cast<PSID>(&static_cast<ACCESS_DENIED_OBJECT_ACE *>(ace)->SidStart);
+    case SYSTEM_AUDIT_OBJECT_ACE_TYPE:
+        return reinterpret_cast<PSID>(&static_cast<SYSTEM_AUDIT_OBJECT_ACE *>(ace)->SidStart);
+    default:
+        return reinterpret_cast<PSID>(&static_cast<ACCESS_ALLOWED_ACE *>(ace)->SidStart);
+    }
+}
+}
 
 ULONGLONG GetUptime()
 {
@@ -102,21 +268,27 @@ SYSTEMTIME GetTime()
     return time;
 }
 
-SYSTEMTIME GetStartTime()
+SystemStartInfo GetStartTime()
 {
+    SystemStartInfo result{};
+    result.UptimeMs = GetTickCount64();
+
     FILETIME now{};
     GetSystemTimeAsFileTime(&now);
     ULARGE_INTEGER ticks{};
     ticks.LowPart = now.dwLowDateTime;
     ticks.HighPart = now.dwHighDateTime;
-    ticks.QuadPart -= GetTickCount64() * 10000ULL;
+    ticks.QuadPart -= result.UptimeMs * 10000ULL;
     FILETIME start{ticks.LowPart, ticks.HighPart};
     SYSTEMTIME utc{}, local{};
     if (FileTimeToSystemTime(&start, &utc))
     {
-        SystemTimeToTzSpecificLocalTime(nullptr, &utc, &local);
+        if (SystemTimeToTzSpecificLocalTime(nullptr, &utc, &local))
+        {
+            result.StartTime = local;
+        }
     }
-    return local;
+    return result;
 }
 
 MEMORYSTATUSEX GetRAMInfo()
@@ -238,24 +410,55 @@ FileInfo GetOwner(const WCHAR *path)
 
 wstring GetAccess(const WCHAR *path)
 {
+    PACL dacl = nullptr;
     PSECURITY_DESCRIPTOR descriptor = nullptr;
-    DWORD error = ReadSecurity(path, DACL_SECURITY_INFORMATION, nullptr, nullptr, &descriptor);
+    DWORD error = ReadSecurity(path, DACL_SECURITY_INFORMATION, nullptr, &dacl, &descriptor);
     if (error != ERROR_SUCCESS)
     {
         throw runtime_error("Windows error " + to_string(error));
     }
-    LPWSTR text = nullptr;
-    if (!ConvertSecurityDescriptorToStringSecurityDescriptorW(descriptor, SDDL_REVISION_1,
-                                                              DACL_SECURITY_INFORMATION, &text, nullptr))
+
+    if (dacl == nullptr)
+    {
+        LocalFree(descriptor);
+        return L"DACL: not present";
+    }
+
+    ACL_SIZE_INFORMATION aclInfo{};
+    if (!GetAclInformation(dacl, &aclInfo, sizeof(aclInfo), AclSizeInformation))
     {
         error = GetLastError();
         LocalFree(descriptor);
         throw runtime_error("Windows error " + to_string(error));
     }
-    wstring result(text);
-    LocalFree(text);
+
+    wstringstream result;
+    result << L"DACL ACE count=" << aclInfo.AceCount;
+    for (DWORD index = 0; index < aclInfo.AceCount; ++index)
+    {
+        PVOID rawAce = nullptr;
+        if (!GetAce(dacl, index, &rawAce))
+        {
+            error = GetLastError();
+            LocalFree(descriptor);
+            throw runtime_error("Windows error " + to_string(error));
+        }
+
+        auto header = static_cast<PACE_HEADER>(rawAce);
+        DWORD mask = reinterpret_cast<ACCESS_ALLOWED_ACE *>(rawAce)->Mask;
+        PSID sid = AceSid(rawAce);
+
+        result << L" ACE[" << index << L"] {sid=" << SidToString(sid)
+               << L"; name=" << SidToName(sid)
+               << L"; type=" << AceTypeName(header->AceType)
+               << L"; scope=" << AceFlagsName(header->AceFlags)
+               << L"; mask=" << mask << L" (0x" << hex << uppercase << mask << dec << L")"
+               << L"; bits=" << BitNumbers(mask)
+               << L"; rights=" << FileMaskNames(mask) << L"}";
+    }
+
     LocalFree(descriptor);
-    return result;
+    return result.str();
 }
 
 void get_info(ServerInfo *server)
@@ -263,8 +466,9 @@ void get_info(ServerInfo *server)
     wstring os = GetOS();
     wcsncpy(server->OsType, os.c_str(), 100);
     server->SysTime = GetTime();
-    server->StartTime = GetStartTime();
-    server->TimeSinceLaunch = GetTickCount64();
+    SystemStartInfo systemStart = GetStartTime();
+    server->StartTime = systemStart.StartTime;
+    server->TimeSinceLaunch = systemStart.UptimeMs;
     server->TotalMemory = GetRAMInfo();
     server->DiskList = GetDrives();
     GetFreeSpace(server->DiskList);
