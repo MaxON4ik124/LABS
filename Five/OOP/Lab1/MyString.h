@@ -1,5 +1,5 @@
-#ifndef MY_STRING_HPP
-#define MY_STRING_HPP
+#ifndef MY_STRING_H
+#define MY_STRING_H
 
 #include <iostream>
 #include <string>
@@ -12,11 +12,12 @@ using namespace std;
 
 class MyString
 {
-public:
+private:
     int capacity_;
     int size_;
     char* str;
 
+public:
     MyString();
     MyString(const char* source_str);
     MyString(const std::string& source_str);
@@ -24,20 +25,25 @@ public:
     MyString(const char* source_str, int count);
     MyString(const std::string& source_str, int count);
     MyString(const MyString& source_str, int count);
+    MyString(int count, char ch);
     ~MyString();
 
     void clear();
     void shrink_to_fit();
+
+    void set_str(const char* source_str);
+    void set_size(int value);
+    void set_capacity(int value);
 
     MyString& operator=(const char* source_str);
     MyString& operator=(const std::string& source_str);
     MyString& operator=(const MyString& source_str);
     MyString& operator=(char ch);
 
-    const char* c_str();
-    int size();
-    int capacity();
-    bool empty();
+    const char* c_str() const;
+    int size() const;
+    int capacity() const;
+    bool empty() const;
 
     void insert(int index, int count, char ch);
     void insert(int index, const char* source_str, int source_index, int count);
@@ -74,9 +80,9 @@ public:
     MyString substr(int index);
     MyString substr(int index, int count);
 
-    MyString& operator+(const char* source_str);
-    MyString& operator+(std::string source_str);
-    MyString& operator+(MyString source_str);
+    MyString operator+(const char* source_str);
+    MyString operator+(std::string source_str);
+    MyString operator+(MyString source_str);
     MyString& operator+=(const char* source_str);
     MyString& operator+=(std::string source_str);
     MyString& operator+=(MyString source_str);
