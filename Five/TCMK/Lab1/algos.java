@@ -171,17 +171,38 @@ public class algos {
         return new BigInteger[] { oldR.abs(), oldX, oldY };
     }
 
-    public static void main(String[] args) {
-        BigInteger a = new BigInteger("9190812423861359177");
-        BigInteger b = new BigInteger("5665686725157642793");
+    public static void CalcGcd(BigInteger a, BigInteger b, boolean com1, boolean com2, boolean com3)
+    {
         System.out.println("Расширенный алгоритм Евклида");
-        BigInteger[] result = ExtendedGcd(a, b, false);
+        BigInteger[] result = ExtendedGcd(a, b, com1);
         System.out.println("Ответ: " + Arrays.toString(result));
         System.out.println("Бинарный расширенный алгоритм Евклида:");
-        result = BinaryExtendedGcd(a, b, false);
+        result = BinaryExtendedGcd(a, b, com2);
         System.out.println("Ответ: " + Arrays.toString(result));
         System.out.println("Расширенный алгоритм Евклида с усеченными остатками:");
-        result = ExtendedGcdRR(a, b, false);
+        result = ExtendedGcdRR(a, b, com3);
         System.out.println("Ответ: " + Arrays.toString(result));
+    }
+
+    public static void main(String[] args) {
+
+
+
+        BigInteger a1 = new BigInteger("9190812423861359177");
+        BigInteger b1 = new BigInteger("5665686725157642793");
+
+        BigInteger a2 = new BigInteger("382875700183783912180972380599677237411");
+        BigInteger b2 = new BigInteger("850028528056170803249499731597831491891");
+
+        BigInteger a3 = new BigInteger("6568591084326103188389903689528446432238935028773467398030238114964024225816689");
+        BigInteger b3 = new BigInteger("8213990379675158500374799385935382213186265977913450415675510020284382035371583");
+
+        CalcGcd(a1, b1, false, false, false);
+
+        CalcGcd(a2, b2, false, false, false);
+
+        CalcGcd(a3, b3, false, false, false);
+
+        
     }
 }
