@@ -504,6 +504,7 @@ MyString MyString::operator+(const char* source_str)
     MyString res(*this);
     res += source_str;
     return res;
+
 }
 
 MyString MyString::operator+(string source_str)
@@ -642,15 +643,8 @@ void pstr(const MyString& my_str)
     cout << "\"" << my_str.c_str() << "\"" << " (" << my_str.size() << ", " << my_str.capacity() << ")" << endl;
 }
 
-// int main()
-// {
-//     try
-//     {
-//         MyString str("abcde");
-//         str.erase(2, 10);
-//     }
-//     catch(const std::exception& e)
-//     {
-//         std::cerr << e.what() << '\n';
-//     }
-// }
+int main()
+{
+    MyString str("hello");
+    
+}
