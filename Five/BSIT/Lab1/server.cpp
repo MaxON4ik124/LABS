@@ -323,7 +323,8 @@ string dispatch(string request)
             else
             {
                 auto owner = GetOwner(path.c_str());
-                out << utf8(owner.OwnerName.empty() ? owner.OwnerSid : owner.OwnerName);
+                out << "name=" << utf8(owner.OwnerName.empty() ? L"<unresolved>" : owner.OwnerName)
+                    << " sid=" << utf8(owner.OwnerSid.empty() ? L"<unresolved>" : owner.OwnerSid);
             }
         }
         else

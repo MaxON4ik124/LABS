@@ -2,6 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "java",
+            "name": "algos",
+            "request": "launch",
+            "mainClass": "Five.TCMK.Lab1.algos",
+            "projectName": "Labs_29dcb5cd"
+        },
+        {
             "name": "Debug active C/C++ file",
             "type": "cppdbg",
             "request": "launch",
