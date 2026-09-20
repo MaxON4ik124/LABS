@@ -1,5 +1,6 @@
 #include "main.h"
 
+char attempt[128];
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     (void)window;
     if (width > 0 && height > 0) {
@@ -8,17 +9,35 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 int main(void) {
+    if(checkPass(attempt))
+        return -1;
+    serial();
 
-    FILE* Password = fopen("password.txt", "w");
-    char* attempt;
-    fscanf(Password, "%s", attempt);
-    if(strcmp(attempt, "gk3fld03g;d") != 0)
-    {
-        fprintf(stdout, "Wrong Password");
+    static const unsigned char passfile[] = "\x40\x2a\x43\x14\x47\x25\x8\x35\x40\x0\x3b\x2c\x3a";
+    encrypt(passfile, sizeof(passfile) - 1);
+    FILE* password_file = fopen(buf, "r");
+    memset(buf, 0, BUFSIZE);
+    fscanf(password_file, "%127s", attempt);
+    
+    if (!CheckPass(attempt)) {
+        char* wrmes = "\x67\x39\x5f\x9\x57\x6a\x2a\x30\x1d\x7\x34\x37\x42\x2e\x5a";
+        encrypt(wrmes, strlen(wrmes));
+        fprintf(stdout, "%s\n", buf);
+        memset(buf, 0, BUFSIZE);
         return -1;
     }
-    else
-        fprintf(stdout, "Correct Password");
+    if(check_pass(attempt))
+        return -1;
+    static const unsigned char serfile[] = "\x43\x2e\x42\xe\x51\x26\x54\x25\x16\x0\x49";
+    encrypt(serfile, sizeof(serfile) - 1);
+    FILE* serial = fopen(buf, "w");
+    memset(buf, 0, BUFSIZE);
+    encrypt(SERIALKEY, sizeof(SERIALKEY) - 1);
+    fputs(buf, serial);
+    memset(buf, 0, BUFSIZE);
+    char* crmes = "\x73\x24\x42\x15\x55\x29\xe\x71\x3e\x15\x30\x2b\x47\x25\x22\x35\x31\x2d\x4e";
+    fprintf(stdout, "%s\n", buf);
+    memset(buf, 0, BUFSIZE);
 
     
 
@@ -28,7 +47,7 @@ int main(void) {
         fprintf(stderr, "Failed to initialize GLFW\n");
         return -1;
     }
-
+    
     glfwWindowHint(GLFW_SAMPLES, 0);
 
     glfwWindowHint(GLFW_DEPTH_BITS, 0);

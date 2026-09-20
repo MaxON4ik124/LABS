@@ -16,7 +16,8 @@ $cSources = @(
     'Tanki/particles.c',
     'Tanki/powerup.c',
     'Tanki/render.c',
-    'Tanki/tank.c'
+    'Tanki/tank.c',
+    'Tanki/crypt.c'
 )
 $objects = @()
 

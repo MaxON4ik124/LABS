@@ -1,0 +1,25 @@
+password.txt
+gk3fld03g;d
+Wrong Password
+serial.txt
+KEY$aHR0cHM6Ly9pLnBvc3RpbWcuY2MveGRzQ0pjUWovbWVtZS5qcGc=$
+Correct Password\n
+x64dbg
+x32dbg
+IDA
+IDA Pro
+WinDbg
+OllyDbg
+WinDbgFrameClass
+C:\Windows\System32\drivers\VBoxGuest.sys
+C:\Windows\System32\drivers\VBoxMouse.sys
+C:\Windows\System32\drivers\vmmouse.sys
+C:\Windows\System32\drivers\vmhgfs.sys
+C:\Program Files\Oracle\VirtualBox Guest Additions
+SYSTEM\CurrentControlSet\Enum\PCI\VEN_15AD&DEV_0405&SUBSYS_040515AD&REV_00
+VMware
+VirtualBox
+innotek
+QEMU
+Bochs
+Microsoft Corporation
