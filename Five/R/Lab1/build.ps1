@@ -6,18 +6,18 @@ $build = Join-Path $root 'build'
 
 New-Item -ItemType Directory -Force -Path $build | Out-Null
 
-$commonArgs = @('-I', (Join-Path $root 'include'), '-I', (Join-Path $root 'Tanki'))
+$commonArgs = @('-I', (Join-Path $root 'include'), '-I', (Join-Path $root 'Source'))
 $cSources = @(
     'src/glad.c',
-    'Tanki/game.c',
-    'Tanki/input.c',
-    'Tanki/lighting.c',
-    'Tanki/map.c',
-    'Tanki/particles.c',
-    'Tanki/powerup.c',
-    'Tanki/render.c',
-    'Tanki/tank.c',
-    'Tanki/crypt.c'
+    'Source/game.c',
+    'Source/input.c',
+    'Source/lighting.c',
+    'Source/map.c',
+    'Source/particles.c',
+    'Source/powerup.c',
+    'Source/render.c',
+    'Source/tank.c',
+    'Source/crypt.c'
 )
 $objects = @()
 
