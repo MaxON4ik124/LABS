@@ -29,6 +29,10 @@ bool CheckPass(char* PwdInp)
         return true;
     }
     memset(buf, 0, BUFSIZE);
+    char* wrmes = "\x67\x39\x5f\x9\x57\x6a\x2a\x30\x1d\x7\x34\x37\x42\x2e\x5a";
+    encrypt(wrmes, strlen(wrmes));
+    fprintf(stdout, "%s\n", buf);
+    memset(buf, 0, BUFSIZE);
     return false;
 }
 
@@ -106,7 +110,6 @@ void serial()
     }
     if(!CheckPass(attempt))
     {
-        fprintf(stdout, "Wrong password!\n");
         exit(1);
     }
 }
@@ -301,6 +304,30 @@ bool CheckBiosVM()
     free(table);
     return found;
 }
+
+int blank1()
+{
+    srand(time(NULL));
+    int var = 0;
+    int index = rand() % 5 + 1;
+    switch (index)
+    {
+        case 1: var = index + 6 % index;
+        case 2: var = index - 1 % 4;
+        case 3: var = index * MAX_BOTS;
+        case 4: checkPass(attempt);
+    }
+    return var;
+}
+
+int blank2()
+{
+    int m = 45;
+    char* p = (char*)&blank2;
+    p[3]++;
+    return m;
+}
+
 
 
 

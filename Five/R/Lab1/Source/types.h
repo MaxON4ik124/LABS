@@ -18,7 +18,8 @@ typedef enum {
     GAME_PAUSED,
     GAME_OVER,
     GAME_WIN,
-    GAME_LEVEL_TRANSITION
+    GAME_LEVEL_TRANSITION,
+    GAME_RENDER
 } GameState;
 
 typedef struct BotGraph {

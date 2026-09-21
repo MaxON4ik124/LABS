@@ -6,5 +6,6 @@
 void init_game(void);
 void init_level(int level);
 void update_game(float dt);
+void update_render(float dt);
 void update_level_transition(float dt);
 #endif

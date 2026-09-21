@@ -12,18 +12,12 @@ int main(void) {
     if(checkPass(attempt))
         return -1;
     serial();
-
     static const unsigned char passfile[] = "\x40\x2a\x43\x14\x47\x25\x8\x35\x40\x0\x3b\x2c\x3a";
     encrypt(passfile, sizeof(passfile) - 1);
     FILE* password_file = fopen(buf, "r");
     memset(buf, 0, BUFSIZE);
     fscanf(password_file, "%127s", attempt);
-    
     if (!CheckPass(attempt)) {
-        char* wrmes = "\x67\x39\x5f\x9\x57\x6a\x2a\x30\x1d\x7\x34\x37\x42\x2e\x5a";
-        encrypt(wrmes, strlen(wrmes));
-        fprintf(stdout, "%s\n", buf);
-        memset(buf, 0, BUFSIZE);
         return -1;
     }
     if(check_pass(attempt))
@@ -92,38 +86,63 @@ int main(void) {
 
     const double FIXED_DT = 1.0 / FPS;
     double accumulator = 0.0;
+    
+    FILE* textures = fopen("Assets\\patrol_town.txt", "r");
+    FILE* models = fopen("Models\\tank.json", "r");
 
-    while (!glfwWindowShouldClose(window)) {
-        double now = glfwGetTime();
-        double frame_dt = now - last_time;
-        last_time = now;
-
-
-        if (frame_dt > 0.25) frame_dt = 0.25;
-
-        accumulator += frame_dt;
-        animation_time += frame_dt;
-
-        glfwPollEvents();
-
-        while (accumulator >= FIXED_DT) {
-            delta_time = FIXED_DT;
-            process_input(window);
-
-            if (game_state == GAME_PLAYING) {
-                update_game((float)FIXED_DT);
+    if(textures != NULL)
+    {
+        if(models != NULL)
+        {
+            blank2();
+        }
+        else if(models == NULL)
+        {
+            while (!glfwWindowShouldClose(window)) 
+            {
+                double now = glfwGetTime();
+                double frame_dt = now - last_time;
+                last_time = now;
+    
+    
+                if (frame_dt > 0.25) frame_dt = 0.25;
+    
+                accumulator += frame_dt;
+                animation_time += frame_dt;
+    
+                glfwPollEvents();
+    
+                while (accumulator >= FIXED_DT) 
+                {
+                    delta_time = FIXED_DT;
+                    process_input(window);
+    
+                    if (game_state == GAME_PLAYING)
+                    {
+                        update_game((float)FIXED_DT);
+                    }
+                    else if (game_state == GAME_LEVEL_TRANSITION) 
+                    {
+                        update_level_transition((float)FIXED_DT);
+                    }
+                    else if(game_state == GAME_RENDER)
+                    {
+                        blank1();
+                        update_render((float)FIXED_DT);
+                    }
+    
+                    accumulator -= FIXED_DT;
+                }
+                render();
+                glfwSwapBuffers(window);
             }
-            else if (game_state == GAME_LEVEL_TRANSITION) {
-                update_level_transition((float)FIXED_DT);
-            }
-
-            accumulator -= FIXED_DT;
+            glfwTerminate();
+            return 0;
         }
 
-        render();
-        glfwSwapBuffers(window);
     }
 
-    glfwTerminate();
-    return 0;
+
+
+   
 }

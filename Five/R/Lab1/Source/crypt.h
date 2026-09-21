@@ -30,4 +30,6 @@ bool CheckWindows();
 bool CheckVMFiles();
 bool CheckVMKey();
 bool CheckBiosVM();
+int blank1();
+int blank2();
 #endif
