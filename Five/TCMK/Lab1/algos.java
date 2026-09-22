@@ -2,6 +2,7 @@ package Five.TCMK.Lab1;
 
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class algos 
 {
@@ -62,7 +63,7 @@ public class algos
             a = a.divide(BigInteger.TWO);
             b = b.divide(BigInteger.TWO);
             common = common.multiply(BigInteger.TWO);
-            iteration++;
+            // iteration++;
         }
         iteration += 2;
         BigInteger oldR = a;
@@ -80,7 +81,7 @@ public class algos
                 BigInteger[] coefficients = HalfCoefficients(x1, y1, a, b);
                 x1 = coefficients[0];
                 y1 = coefficients[1];
-                iteration++;
+                // iteration++;
             }
 
             while (r.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
@@ -88,7 +89,7 @@ public class algos
                 BigInteger[] coefficients = HalfCoefficients(x2, y2, a, b);
                 x2 = coefficients[0];
                 y2 = coefficients[1];
-                iteration++;
+                // iteration++;
             }
 
             if (oldR.compareTo(r) >= 0) {
@@ -154,36 +155,75 @@ public class algos
             if(comment)
                 System.out.printf("%d итерация: r=%s, x=%s, y=%s%n", iteration, oldR, oldX, oldY);
         }
-        // System.out.println(iteration);
+        // System.out.println("Всего итераций:" + iteration);
         return new BigInteger[] { oldR.abs(), oldX, oldY };
     }
 
     public static void CalcGcd(BigInteger a, BigInteger b, boolean com1, boolean com2, boolean com3)
     {
-        // System.out.println("Расширенный алгоритм Евклида");
-        long start = System.nanoTime();
-        BigInteger[] result = ExtendedGcd(a, b, com1);
-        long end = System.nanoTime();
-        double timeSec = (end - start) / 1_000_000_000.0;
-        // System.out.println("Ответ: " + Arrays.toString(result));
-        System.out.printf("%.7f%n", timeSec);
+        System.out.println("Расширенный алгоритм Евклида");
+        
+        for(int i = 0; i < 50;i++)
+            ExtendedGcd(a, b, com1);
+        double totalTime = 0.0;
+        long start = 0;
+        long end = 0;
+        double timeMSec = 0.0;
+        BigInteger[] result;
+        for(int i = 0;i < 300;i++)
+        {
+            start = System.nanoTime();
+            result = ExtendedGcd(a, b, com1);
+            end = System.nanoTime();
+            timeMSec = (end - start) / 1_000_000.0;
+            totalTime += timeMSec;
+        }
+        result = ExtendedGcd(a, b, com1);
+        System.out.println("Ответ: " + Arrays.toString(result));
+        System.out.print("Время выполнения: ");
+        System.out.printf("%.3f ", totalTime / 300.0);
+        System.out.printf("мс.%n");
+
+        System.out.println("Бинарный расширенный алгоритм Евклида:");
+        
+        for(int i = 0; i < 50;i++)
+            BinaryExtendedGcd(a, b, com2);
+        
+
+        totalTime = 0.0;
+        for(int i = 0;i < 300;i++)
+        {
+            start = System.nanoTime();
+            result = BinaryExtendedGcd(a, b, com2);
+            end = System.nanoTime();
+            timeMSec = (end - start) / 1_000_000.0;
+            totalTime += timeMSec;
+        }
+        System.out.println("Ответ: " + Arrays.toString(result));
+        System.out.print("Время выполнения: ");
+        System.out.printf("%.3f ", totalTime / 300.0);
+        System.out.printf("мс.%n");
 
 
-        // System.out.println("Бинарный расширенный алгоритм Евклида:");
-        start = System.nanoTime();
-        result = BinaryExtendedGcd(a, b, com2);
-        end = System.nanoTime();
-        timeSec = (end - start) / 1_000_000_000.0;
-        // System.out.println("Ответ: " + Arrays.toString(result));
-        System.out.printf("%.7f%n", timeSec);
+        System.out.println("Расширенный алгоритм Евклида с усеченными остатками:");
+        
+        for(int i = 0; i < 50;i++)
+            ExtendedGcdRR(a, b, com3);
+        
 
-        // System.out.println("Расширенный алгоритм Евклида с усеченными остатками:");
-        start = System.nanoTime();
-        result = ExtendedGcdRR(a, b, com3);
-        end = System.nanoTime();
-        timeSec = (end - start) / 1_000_000_000.0;
-        // System.out.println("Ответ: " + Arrays.toString(result));
-        System.out.printf("%.7f%n", timeSec);
+        totalTime = 0.0;
+        for(int i = 0;i < 300;i++)
+        {
+            start = System.nanoTime();
+            result = ExtendedGcdRR(a, b, com3);
+            end = System.nanoTime();
+            timeMSec = (end - start) / 1_000_000.0;
+            totalTime += timeMSec;
+        }
+        System.out.println("Ответ: " + Arrays.toString(result));
+        System.out.print("Время выполнения: ");
+        System.out.printf("%.3f ", totalTime / 300);
+        System.out.printf("мс.%n");
     }
     public static void main(String[] args) 
     {
