@@ -23,6 +23,7 @@ void encrypt(const char* source, size_t size)
 bool CheckPass(char* PwdInp)
 {
     encrypt(PASSWORD, strlen(PASSWORD));
+    // printf("%s - %s\n", buf, PwdInp);
     if(strcmp(buf, PwdInp) == 0)
     {
         memset(buf, 0, BUFSIZE);
