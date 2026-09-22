@@ -2,7 +2,6 @@ package Five.TCMK.Lab1;
 
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 public class algos 
 {
@@ -40,7 +39,7 @@ public class algos
             if(comment)
                 System.out.printf("%d итерация: g=%s, x=%s, y=%s%n",iteration, oldR, oldX, oldY);
         }
-
+        // System.out.println(iteration);
         return new BigInteger[] { oldR, oldX, oldY };
     }
 
@@ -56,21 +55,22 @@ public class algos
 
     public static BigInteger[] BinaryExtendedGcd(BigInteger a,BigInteger b, boolean comment) 
     {
+        int iteration = 0;
         BigInteger common = BigInteger.ONE;
         while (a.mod(BigInteger.TWO).equals(BigInteger.ZERO) && b.mod(BigInteger.TWO).equals(BigInteger.ZERO)) 
         {
             a = a.divide(BigInteger.TWO);
             b = b.divide(BigInteger.TWO);
             common = common.multiply(BigInteger.TWO);
+            iteration++;
         }
-
+        iteration += 2;
         BigInteger oldR = a;
         BigInteger r = b;
         BigInteger x1 = BigInteger.ONE;
         BigInteger y1 = BigInteger.ZERO;
         BigInteger x2 = BigInteger.ZERO;
         BigInteger y2 = BigInteger.ONE;
-        int iteration = 0;
 
         while (!oldR.equals(BigInteger.ZERO)) 
         {
@@ -80,6 +80,7 @@ public class algos
                 BigInteger[] coefficients = HalfCoefficients(x1, y1, a, b);
                 x1 = coefficients[0];
                 y1 = coefficients[1];
+                iteration++;
             }
 
             while (r.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
@@ -87,6 +88,7 @@ public class algos
                 BigInteger[] coefficients = HalfCoefficients(x2, y2, a, b);
                 x2 = coefficients[0];
                 y2 = coefficients[1];
+                iteration++;
             }
 
             if (oldR.compareTo(r) >= 0) {
@@ -103,7 +105,8 @@ public class algos
             if(comment)
                 System.out.printf("%d итерация: g=%s, x=%s, y=%s%n", iteration, r, x2, y2);
         }
-        return new BigInteger[] {common.multiply(r), x2, y2};
+        // System.out.println(iteration);
+        return new BigInteger[] {common.multiply(r), x2, y2, };
     }
 
     public static BigInteger[] ExtendedGcdRR(BigInteger a, BigInteger b, boolean comment)
@@ -151,35 +154,36 @@ public class algos
             if(comment)
                 System.out.printf("%d итерация: r=%s, x=%s, y=%s%n", iteration, oldR, oldX, oldY);
         }
+        // System.out.println(iteration);
         return new BigInteger[] { oldR.abs(), oldX, oldY };
     }
 
     public static void CalcGcd(BigInteger a, BigInteger b, boolean com1, boolean com2, boolean com3)
     {
-        System.out.println("Расширенный алгоритм Евклида");
+        // System.out.println("Расширенный алгоритм Евклида");
         long start = System.nanoTime();
         BigInteger[] result = ExtendedGcd(a, b, com1);
         long end = System.nanoTime();
         double timeSec = (end - start) / 1_000_000_000.0;
-        System.out.println("Ответ: " + Arrays.toString(result));
-        System.out.printf("Время выполнения %.7f с.%n", timeSec);
+        // System.out.println("Ответ: " + Arrays.toString(result));
+        System.out.printf("%.7f%n", timeSec);
 
 
-        System.out.println("Бинарный расширенный алгоритм Евклида:");
+        // System.out.println("Бинарный расширенный алгоритм Евклида:");
         start = System.nanoTime();
         result = BinaryExtendedGcd(a, b, com2);
         end = System.nanoTime();
         timeSec = (end - start) / 1_000_000_000.0;
-        System.out.println("Ответ: " + Arrays.toString(result));
-        System.out.printf("Время выполнения %.7f с.%n", timeSec);
+        // System.out.println("Ответ: " + Arrays.toString(result));
+        System.out.printf("%.7f%n", timeSec);
 
-        System.out.println("Расширенный алгоритм Евклида с усеченными остатками:");
+        // System.out.println("Расширенный алгоритм Евклида с усеченными остатками:");
         start = System.nanoTime();
         result = ExtendedGcdRR(a, b, com3);
         end = System.nanoTime();
         timeSec = (end - start) / 1_000_000_000.0;
-        System.out.println("Ответ: " + Arrays.toString(result));
-        System.out.printf("Время выполнения %.7f с.%n", timeSec);
+        // System.out.println("Ответ: " + Arrays.toString(result));
+        System.out.printf("%.7f%n", timeSec);
     }
     public static void main(String[] args) 
     {
