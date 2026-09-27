@@ -28,13 +28,11 @@ int min(int a, int b, int c)
         min = b;
     if(min > c)
         min = c;
-    // printf("%d %d %d %d\n", a, b, c, min);
     return min;
 }
 int findY(int arr[11][13], int x, int y, int curline)
 {
     return min(checkstepdown(arr, x, y, curline), checkstepleft(arr, x, y, curline), checkstepright(arr, x, y, curline));
-
 }
 int main()
 {
@@ -58,15 +56,5 @@ int main()
                 maxsize = cursize;
         }
     }
-    
-    // for(int i = 0;i < 5;i++)
-    // {
-    //     for(int j = 0;j < 5;j++)
-    //     {
-    //         printf("%d ", net[i][j]);
-    //     }
-    //     printf("\n");
-    // }
     printf("%d", maxsize);
-
 }
