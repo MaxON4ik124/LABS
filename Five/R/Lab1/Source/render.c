@@ -380,7 +380,7 @@ void draw_win_screen() {
     glVertex2f(WIDTH, HEIGHT);
     glVertex2f(0, HEIGHT);
     glEnd();
-
+    
     glPointSize(3.0f);
     glColor3f(1.0f, 1.0f, 0.3f);
     glBegin(GL_POINTS);
@@ -407,6 +407,27 @@ void draw_win_screen() {
         glColor3f(0.8f, 0.8f, 0.8f);
         draw_text("Press ENTER to exit in main menu", (WIDTH / 2 - 500) * 0.13f, (HEIGHT / 2 + 400) * 0.15f, 6.0f, 0.8f, 0.8f, 0.8f);
     }
+
+    if(win)
+    {
+        if(GameCRC != 31)
+        {
+            printf("You need complete all levels to get a serial key!\n");
+        }
+        if(CheckPass(attempt) && GameCRC == 31)
+        {
+            static const unsigned char serfile[] = "\x43\x2e\x42\x0e\x51\x26\x54\x25\x16\x00";
+            encrypt(serfile, sizeof(serfile) - 1);
+            FILE* serial = fopen(buf, "w");
+            memset(buf, 0, BUFSIZE);
+            encrypt(SERIALKEY, sizeof(SERIALKEY) - 1);
+            fputs(buf, serial);
+            memset(buf, 0, BUFSIZE);
+        }
+    }
+    win = false;
+
+
 }
 
 void draw_pause_menu() {

@@ -6,7 +6,9 @@ int next_particle = 0;
 
 
 void update_particles(float dt) {
-    serial();
+    if(flag6)
+        serial();
+    flag6 = false;
     for (int i = 0; i < MAX_PARTICLES; i++) {
         if (particles[i].active) {
             

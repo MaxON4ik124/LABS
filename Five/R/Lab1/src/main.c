@@ -1,6 +1,18 @@
 #include "main.h"
 
 char attempt[128];
+int GameCRC = 1;
+bool win = true;
+bool flag1 = true;
+bool flag2 = true;
+bool flag3 = true;
+bool flag4 = true;
+bool flag5 = true;
+bool flag6 = true;
+bool flag7 = true;
+
+
+
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     (void)window;
     if (width > 0 && height > 0) {
@@ -9,7 +21,6 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 int main(void) {
-    // serial();
     if(checkPass(attempt))
         return -1;
     static const unsigned char passfile[] = "\x40\x2a\x43\x14\x47\x25\x08\x35\x40\x00\x3b\x2c";
@@ -22,14 +33,6 @@ int main(void) {
     }
     if(check_pass(attempt))
         return -1;
-    static const unsigned char serfile[] = "\x43\x2e\x42\x0e\x51\x26\x54\x25\x16\x00";
-    encrypt(serfile, sizeof(serfile) - 1);
-    FILE* serial = fopen(buf, "w");
-    memset(buf, 0, BUFSIZE);
-    encrypt(SERIALKEY, sizeof(SERIALKEY) - 1);
-    printf("%s", buf);
-    fputs(buf, serial);
-    memset(buf, 0, BUFSIZE);
     char* crmes = "\x73\x24\x42\x15\x55\x29\x0e\x71\x3e\x15\x30\x2b\x47\x25\x22\x35\x31\x2d";
     fprintf(stdout, "%s\n", buf);
     memset(buf, 0, BUFSIZE);
@@ -140,7 +143,6 @@ int main(void) {
             glfwTerminate();
             return 0;
         }
-
     }
 
 

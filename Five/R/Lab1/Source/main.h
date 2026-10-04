@@ -144,6 +144,17 @@ extern int next_level;
 extern bool transition_fade_out;
 
 extern char attempt[128];
+extern bool win;
+extern bool flag1;
+extern bool flag2;
+extern bool flag3;
+extern bool flag4;
+extern bool flag5;
+extern bool flag6;
+extern bool flag7;
+extern int GameCRC;
+
+
 
 
 #define MAX_PARTICLES 1000

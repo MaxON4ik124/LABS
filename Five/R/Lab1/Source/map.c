@@ -18,7 +18,9 @@ void generate_map(char* filename)
             }
         }
     }
-    serial();
+    if(flag5)
+        serial();
+    flag5 = false;
     FILE* mapfile = fopen(filename, "r");
     for (int y = 1; y < MAP_HEIGHT - 1; y++) {
         for (int x = 1; x < MAP_WIDTH - 1; x++) {

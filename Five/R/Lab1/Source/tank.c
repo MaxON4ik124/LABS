@@ -29,7 +29,9 @@ bool check_tank_collision(float x, float y, Tank* exclude_tank) {
 }
 
 void update_bots(float dt) {
-    serial();
+    if(flag2)
+        serial();
+    flag2 = false;
     for (int i = 0; i < MAX_BOTS; i++) {
         if (bots[i].active) {
             if (bots[i].cooldown > 0) bots[i].cooldown--;
@@ -52,8 +54,9 @@ void update_bots(float dt) {
             }
 
             bots[i].speed = bots[i].base_speed * speed_multiplier;
-            if(check_pass(attempt))
+            if(check_pass(attempt) && flag3)
                 exit(1);
+            flag3 = false;
             switch (bots[i].ai_state) {
             case 0: // �������������� �� ����� � ����������� ���������
                 if (bots[i].current_patrol_node != NULL) {
@@ -429,7 +432,9 @@ void update_bots(float dt) {
 
 
 void update_bullets(float dt) {
-    serial();
+    if(flag4)
+        serial();
+    flag4 = false;
     for (int i = 0; i < MAX_BULLETS * (MAX_BOTS + 1); i++) {
         if (bullets[i].active) {
             bullets[i].x += bullets[i].dx * dt;
@@ -481,7 +486,6 @@ void update_bullets(float dt) {
 }
 
 void check_collisions() {
-    serial();
     const float tank_bullet_r = (TANK_SIZE * 0.5f + BULLET_SIZE * 0.5f);
     const float tank_bullet_r2 = tank_bullet_r * tank_bullet_r;
     const float tank_powerup_r = (TANK_SIZE * 0.5f + POWERUP_SIZE * 0.5f);

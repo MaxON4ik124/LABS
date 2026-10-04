@@ -267,7 +267,6 @@ void update_render(float dt)
 
 void update_game(float dt) {
 
-    serial();
     if (player.cooldown > 0) player.cooldown--;
     if (player.rapid_fire_timer > 0) player.rapid_fire_timer--;
     if (player.shield_timer > 0) player.shield_timer--;
@@ -279,8 +278,9 @@ void update_game(float dt) {
     if (player.speed_timer > 0) player.base_speed = 5.0f * TANK_SIZE;
     else player.speed = 3.0f * TANK_SIZE;
     player.speed = player.base_speed;
-    if(Check_Pass(attempt))
+    if(Check_Pass(attempt) && flag1)
         exit(1);
+    flag1 = false;
     int tile_x = (int)(player.x / TILE_SIZE);
     int tile_y = (int)(player.y / TILE_SIZE);
 
@@ -322,6 +322,8 @@ void update_game(float dt) {
         warning_active = false;
         darkness_active = false;
         if (level < MAX_LEVEL) {
+            GameCRC <<= 1;
+            GameCRC += 1;
             game_state = GAME_LEVEL_TRANSITION;
             start_level_transition(level + 1);
         }
@@ -331,9 +333,12 @@ void update_game(float dt) {
     }
 
     if (!player.active && player.respawn_timer <= 0) {
+        win = true;
+        level = 1;
         darkness_timer = 0;
         warning_active = false;
         darkness_active = false;
+        GameCRC = 1;
         game_state = GAME_OVER;
     }
 }

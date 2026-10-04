@@ -1,7 +1,9 @@
 #include "main.h"
 
 void update_powerups(float dt) {
-    serial();
+    if(flag7)
+        serial();
+    flag7 = false;
     for (int i = 0; i < MAX_POWERUPS; i++) {
         if (powerups[i].active) {
             powerups[i].timer--;
