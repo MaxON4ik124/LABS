@@ -1,2 +1,14 @@
 !]$m0MK90g0GJ@zQn@t/CX0fJPQmCND[QldCR!0Jg]g&0J3BQlSDQndCQ0JTQng==
 
+       140028fa2 57              ??         57h    W
+       140028fa3 20              ??         20h     
+       140028fa4 03              ??         03h
+       140028fa5 01              ??         01h
+       140028fa6 5c              ??         5Ch    \
+       140028fa7 2e              ??         2Eh    .
+       140028fa8 4a              ??         4Ah    J
+       140028fa9 62              ??         62h    b
+       140028faa 09              ??         09h
+       140028fab 4f              ??         4Fh    O
+       140028fac 27              ??         27h    '
+       140028fad 00              ??         00h

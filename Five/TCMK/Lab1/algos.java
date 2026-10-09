@@ -225,6 +225,7 @@ public class algos
         System.out.printf("%.3f ", totalTime / 300);
         System.out.printf("мс.%n");
     }
+    
     public static void main(String[] args) 
     {
         BigInteger a1 = new BigInteger("9190812423861359177");

@@ -5,9 +5,25 @@
 #include <string>
 #include <string.h>
 #include <stdexcept>
+#include <cstdio>
+#include <fstream>
+#include <vector>
+#include <iterator>
+#include <queue>
+
+
 
 
 using namespace std;
+
+struct Node
+{
+    int next[26];
+    int link;
+    int outputlink;
+    vector<int> patternIds;
+};
+
 
 
 class MyString
@@ -103,7 +119,72 @@ public:
     int find(const char* source_str);
     int find(std::string source_str);
     int find(MyString source_str);
+    
+    MyString(MyString&& source_str) noexcept;
+    MyString(int num);
+    MyString(double num);
+    MyString& operator=(MyString&& source_str) noexcept;
+    int find_ac(const char* source_str);
+    int find_ac(string source_str);
+    int find_ac(MyString source_str);
+    char& at(int index);
+    int to_int();
+    double to_double();
+
+
+    using iterator = char*;
+    using const_iterator = const char*;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    iterator begin();
+    iterator end();
+    const_iterator cbegin();
+    const_iterator cend();
+    reverse_iterator rbegin();
+    reverse_iterator rend();
+    const_reverse_iterator rcbegin();
+    const_reverse_iterator rcend();
+    int iterator2index(iterator pos);
+    int iterator2index(const_iterator pos);
+    int iterator2index(reverse_iterator pos);
+    int iterator2index(const_reverse_iterator pos);
+
+
+    void insert(iterator pos, int count, char ch);
+    void insert(iterator pos, const char* source_str, int source_index, int count);
+    void insert(iterator pos, const char* source_str);
+    void insert(iterator pos, std::string source_str);
+    void insert(iterator pos, MyString source_str);
+    void insert(iterator pos, const char* source_str, int count);
+    void insert(iterator pos, std::string source_str, int count);
+    void insert(iterator pos, MyString source_str, int count);
+    void insert(iterator pos, std::string source_str, int source_index, int count);
+    void insert(iterator pos, MyString source_str, int source_index, int count);
+    void insert(const_iterator pos, const char* source_str);
+    void insert(reverse_iterator pos, const char* source_str);
+    void insert(const_reverse_iterator pos, const char* source_str);
+
+    void erase(iterator pos, int count);
+
+    void replace(iterator pos, int count, const char* source_str, int source_index, int source_count);
+    void replace(iterator pos, int count, const char* source_str);
+    void replace(iterator pos, int count, std::string source_str);
+    void replace(iterator pos, int count, MyString source_str);
+    void replace(iterator pos, int count, const char* source_str, int source_count);
+    void replace(iterator pos, int count, std::string source_str, int source_count);
+    void replace(iterator pos, int count, MyString source_str, int source_count);
+    void replace(iterator pos, int count, std::string source_str, int source_index, int source_count);
+    void replace(iterator pos, int count, MyString source_str, int source_index, int source_count);
+
+
+
+    
+
 };
+
+ostream& operator<<(ostream& out, const MyString& str);
+istream& operator>>(istream& in, MyString& str);
 
 void pstr(const MyString& my_str);
 
