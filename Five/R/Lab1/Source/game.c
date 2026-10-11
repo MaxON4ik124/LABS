@@ -333,12 +333,10 @@ void update_game(float dt) {
     }
 
     if (!player.active && player.respawn_timer <= 0) {
-        win = true;
         level = 1;
         darkness_timer = 0;
         warning_active = false;
         darkness_active = false;
-        GameCRC = 1;
         game_state = GAME_OVER;
     }
 }

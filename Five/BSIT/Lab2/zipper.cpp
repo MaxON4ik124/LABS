@@ -236,15 +236,11 @@ bool MatchesPattern(const fs::path& relativePath)
     {
         const wstring mask = PatternMask(pattern);
 
-        // Matching the complete relative path supports patterns such as
-        // "lib\\*.*", while matching the file name preserves the old
-        // behavior of patterns such as "*.java".
+
         if (PathMatchSpecW(path.c_str(), mask.c_str()) ||
             PathMatchSpecW(filename.c_str(), mask.c_str()))
             return true;
 
-        // A directory pattern (for example, "lib" or "assets\\*") selects
-        // every file below that directory.
         fs::path directory = relativePath.parent_path();
         while (!directory.empty())
         {

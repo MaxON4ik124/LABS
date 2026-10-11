@@ -155,7 +155,6 @@ public class algos
             if(comment)
                 System.out.printf("%d итерация: r=%s, x=%s, y=%s%n", iteration, oldR, oldX, oldY);
         }
-        // System.out.println("Всего итераций:" + iteration);
         return new BigInteger[] { oldR.abs(), oldX, oldY };
     }
 

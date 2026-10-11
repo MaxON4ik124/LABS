@@ -1,4 +1,5 @@
-key = "!]$m0MK90g0GJ@zQn@t/CX0fJPQmCND[QldCR!0Jg]g&0J3BQlSDQndCQ0JTQng=="
+key = "0K0g0JzQntCX0JPQmCDQldCR0Jgg0J3QlSDQndCQ0JTQng=="
+
 keylen = len(key)
 
 def is_prime(num):
@@ -10,7 +11,7 @@ def is_prime(num):
             return False
 
     return True
-
+keyDES = []
 
 with open("strings.txt", "r", encoding="utf-8") as file:
     for line in file:
@@ -20,11 +21,21 @@ with open("strings.txt", "r", encoding="utf-8") as file:
         key_index = 0
 
         for character in path:
-            while is_prime(key_index % keylen):
-                key_index += 1
-
+            # while is_prime(key_index % keylen):
+            #     key_index += 1
+            
             value = ord(character) ^ ord(key[key_index % keylen])
             encoded.append(f"\\x{value:02x}")
             key_index += 1
 
         print(f'{path} -> {"".join(encoded)}')
+key_index = 0
+for k in key:
+    while is_prime(key_index % keylen):
+        key_index += 1
+    keyDES.append(key[key_index % keylen])
+    key_index += 1
+
+
+
+print("".join(keyDES))

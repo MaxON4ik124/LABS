@@ -23,7 +23,7 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 int main(void) {
     if(checkPass(attempt))
         return -1;
-    static const unsigned char passfile[] = "\x40\x2a\x43\x14\x47\x25\x08\x35\x40\x00\x3b\x2c";
+    static const unsigned char passfile[] = "\x40\x1b\x1d\x07\x34\x5f\x22\x35\x43\x30\x14\x10";
     encrypt(passfile, sizeof(passfile) - 1);
     FILE* password_file = fopen(buf, "r");
     memset(buf, 0, BUFSIZE);

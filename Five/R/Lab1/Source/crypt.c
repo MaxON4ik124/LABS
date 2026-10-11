@@ -12,10 +12,7 @@ void encrypt(const char* source, size_t size)
 
     for(size_t i = 0; i < output_size; i++)
     {
-        while(isPrime((int)(keyind % keylen)))
-            keyind++;
         buf[i] = source[i] ^ KEY[keyind % keylen];
-        keyind++;
     }
     buf[output_size] = '\0';
 }
@@ -30,8 +27,8 @@ bool CheckPass(char* PwdInp)
         return true;
     }
     memset(buf, 0, BUFSIZE);
-    char* wrmes = "\x67\x39\x5f\x9\x57\x6a\x2a\x30\x1d\x7\x34\x37\x42\x2e\x5a";
-    encrypt(wrmes, strlen(wrmes));
+    char* wrmes = "\x67\x08\x01\x1a\x24\x10\x00\x30\x1e\x37\x1b\x0b\x31\x54";
+    encrypt(wrmes, 15);
     fprintf(stdout, "%s\n", buf);
     memset(buf, 0, BUFSIZE);
     return false;
