@@ -1,13 +1,36 @@
 [files]
-source_directory = 'src'
+source_directory = 'C:\Users\Maks\Desktop\Labs\Five\BSIT\Lab2\src'
 
-destination_directory = 'dest'
+destination_directory = 'C:\Users\Maks\Desktop\Labs\Five\BSIT\Lab2\dest'
 
-arcive_name = 'zipped.zip'
+archive_name = 'zipped_archive.zip'
 
-pattens = [
-    'taylor.py',
-    'te.txt',
-    'test.*',
-    'timber.?xe'
+patterns = [
+    'test*.py',
+    '?lib?.h',
+    '*.java',
+    'lib/*.*'
 ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
