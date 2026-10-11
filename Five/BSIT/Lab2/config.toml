@@ -1,0 +1,13 @@
+[files]
+source_directory = 'src'
+
+destination_directory = 'dest'
+
+arcive_name = 'zipped.zip'
+
+pattens = [
+    'taylor.py',
+    'te.txt',
+    'test.*',
+    'timber.?xe'
+]

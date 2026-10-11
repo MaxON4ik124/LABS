@@ -1,0 +1,1 @@
+g++ zipper.cpp -lZipper-static -o zipper.exe
