@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "SimpleTest",
+            "request": "launch",
+            "mainClass": "Five.TCMK.Lab2.SimpleTest",
+            "projectName": "Labs_29dcb5cd"
+        },
+        {
+            "type": "java",
             "name": "algos",
             "request": "launch",
             "mainClass": "Five.TCMK.Lab1.algos",
