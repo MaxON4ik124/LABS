@@ -1,4 +1,5 @@
 #include "MyString.h"
+#define MYSTRING_EXPORTS
 
 MyString::MyString()
 {

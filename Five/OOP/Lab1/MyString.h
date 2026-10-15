@@ -12,7 +12,11 @@
 #include <queue>
 #include <exception>
 
-
+#ifdef MYSTRING_EXPORTS
+#define MYSTRING_API __declspec(dllexport)
+#else
+#define MYSTRING_API __declspec(dllimport)
+#endif
 
 
 using namespace std;
@@ -28,7 +32,7 @@ struct Node
 
 
 
-class MyString
+class MYSTRING_API MyString
 {
 private:
     int capacity_;
@@ -197,6 +201,6 @@ public:
 ostream& operator<<(ostream& out, const MyString& str);
 istream& operator>>(istream& in, MyString& str);
 
-void pstr(const MyString& my_str);
+MYSTRING_API void pstr(const MyString& my_str);
 
 #endif

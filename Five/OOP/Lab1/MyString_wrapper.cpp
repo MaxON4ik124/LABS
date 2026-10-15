@@ -27,10 +27,10 @@ PYBIND11_MODULE(my_string, module)
         }))
 
         .def(py::init([](int num) {
-            return MyString(int num);
+            return MyString(num);
         }))
         .def(py::init([](double num) {
-            return MyString(double num);
+            return MyString(num);
         }))
 
         .def("clear", &MyString::clear)
@@ -166,7 +166,7 @@ PYBIND11_MODULE(my_string, module)
         })
         .def("move", [](MyString& source) {
             return std::move(source);
-        }, py::return_value_policy::move);
+        }, py::return_value_policy::move)
         .def("move_from", [](MyString& destination,
                              MyString& source) {
             destination = std::move(source);
@@ -175,12 +175,12 @@ PYBIND11_MODULE(my_string, module)
             return value.at(index);
         })
         .def("to_int", [](MyString& value) {
-            value.to_int();
+            return value.to_int();
         })
         .def("to_double", [](MyString& value) {
-            value.to_double();
+            return value.to_double();
         })
-        py::register_exception<MyString::MyStringConversionException>(modlue, "MyStringConversionError");
+        py::register_exception<MyString::MyStringConversionException>(module, "MyStringConversionError")
         
         
 
