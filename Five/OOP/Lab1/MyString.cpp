@@ -697,11 +697,17 @@ char& MyString::at(int index)
         throw out_of_range("There is nothing here    . . . . ");
     return this->str[index];
 }
+MyString::MyStringConversionException::MyStringConversionException(const string& message) : message(message)
+{}
+const char* MyString::MyStringConversionException::what() const noexcept
+{
+    return message.c_str();
+}
 
 int MyString::to_int()
 {
     if(this->size_ == 0)
-        throw out_of_range("I can't convert nothing to int");
+        throw MyStringConversionException("I can't convert nothing to int");
     try
     {
         string temp(this->str, this->size_);
@@ -710,18 +716,18 @@ int MyString::to_int()
     }
     catch (const invalid_argument&)
     {
-        throw invalid_argument("This is not a digit...");
+        throw MyStringConversionException("This is not a digit...");
     }
     catch (const out_of_range&)
     {
-        throw out_of_range("This digit is toooooo big for int");
+        throw MyStringConversionException("This digit is toooooo big for int");
     }
 }
 
 double MyString::to_double()
 {
     if(this->size_ == 0)
-        throw out_of_range("I can't convert nothing to int");
+        throw MyStringConversionException("I can't convert nothing to int");
     try
     {
         string temp(this->str, this->size_);
@@ -729,11 +735,11 @@ double MyString::to_double()
     }
     catch (const invalid_argument&)
     {
-        throw invalid_argument("This is not a digit...");
+        throw MyStringConversionException("This is not a digit...");
     }
     catch (const out_of_range&)
     {
-        throw out_of_range("This digit is toooooo big for int");
+        throw MyStringConversionException("This digit is toooooo big for int");
     }
 }
 

@@ -10,11 +10,13 @@
 #include <vector>
 #include <iterator>
 #include <queue>
+#include <exception>
 
 
 
 
 using namespace std;
+#pragma once
 
 struct Node
 {
@@ -119,6 +121,15 @@ public:
     int find(const char* source_str);
     int find(std::string source_str);
     int find(MyString source_str);
+
+    class MyStringConversionException
+    {
+        private:
+            string message;
+        public:
+            explicit MyStringConversionException(const string& message);
+            const char* what() const noexcept;
+    };
     
     MyString(MyString&& source_str) noexcept;
     MyString(int num);
