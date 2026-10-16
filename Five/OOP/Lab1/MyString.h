@@ -10,11 +10,17 @@
 #include <vector>
 #include <iterator>
 #include <queue>
+#include <exception>
 
-
+#ifdef MYSTRING_EXPORTS
+#define MYSTRING_API __declspec(dllexport)
+#else
+#define MYSTRING_API __declspec(dllimport)
+#endif
 
 
 using namespace std;
+#pragma once
 
 struct Node
 {
@@ -26,7 +32,7 @@ struct Node
 
 
 
-class MyString
+class MYSTRING_API MyString
 {
 private:
     int capacity_;
@@ -119,6 +125,15 @@ public:
     int find(const char* source_str);
     int find(std::string source_str);
     int find(MyString source_str);
+
+    class MyStringConversionException
+    {
+        private:
+            string message;
+        public:
+            explicit MyStringConversionException(const string& message);
+            const char* what() const noexcept;
+    };
     
     MyString(MyString&& source_str) noexcept;
     MyString(int num);
@@ -186,6 +201,6 @@ public:
 ostream& operator<<(ostream& out, const MyString& str);
 istream& operator>>(istream& in, MyString& str);
 
-void pstr(const MyString& my_str);
+MYSTRING_API void pstr(const MyString& my_str);
 
 #endif
