@@ -1,5 +1,6 @@
 @REM  winget install LLVM.LLVM
 @REM  tar -czf lab1.tar.gz TarBuild/
 @REM  docker run -v "./lab1.tar.gz:/input/repo.tgz:ro" mystringtest
-g++ -std=c++17 -Wall -Wextra -pedantic MyString.cpp tests.cpp -o tests.exe
+g++ -std=c++17 -Wall -Wextra -pedantic -DMYSTRING_EXPORTS= MyString.cpp tests.cpp -o tests.exe
+if errorlevel 1 exit /b 1
 .\tests.exe

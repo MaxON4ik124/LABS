@@ -329,6 +329,8 @@ void MyString::append(MyString source_str, int count)
 
 void MyString::erase(int index, int count)
 {
+    if(count < 0)
+        throw out_of_range("Cannot erase a negative number of characters");
     if(index + count > this->size_)
         throw out_of_range("How can I erase something after the end of string???");
     if(index < 0 || index >= this->size_)

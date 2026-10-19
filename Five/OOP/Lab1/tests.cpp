@@ -17,6 +17,24 @@ void isPass(bool test)
     }
 }
 
+template <typename Exception, typename Action>
+bool throwsException(Action action)
+{
+    try
+    {
+        action();
+    }
+    catch (const Exception&)
+    {
+        return true;
+    }
+    catch (...)
+    {
+        return false;
+    }
+    return false;
+}
+
 int main()
 {
 
@@ -113,9 +131,39 @@ int main()
     isPass((insert_bwd_4.insert(bwd_4, "END"),
             strcmp(insert_bwd_4.c_str(), "abcENDd") == 0));
 
+    MyString bounds_test("abcd");
+    isPass(throwsException<out_of_range>([&] { bounds_test.at(-1); }));
+    isPass(throwsException<out_of_range>([&] { bounds_test.at(bounds_test.size()); }));
+
+    MyString empty_test;
+    isPass(throwsException<out_of_range>([&] { empty_test.at(0); }));
+    isPass(throwsException<MyString::MyStringConversionException>(
+        [&] { empty_test.to_int(); }));
+    isPass(throwsException<MyString::MyStringConversionException>(
+        [&] { empty_test.to_double(); }));
+
+    MyString invalid_number("not a number");
+    isPass(throwsException<MyString::MyStringConversionException>(
+        [&] { invalid_number.to_int(); }));
+    isPass(throwsException<MyString::MyStringConversionException>(
+        [&] { invalid_number.to_double(); }));
+
+    MyString int_overflow("999999999999999999999999999999");
+    isPass(throwsException<MyString::MyStringConversionException>(
+        [&] { int_overflow.to_int(); }));
+    MyString double_overflow("1e9999");
+    isPass(throwsException<MyString::MyStringConversionException>(
+        [&] { double_overflow.to_double(); }));
+
+    MyString erase_test("abcd");
+    const int erase_capacity = erase_test.capacity();
+    isPass(throwsException<out_of_range>([&] { erase_test.erase(1, -1); }));
+    isPass(erase_test.size() == 4 && erase_test.capacity() == erase_capacity &&
+           strcmp(erase_test.c_str(), "abcd") == 0);
 
     cout << endl << "======================================================================" << endl;
     cout << "Passed: " << passed << "/" << total << endl;
 
+    return passed == total ? 0 : 1;
 
 }
