@@ -174,7 +174,7 @@ public class SimpleTest
             {
                 ReasonPass.add(2);
                 PassedBases.add(a);
-                PassedR.add(0); // r = 0
+                PassedR.add(0);
                 continue;
             }   
 
