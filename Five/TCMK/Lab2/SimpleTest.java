@@ -230,7 +230,7 @@ public class SimpleTest
     {
         long start = System.nanoTime();
         RANDOM.nextBytes(new byte[32]);
-        BigInteger num1 = new BigInteger("13217255198004962887");
+        BigInteger num1 = new BigInteger("11094995021861921");
         BigInteger num2 = new BigInteger("1752846681491936797148622077603952008089");
         BigInteger num3 = new BigInteger("317565151248733323062037418099788024733");
         BigInteger num4 = new BigInteger("10290608798586102391723793837292981274471443732802263657809874438237047137603303");
