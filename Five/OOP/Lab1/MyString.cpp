@@ -130,7 +130,7 @@ void MyString::set_capacity(int value)
     memcpy(new_str, c_str(), size() + 1);
     delete[] this->str;
     this->str = new_str;
-    set_capacity(value);
+    this->capacity_ = value;
 }
 
 const char* MyString::c_str() const
@@ -296,6 +296,14 @@ void MyString::append(const char* source_str, int s_index, int count)
 {       
     insert(this->size_, source_str, s_index, count);
 }
+void MyString::append(string source_str, int s_index, int count)
+{       
+    append(source_str.c_str(), s_index, count);
+}
+void MyString::append(MyString source_str, int s_index, int count)
+{       
+    append(source_str.c_str(), s_index, count);
+}
 
 void MyString::append(const char* source_str)
 {
@@ -392,6 +400,9 @@ void MyString::replace(int index, int count, MyString source_str, int s_index, i
 
 MyString MyString::substr(int index)
 {
+    if(index < 0 || index > this->size_)
+        throw out_of_range("Index is not in str");
+    
     MyString res;
     delete[] res.str;
     int substr_size = this->size_ - index;
@@ -405,6 +416,8 @@ MyString MyString::substr(int index)
 
 MyString MyString::substr(int index, int count)
 {
+    if(index < 0 || count < 0 || index < this->size_ || count > this->size_ - index) 
+        throw out_of_range("Index is not in str");
     MyString res;
     delete[] res.str;
     res.str = new char[count + 1];

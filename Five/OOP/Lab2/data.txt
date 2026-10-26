@@ -1,0 +1,2 @@
+Parrent1: _ZN12ParrentClass9function1Ei
+Parrent3: 00007FF7D00A5C00

@@ -1,1 +1,0 @@
-chr(i) for i in v7_1)
