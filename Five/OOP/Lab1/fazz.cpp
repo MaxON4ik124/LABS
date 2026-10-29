@@ -28,8 +28,6 @@ int main()
     int p_idx2 = input[3];
     int p_cnt2 = input[4];
     MyString s_data(input.c_str() + 5, (int)input.size() - 5);
-
-
     try
     {
         str1 = s_data;
