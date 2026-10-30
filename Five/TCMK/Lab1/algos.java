@@ -227,8 +227,8 @@ public class algos
     
     public static void main(String[] args) 
     {
-        BigInteger a1 = new BigInteger("9190812423861359177");
-        BigInteger b1 = new BigInteger("5665686725157642793");
+        BigInteger a1 = new BigInteger("122");
+        BigInteger b1 = new BigInteger("91");
 
         BigInteger a2 = new BigInteger("382875700183783912180972380599677237411");
         BigInteger b2 = new BigInteger("850028528056170803249499731597831491891");
