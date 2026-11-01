@@ -1,7 +1,7 @@
 import itertools
 import re
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence, Tuple
+from typing import Dict, List, Sequence, Tuple
 
 
 HERE = Path(__file__).resolve().parent
