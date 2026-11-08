@@ -5,8 +5,8 @@ from setuptools.command.build_ext import build_ext
 extension = Extension(
     "my_string",
     sources=[
-        "main.cpp",
         "MyString.cpp",
+        "MyString_wrapper.cpp"
     ],
     include_dirs=[pybind11.get_include()],
     language="c++",

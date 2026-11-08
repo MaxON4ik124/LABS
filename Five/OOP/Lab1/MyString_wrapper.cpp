@@ -14,6 +14,7 @@ PYBIND11_MODULE(my_string, module)
 {
     module.doc() = "Python wrapper for the MyString C++ class";
 
+    py::register_exception<MyString::MyStringConversionException>(module, "MyStringConversionError");
     py::class_<MyString>(module, "MyString")
         .def(py::init<>())
         .def(py::init<const MyString&>())
@@ -99,10 +100,9 @@ PYBIND11_MODULE(my_string, module)
                           int source_index, int count) {
             value.append(source.c_str(), source_index, count);
         })
-
-        .def("erase", &MyString::erase)
-
-
+        .def("erase", [](MyString& value, int index, int count) {
+            value.erase(index, count);
+        })
         .def("replace", [](MyString& value, int index, int count,
                            const std::string& source) {
             value.replace(index, count, source.c_str());
@@ -140,17 +140,44 @@ PYBIND11_MODULE(my_string, module)
         .def("compare", [](MyString& value, MyString& other) {
             return value.compare(other);
         })
+
         .def("find", [](MyString& value, const std::string& source) {
             return value.find(source.c_str());
         })
         .def("find", [](MyString& value, const MyString& source) {
             return value.find(source);
         })
-        .def("find", [](MyString& value, const std::string& source, int index) {
-            return value.find(source.c_str(), index);
+        .def("find", [](MyString& value, const std::string& source, int start) {
+            return value.find(source.c_str(), start);
         })
-        .def("find", [](MyString& value, const MyString& source, int index) {
-            return value.find(source, index);
+        .def("find", [](MyString& value, const MyString& source, int start) {
+            return value.find(source, start);
+        })
+        .def("find", [](MyString& value, const std::string& source, int start,int end) {
+            return value.find(source.c_str(), start, end);
+        })
+        .def("find", [](MyString& value, const MyString& source, int start, int end) {
+            return value.find(source, start, end);
+        })
+
+
+        .def("rfind", [](MyString& value, const std::string& source) {
+            return value.rfind(source.c_str());
+        })
+        .def("rfind", [](MyString& value, const MyString& source) {
+            return value.rfind(source);
+        })
+        .def("rfind", [](MyString& value, const std::string& source, int start) {
+            return value.rfind(source.c_str(), start);
+        })
+        .def("rfind", [](MyString& value, const MyString& source, int start) {
+            return value.rfind(source, start);
+        })
+        .def("rfind", [](MyString& value, const std::string& source, int start, int end) {
+            return value.rfind(source.c_str(), start, end);
+        })
+        .def("rfind", [](MyString& value, const MyString& source, int start, int end) {
+            return value.rfind(source, start, end);
         })
 
 
@@ -180,13 +207,6 @@ PYBIND11_MODULE(my_string, module)
         .def("to_double", [](MyString& value) {
             return value.to_double();
         })
-        py::register_exception<MyString::MyStringConversionException>(module, "MyStringConversionError")
-        
-        
-
-
-
-        
         .def("__getitem__", [](MyString& value, int index) {
             return value[index];
         })
@@ -243,18 +263,12 @@ PYBIND11_MODULE(my_string, module)
         .def("__ge__", [](MyString& value, MyString& other) {
             return value >= other;
         })
-        .def("__iter__", [](const MyString& string) {
-            return py::make_iterator(
-                string.cbegin(),
-                string.cend()
-            );
+        .def("__iter__", [](MyString& string) {
+            return py::make_iterator(string.cbegin(), string.cend());
         }, py::keep_alive<0, 1>())
 
-        .def("__reversed__", [](const MyString& string) {
-            return py::make_iterator(
-                string.crbegin(),
-                string.crend()
-            );
+        .def("__reversed__", [](MyString& string) {
+            return py::make_iterator(string.rcbegin(), string.rcend());
         }, py::keep_alive<0, 1>());
 
     module.def("pstr", &pstr);

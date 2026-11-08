@@ -108,12 +108,25 @@ public:
     bool operator>(MyString& other);
     bool operator<=(MyString& other);
     bool operator>=(MyString& other);
-    int find(const char* source_str, int index);
-    int find(std::string source_str, int index);
-    int find(MyString source_str, int index);
     int find(const char* source_str);
     int find(std::string source_str);
     int find(MyString source_str);
+    int find(const char* source_str, int start);
+    int find(std::string source_str, int start);
+    int find(MyString source_str, int start);
+    int find(const char* source_str, int start, int end);
+    int find(std::string source_str, int start, int end);
+    int find(MyString source_str, int start, int end);
+    int rfind(const char* source_str);
+    int rfind(string source_str);
+    int rfind(MyString source_str);
+    int rfind(const char* source_str, int start);
+    int rfind(string source_str, int start);
+    int rfind(MyString source_str, int start);
+    int rfind(const char* source_str, int start, int end);
+    int rfind(string source_str, int start, int end);
+    int rfind(MyString source_str, int start, int end);
+
     class MyStringConversionException
     {
         private:
