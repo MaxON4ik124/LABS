@@ -510,11 +510,11 @@ bool MyString::operator>=(MyString& other)
     return compare(other) >= 0;
 }
 
-int MyString::find(const char* source_str, int index)
+int MyString::find(const char* source_str, int start, int end)
 {
     int src_len = strlen(source_str);
     int compared = 0;
-    for(int i = index; i < this->size_; i++)
+    for(int i = start; i < end; i++)
     {
         if(this->str[i] == source_str[compared])
         {
@@ -540,15 +540,103 @@ int MyString::find(const char* source_str, int index)
     }
     return 0;
 }
-
-int MyString::find(string source_str, int index)
+int MyString::find(string source_str, int start, int end)
 {
-    return find(source_str.c_str(), index);
+    return find(source_str.c_str(), start, end);
+}
+int MyString::find(MyString source_str, int start, int end)
+{
+    return find(source_str.c_str(), start, end);
 }
 
-int MyString::find(MyString source_str, int index)
+int MyString::find(const char* source_str, int start)
 {
-    return find(source_str.c_str(), index);
+    return find(source_str, start, this->size());
+}
+int MyString::find(string source_str, int start)
+{
+    return find(source_str.c_str(), start, this->size());
+}
+int MyString::find(MyString source_str, int start)
+{
+    return find(source_str.c_str(), start, this->size());
+}
+
+int MyString::find(const char* source_str)
+{
+    return find(source_str, 0, this->size());
+}
+int MyString::find(string source_str)
+{
+    return find(source_str.c_str(), 0, this->size());
+}
+int MyString::find(MyString source_str)
+{
+    return find(source_str.c_str(), 0, this->size());
+}
+
+int MyString::rfind(const char* source_str, int start, int end)
+{
+    int src_len = strlen(source_str);
+    int compared = 0;
+    int candidate = 0;
+    for(int i = start; i < end; i++)
+    {
+        if(this->str[i] == source_str[compared])
+        {
+            int flag = 1;
+            for(int j = 0;j < src_len;j++)
+            {
+                if(this->str[i] == source_str[j])
+                {
+                    compared++;
+                    i++;
+                }
+                else
+                {
+                    i += (src_len - compared);
+                    flag = 0;
+                    break;
+                }
+            }
+            compared = 0;
+            if(flag == 1)
+                candidate = i - src_len;
+        }
+    }
+    return candidate;
+}
+int MyString::rfind(string source_str, int start, int end)
+{
+    return rfind(source_str.c_str(), start, end);
+}
+int MyString::rfind(MyString source_str, int start, int end)
+{
+    return rfind(source_str.c_str(), start, end);
+}
+int MyString::rfind(const char* source_str, int start)
+{
+    return rfind(source_str, start, this->size());
+}
+int MyString::rfind(string source_str, int start)
+{
+    return rfind(source_str.c_str(), start, this->size());
+}
+int MyString::rfind(MyString source_str, int start)
+{
+    return rfind(source_str.c_str(), start, this->size());
+}
+int MyString::rfind(const char* source_str)
+{
+    return rfind(source_str, 0, this->size());
+}
+int MyString::rfind(string source_str)
+{
+    return rfind(source_str.c_str(), 0, this->size());
+}
+int MyString::rfind(MyString source_str)
+{
+    return rfind(source_str.c_str(), 0, this->size());
 }
 
 int MyString::find_ac(const char* source_str)
@@ -644,15 +732,7 @@ int MyString::find_ac(MyString source_str)
     return find_ac(source_str.c_str());
 }
 
-int MyString::find(string source_str)
-{
-    return find(source_str.c_str(), 0);
-}
 
-int MyString::find(MyString source_str)
-{
-    return find(source_str.c_str(), 0);
-}
 
 MyString::MyString(MyString&& source_str) noexcept : 
     capacity_(source_str.capacity_), 
@@ -935,5 +1015,3 @@ void pstr(const MyString& my_str)
 {
     cout << "\"" << my_str.c_str() << "\"" << " (" << my_str.size() << ", " << my_str.capacity() << ")" << endl;
 }
-
-

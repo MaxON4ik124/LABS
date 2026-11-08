@@ -1,4 +1,4 @@
-from my_string import MyString as MyString
+from Five.OOP.Lab1.my_string import MyString as MyString
 
 def test_ctor():
     s0 = MyString()
