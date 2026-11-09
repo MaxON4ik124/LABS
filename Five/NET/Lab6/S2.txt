@@ -1,0 +1,51 @@
+enable
+configure terminal
+hostname S2
+no ip domain-lookup
+enable secret class
+line console 0
+password cisco
+login
+exit
+line vty 0 15
+password cisco
+login
+exit
+service password-encryption
+banner motd #Unauthorized access is prohibited!#
+exit
+clock set 12:00:00 9 Nov 2026
+write memory
+configure terminal
+vlan 3
+name Management
+vlan 4
+name Operations
+vlan 7
+name ParkingLot
+vlan 8
+name Native
+exit
+interface vlan 3
+ip address 192.168.3.12 255.255.255.0
+no shutdown
+exit
+ip default-gateway 192.168.3.1
+interface range f0/2-17, f0/19-24, g0/1-2
+switchport mode access
+switchport access vlan 7
+shutdown
+exit
+interface f0/18
+switchport mode access
+switchport access vlan 4
+exit
+interface f0/1
+switchport mode trunk
+switchport trunk native vlan 8
+switchport trunk allowed vlan 3,4,8
+exit
+end
+write memory
+show vlan brief
+show interfaces trunk

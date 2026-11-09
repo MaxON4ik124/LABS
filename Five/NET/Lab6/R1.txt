@@ -1,0 +1,39 @@
+enable
+configure terminal
+hostname R1
+no ip domain-lookup
+enable secret class
+line console 0
+password cisco
+login
+exit
+line vty 0 4
+password cisco
+login
+exit
+service password-encryption
+banner motd #Unauthorized access is prohibited!#
+exit
+clock set 12:00:00 10 Nov 2026
+write memory
+configure terminal
+interface g0/0/1
+no shutdown
+exit
+interface g0/0/1.3
+description Gateway for VLAN 3 (Management)
+encapsulation dot1q 3
+ip address 192.168.3.1 255.255.255.0
+exit
+interface g0/0/1.4
+description Gateway for VLAN 4 (Operations)
+encapsulation dot1q 4
+ip address 192.168.4.1 255.255.255.0
+exit
+interface g0/0/1.8
+description Native VLAN 8 - no IP
+encapsulation dot1q 8 native
+exit
+end
+write memory
+show ip interface brief
