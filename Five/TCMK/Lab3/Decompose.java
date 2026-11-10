@@ -17,6 +17,190 @@ public class Decompose {
     private static final int MAX_ATTEMPT_STEPS = 6_400_000;
     private static final int PMINUS1_START_BOUND = 1_000;
     private static final int PMINUS1_MAX_BOUND = 1_000_000;
+    private static final int TIMEOUT = 3;
+
+    private static long timeoutDeadline = Long.MAX_VALUE;
+
+    private static void startTimeout()
+    {
+        timeoutDeadline = System.currentTimeMillis() + TIMEOUT * 1000L;
+    }
+
+    private static boolean timedOut()
+    {
+        return System.currentTimeMillis() >= timeoutDeadline;
+    }
+
+    private static final class Trace
+    {
+        private static final int HEAD = 5;
+        private static final int TAIL = 5;
+        private final List<String> head = new ArrayList<>();
+        private final Deque<String> tail = new ArrayDeque<>();
+        private final boolean enabled;
+        private int count;
+
+        Trace(boolean enabled)
+        {
+            this.enabled = enabled;
+        }
+
+        void add(String line)
+        {
+            count++;
+            if(!enabled)
+            {
+                return;
+            }
+            if(head.size() < HEAD)
+            {
+                head.add(line);
+            }
+            else
+            {
+                if(tail.size() == TAIL)
+                {
+                    tail.removeFirst();
+                }
+                tail.addLast(line);
+            }
+        }
+
+        void print(boolean completed, boolean verbose)
+        {
+            if(!verbose)
+            {
+                return;
+            }
+            if(count == 0)
+            {
+                System.out.println(completed
+                        ? "--- разбиение получено, итераций нет ---"
+                        : "--- таймаут до первой итерации ---");
+                return;
+            }
+            List<String> tailList = new ArrayList<>(tail);
+            if(count <= HEAD + TAIL)
+            {
+                for(String line : head)
+                {
+                    System.out.println(line);
+                }
+                for(String line : tailList)
+                {
+                    System.out.println(line);
+                }
+            }
+            else
+            {
+                for(String line : head)
+                {
+                    System.out.println(line);
+                }
+                System.out.println("... (" + (count - HEAD - TAIL) + " итераций пропущено) ...");
+                for(String line : tailList)
+                {
+                    System.out.println(line);
+                }
+            }
+            if(completed)
+            {
+                System.out.println("--- разбиение получено, всего итераций: " + count + " ---");
+            }
+            else
+            {
+                System.out.println("--- таймаут, последние итерации, всего: " + count + " ---");
+            }
+        }
+    }
+
+    // Trace for CFRAC: numerA = A_i (numerator of the convergent),
+    // residue = (A_i)^2 mod n, exponent = full exponent vector over the base.
+    private static final class CfracTrace
+    {
+        private static final int HEAD = 5;
+        private static final int TAIL = 5;
+        private final List<String> head = new ArrayList<>();
+        private final Deque<String> tail = new ArrayDeque<>();
+        private final boolean enabled;
+        private int count;
+
+        CfracTrace(boolean enabled)
+        {
+            this.enabled = enabled;
+        }
+
+        void add(String numerA, BigInteger residue, int[] exponent)
+        {
+            count++;
+            if(!enabled)
+            {
+                return;
+            }
+            StringBuilder line = new StringBuilder();
+            line.append(count).append(") A = ").append(numerA)
+                    .append(", (A)^2 mod n = ").append(residue)
+                    .append(", вектор = [");
+            for(int i = 0; i < exponent.length; i++)
+            {
+                if(i > 0)
+                {
+                    line.append(", ");
+                }
+                line.append(exponent[i]);
+            }
+            line.append("]");
+
+            if(head.size() < HEAD)
+            {
+                head.add(line.toString());
+            }
+            else
+            {
+                if(tail.size() == TAIL)
+                {
+                    tail.removeFirst();
+                }
+                tail.addLast(line.toString());
+            }
+        }
+
+        void print(boolean completed, boolean verbose)
+        {
+            if(!verbose)
+            {
+                return;
+            }
+            if(count == 0)
+            {
+                System.out.println(completed
+                        ? "--- разбиение получено (D-гладких значений нет) ---"
+                        : "--- таймаут (D-гладких значений не найдено) ---");
+                return;
+            }
+            List<String> tailList = new ArrayList<>(tail);
+            for(String line : head)
+            {
+                System.out.println(line);
+            }
+            if(count > HEAD + TAIL)
+            {
+                System.out.println("... (" + (count - HEAD - TAIL) + " итераций пропущено) ...");
+            }
+            for(String line : tailList)
+            {
+                System.out.println(line);
+            }
+            if(completed)
+            {
+                System.out.println("--- разбиение получено, всего D-гладких значений: " + count + " ---");
+            }
+            else
+            {
+                System.out.println("--- таймаут, последние D-гладкие значения, всего: " + count + " ---");
+            }
+        }
+    }
 
 
     private static int[] sievePrimes = new int[0];
@@ -61,6 +245,9 @@ public class Decompose {
 
     private static BigInteger pMinus1Divisor(BigInteger n, boolean verbose)
     {
+        int counter = 0;
+        Trace trace = new Trace(verbose);
+
         for(int bound = PMINUS1_START_BOUND; bound <= PMINUS1_MAX_BOUND; bound *= 4)
         {
             checkInterrupted();
@@ -88,15 +275,20 @@ public class Decompose {
                 }
                 BigInteger exponent = BigInteger.valueOf(power);
                 a = a.modPow(exponent, n);
-
+                counter++;
                 if(verbose)
                 {
-                    System.out.println("l = " + exponent + ", a = " + a);
+                    trace.add(counter + ") l = " + exponent + ", a = " + a);
                 }
 
                 if((index & 31) == 0)
                 {
                     checkInterrupted();
+                    if(timedOut())
+                    {
+                        trace.print(false, verbose);
+                        return null;
+                    }
                 }
 
                 BigInteger divisor = a.subtract(BigInteger.ONE).gcd(n);
@@ -104,19 +296,22 @@ public class Decompose {
                 {
                     if(divisor.equals(n))
                     {
-
                         failed = true;
                         break;
                     }
+                    trace.print(true, verbose);
                     return divisor;
                 }
             }
 
             if(failed)
             {
+                trace.print(false, verbose);
                 return null;
             }
         }
+
+        trace.print(false, verbose);
         return null;
     }
     private static final BigInteger[] SMALL_PRIMES = {
@@ -143,11 +338,18 @@ public class Decompose {
         BigInteger ONE = BigInteger.ONE;
         BigInteger x0 = ONE;
         int limit = 10_000;
+        int counter = 0;
+        Trace trace = new Trace(verbose);
+        BigInteger c = randomBelow(n.subtract(ONE)).add(ONE);
+        if(verbose)
+        {
+            System.out.printf("Отображение: x^2 + %s\n", c);
+        }
 
         while(true)
         {
             checkInterrupted();
-            BigInteger c = randomBelow(n);
+            c = randomBelow(n.subtract(ONE)).add(ONE);
             BigInteger a = x0;
             BigInteger b = x0;
             BigInteger d = ONE;
@@ -157,21 +359,34 @@ public class Decompose {
                 if((step & 31) == 0)
                 {
                     checkInterrupted();
+                    if(timedOut())
+                    {
+                        trace.print(false, verbose);
+                        return null;
+                    }
                 }
 
                 a = F(a, c, n);
                 b = F(F(b, c, n), c, n);
                 d = a.subtract(b).abs().gcd(n);
-
+                counter++;
                 if(verbose)
                 {
-                    System.out.println("a = " + a + ", b = " + b + ", НОД(a-b, n) = " + d);
+                    trace.add(counter + ") a = " + a + ", b = " + b + ", НОД(a-b, n) = " + d);
                 }
             }
 
-            if(!d.equals(n))
+            if(!d.equals(ONE) && !d.equals(n))
             {
+                trace.print(true, verbose);
                 return d;
+            }
+
+            if(limit == MAX_ATTEMPT_STEPS && d.equals(ONE))
+            {
+                // No collision within the step budget: give up this run.
+                trace.print(false, verbose);
+                return null;
             }
 
             limit = Math.min(limit * 2, MAX_ATTEMPT_STEPS);
@@ -184,6 +399,10 @@ public class Decompose {
         while(true)
         {
             checkInterrupted();
+            if(timedOut())
+            {
+                return null;
+            }
             BigInteger c = randomBelow(n.subtract(BigInteger.ONE)).add(BigInteger.ONE);
             BigInteger y = randomBelow(n);
             int steps = 0;
@@ -197,6 +416,10 @@ public class Decompose {
                     if((i & (BATCH_SIZE - 1)) == 0)
                     {
                         checkInterrupted();
+                        if(timedOut())
+                        {
+                            return null;
+                        }
                     }
                     y = F(y, c, n);
                     steps++;
@@ -249,8 +472,7 @@ public class Decompose {
         }
     }
 
-    // Continued fractions factorization (CFRAC).
-    // Uses convergents of sqrt(n) to collect smooth Q values and find x^2 = y^2.
+
     private static BigInteger cfracDivisor(BigInteger n, boolean verbose)
     {
         fillPrimesUpTo(500);
@@ -269,9 +491,10 @@ public class Decompose {
         int relationLimit = base.size() + 5;
         List<BigInteger> aList = new ArrayList<>();
         List<int[]> relations = new ArrayList<>();
+        int counter = 0;
+        CfracTrace trace = new CfracTrace(verbose);
 
-        // Classical CFRAC recurrences: P_{i+1} = a_i*Q_i - P_i,
-        // Q_{i+1} = (n - P_{i+1}^2) / Q_i, A_i = a_i*A_{i-1} + A_{i-2}.
+
         BigInteger P = BigInteger.ZERO;
         BigInteger Q = BigInteger.ONE;
         BigInteger aPrev = BigInteger.ZERO;
@@ -280,11 +503,17 @@ public class Decompose {
         for(int i = 0; i < 500_000; i++)
         {
             checkInterrupted();
+            if(timedOut())
+            {
+                trace.print(false, verbose);
+                return null;
+            }
             BigInteger a = sqrtN.add(P).divide(Q);
 
             BigInteger nextP = a.multiply(Q).subtract(P);
             BigInteger nextQ = n.subtract(nextP.multiply(nextP)).divide(Q);
-            BigInteger nextA = a.multiply(aCurr).add(aPrev);
+            // A_i may be reduced modulo n: all CFRAC comparisons are modulo n.
+            BigInteger nextA = a.multiply(aCurr).add(aPrev).mod(n);
 
             P = nextP;
             Q = nextQ;
@@ -305,16 +534,20 @@ public class Decompose {
 
             aList.add(aCurr);
             relations.add(exponent);
-            if(verbose)
+            counter++;
+            int[] parity = new int[exponent.length];
+            for(int j = 0; j < exponent.length; j++)
             {
-                System.out.println("A = " + aCurr + ", Q = " + qValue);
+                parity[j] = exponent[j] & 1;
             }
+            trace.add(aCurr.toString(), qValue, parity);
 
             if(relations.size() >= relationLimit)
             {
                 BigInteger divisor = solveRelations(n, base, relations, aList, verbose);
                 if(divisor != null)
                 {
+                    trace.print(true, verbose);
                     return divisor;
                 }
                 relations.clear();
@@ -322,10 +555,11 @@ public class Decompose {
             }
         }
 
+        trace.print(false, verbose);
         return null;
     }
 
-    // Legendre symbol (n / prime) for an odd prime.
+
     private static int legendre(BigInteger n, int prime)
     {
         int value = n.mod(BigInteger.valueOf(prime)).intValue();
@@ -341,7 +575,6 @@ public class Decompose {
         return result.equals(BigInteger.valueOf(prime - 1)) ? -1 : 1;
     }
 
-    // Factor q over the factor base, returns exponents or null if not smooth.
     private static int[] factorOverBase(
             BigInteger q, List<Integer> base)
     {
@@ -480,11 +713,6 @@ public class Decompose {
                 continue;
             }
 
-            if(verbose)
-            {
-                System.out.println("x = " + x + ", y = " + y);
-            }
-
             BigInteger divisor = x.subtract(y).abs().gcd(n);
             if(!divisor.equals(BigInteger.ONE) && !divisor.equals(n))
             {
@@ -511,6 +739,8 @@ public class Decompose {
         {
             throw new IllegalArgumentException("n must be positive");
         }
+
+        startTimeout();
 
         BigInteger ONE = BigInteger.ONE;
         BigInteger TWO = BigInteger.valueOf(2);
@@ -558,11 +788,23 @@ public class Decompose {
             BigInteger divisor = cfracDivisor(current, verbose);
             if(divisor == null)
             {
+                if(timedOut())
+                {
+                    break;
+                }
                 divisor = rhoDivisorFloyd(current, false);
             }
             if(divisor == null)
             {
+                if(timedOut())
+                {
+                    break;
+                }
                 divisor = brentDivisor(current);
+            }
+            if(divisor == null || divisor.equals(BigInteger.ONE))
+            {
+                break;
             }
             pending.push(divisor);
             pending.push(current.divide(divisor));
@@ -596,6 +838,7 @@ public class Decompose {
 
     public static Boolean RhoPollard(BigInteger n, boolean verbose)
     {
+        startTimeout();
 
         BigInteger ONE = BigInteger.ONE;
         BigInteger TWO = BigInteger.valueOf(2);
@@ -643,7 +886,15 @@ public class Decompose {
             BigInteger divisor = rhoDivisorFloyd(current, verbose);
             if(divisor == null)
             {
+                if(timedOut())
+                {
+                    break;
+                }
                 divisor = brentDivisor(current);
+            }
+            if(divisor == null || divisor.equals(ONE))
+            {
+                break;
             }
             pending.push(divisor);
             pending.push(current.divide(divisor));
@@ -660,6 +911,8 @@ public class Decompose {
         {
             throw new IllegalArgumentException("n must be positive");
         }
+
+        startTimeout();
 
         BigInteger ONE = BigInteger.ONE;
         BigInteger TWO = BigInteger.valueOf(2);
@@ -707,7 +960,15 @@ public class Decompose {
             BigInteger divisor = pMinus1Divisor(current, verbose);
             if(divisor == null)
             {
+                if(timedOut())
+                {
+                    break;
+                }
                 divisor = brentDivisor(current);
+            }
+            if(divisor == null || divisor.equals(ONE))
+            {
+                break;
             }
             pending.push(divisor);
             pending.push(current.divide(divisor));
@@ -736,19 +997,18 @@ public class Decompose {
         BigInteger val2 = new BigInteger("491567273268656308119212755636928578489");
         BigInteger val3 = new BigInteger("15001130225340576213314924303539086147166581600235267913822957208411676781245489");
         System.out.println("-----------------1 число--------------------------------------");
-        timedTest("Po-Метод Полларда", val1, n -> Decompose.RhoPollard(n, false));
-        timedTest("P-1 Метод Полларда", val1, n -> Decompose.PMinus1(n, false));
-        timedTest("непрерывные дроби", val1, n -> Decompose.ContinuedFractions(n, false));
+        timedTest("Po-Метод Полларда", val1, n -> Decompose.RhoPollard(n, true));
+        timedTest("P-1 Метод Полларда", val1, n -> Decompose.PMinus1(n, true));
+        timedTest("непрерывные дроби", val1, n -> Decompose.ContinuedFractions(n, true));
         
         System.out.println("-----------------2 число--------------------------------------");
-        timedTest("P-1 Метод Полларда", val2, n -> Decompose.PMinus1(n, false));
-        timedTest("Po-Метод Полларда", val2, n -> Decompose.RhoPollard(n, false));
-        timedTest("непрерывные дроби", val2, n -> Decompose.ContinuedFractions(n, false));
+        timedTest("P-1 Метод Полларда", val2, n -> Decompose.PMinus1(n, true));
+        timedTest("Po-Метод Полларда", val2, n -> Decompose.RhoPollard(n, true));
+        timedTest("непрерывные дроби", val2, n -> Decompose.ContinuedFractions(n, true));
 
         System.out.println("-----------------3 число---------------------------------------");
-        timedTest("Po-Метод Полларда", val3, n -> Decompose.RhoPollard(n, false));
-        timedTest("P-1 Метод Полларда", val3, n -> Decompose.PMinus1(n, false));
-        timedTest("непрерывные дроби", val3, n -> Decompose.ContinuedFractions(n, false));
+        timedTest("Po-Метод Полларда", val3, n -> Decompose.RhoPollard(n, true));
+        timedTest("P-1 Метод Полларда", val3, n -> Decompose.PMinus1(n, true));
+        timedTest("непрерывные дроби", val3, n -> Decompose.ContinuedFractions(n, true));
     }
-
 }
