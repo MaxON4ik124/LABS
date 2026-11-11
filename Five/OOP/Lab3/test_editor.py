@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+import Five.OOP.Lab3.myVimm as editor_module
 from Five.OOP.Lab3.myVimm import Document, Editor, TerminalView, safe_screen_text
 from my_string import MyString
 
@@ -76,11 +77,89 @@ class DocumentTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 Document.open(path)
 
+    def test_copy_line_is_a_real_copy(self):
+        document = Document("aaa\nbbb")
+        document.copy_line(0)
+        self.assertEqual(str(document.buffer), "aaa\n")
+        # editing the source line must NOT mutate the buffer (no aliasing)
+        document.lines[0].append("X")
+        self.assertEqual(str(document.buffer), "aaa\n")
+
+    def test_copy_line_on_single_line(self):
+        document = Document("only")
+        document.copy_line(0)
+        self.assertEqual(str(document.buffer), "only\n")
+
+    def test_copy_word(self):
+        document = Document("hello world")
+        document.copy_word(0, 0)
+        self.assertEqual(str(document.buffer), "hello")
+        document.copy_word(0, 6)
+        self.assertEqual(str(document.buffer), "world")
+
+    def test_paste_line_buffer_inserts_new_line_below(self):
+        document = Document("one\ntwo")
+        document.copy_line(0)
+        row, column = document.paste(0, 0)
+        self.assertEqual((row, column), (1, 0))
+        self.assertEqual(document.text(), "one\none\ntwo")
+
+    def test_paste_word_buffer_inserts_after_cursor(self):
+        document = Document("hello world")
+        document.copy_word(0, 0)
+        row, column = document.paste(0, 0)
+        self.assertEqual((row, column), (0, 6))
+        self.assertEqual(document.text(), "hhelloello world")
+
+    def test_paste_works_with_cursor_at_end_of_line(self):
+        document = Document("ab")
+        document.copy_word(0, 0)
+        document.paste(0, 2)
+        self.assertEqual(document.text(), "abab")
+
 
 class ControllerTests(unittest.TestCase):
     def keys(self, editor, *keys):
         for key in keys:
             editor.handle_key(key)
+
+    def test_page_scrolling(self):
+        lines = "\n".join(f"line{i}" for i in range(1, 51))
+        editor = Editor(Document(lines))
+        with patch.object(editor_module.shutil, "get_terminal_size", return_value=(80, 12)):
+            self.keys(editor, "PG_DN")
+            self.assertEqual((editor.row, editor.column), (10, 0))
+            self.keys(editor, "PG_DN")
+            self.assertEqual(editor.row, 20)
+            self.keys(editor, "PG_UP")
+            self.assertEqual(editor.row, 10)
+            self.keys(editor, "PG_UP", "PG_UP")
+            self.assertEqual(editor.row, 0)
+            self.keys(editor, "PG_DN", "PG_DN", "PG_DN", "PG_DN", "PG_DN")
+            self.assertEqual(editor.row, 49)
+
+    def test_insert_still_works_with_diw_command(self):
+        editor = Editor(Document())
+        # a lone "i" must still enter INSERT (regression after adding "diw")
+        self.keys(editor, "i", "H", "i", "ESC")
+        self.assertEqual(editor.document.text(), "Hi")
+        self.assertEqual(editor.mode, "NORMAL")
+        # "d","d" must still delete a line
+        editor = Editor(Document("one\ntwo\nthree"))
+        self.keys(editor, "d", "d")
+        self.assertEqual(editor.document.text(), "two\nthree")
+        # "d","i","w" must run delete_word and not enter INSERT
+        editor = Editor(Document("abc def"))
+        self.keys(editor, "d", "i", "w")
+        self.assertEqual(editor.mode, "NORMAL")
+        # ESC must clear a half-typed "di" sequence, then "i" must open INSERT
+        editor = Editor(Document())
+        self.keys(editor, "d", "i", "ESC", "i", "Z", "ESC")
+        self.assertEqual(editor.document.text(), "Z")
+        # a lone "w" must still move by word (not swallow as "dw")
+        editor = Editor(Document("aaa bbb ccc"))
+        self.keys(editor, "d", "ESC", "w")
+        self.assertEqual(editor.row, 0)
 
     def test_insert_normal_delete(self):
         editor = Editor(Document())
@@ -104,6 +183,66 @@ class ControllerTests(unittest.TestCase):
         self.assertEqual(editor.document.text(), "two")
         self.keys(editor, "d", "d", "d", "d")
         self.assertEqual(editor.document.text(), "")
+
+    def test_ng_moves_to_nth_line(self):
+        editor = Editor(Document("one\ntwo\nthree\nfour\nfive"))
+        self.keys(editor, "3", "G")
+        self.assertEqual((editor.row, editor.column), (2, 0))
+        self.keys(editor, "1", "G")
+        self.assertEqual((editor.row, editor.column), (0, 0))
+        self.keys(editor, "5", "G")
+        self.assertEqual((editor.row, editor.column), (4, 0))
+
+    def test_ng_beyond_last_line_goes_to_end(self):
+        editor = Editor(Document("one\ntwo\nthree"))
+        self.keys(editor, "9", "9", "G")
+        self.assertEqual((editor.row, editor.column), (2, 0))
+
+    def test_plain_g_goes_to_last_line(self):
+        editor = Editor(Document("one\ntwo\nthree"))
+        self.keys(editor, "G")
+        self.assertEqual((editor.row, editor.column), (2, 0))
+
+    def test_zero_alone_is_motion_not_count(self):
+        editor = Editor(Document("abcdef"))
+        self.keys(editor, "$")
+        self.assertEqual(editor.column, 5)
+        self.keys(editor, "0")
+        self.assertEqual(editor.column, 0)
+        self.keys(editor, "1", "0", "G")
+        self.assertEqual(editor.row, 0)
+
+    def test_count_discarded_before_other_command(self):
+        editor = Editor(Document("one\ntwo\nthree"))
+        self.keys(editor, "2", "0", "g", "g")
+        self.assertEqual((editor.row, editor.column), (0, 0))
+
+    def test_enter_in_insert_mode_splits_line(self):
+        editor = Editor(Document("hello"))
+        self.keys(editor, "i", "RIGHT", "RIGHT", "ENTER")
+        self.assertEqual(editor.document.text(), "he\nllo")
+        self.assertEqual((editor.row, editor.column), (1, 0))
+        self.assertEqual(editor.preferred_column, 0)
+        self.keys(editor, "ESC")
+        self.assertEqual((editor.row, editor.column), (1, 0))
+
+    def test_yy_p_pastes_line_below(self):
+        editor = Editor(Document("one\ntwo"))
+        self.keys(editor, "y", "y", "p")
+        self.assertEqual(editor.document.text(), "one\none\ntwo")
+        self.assertEqual((editor.row, editor.column), (1, 0))
+
+    def test_yw_p_pastes_word(self):
+        editor = Editor(Document("hello world"))
+        self.keys(editor, "y", "w", "p")
+        self.assertEqual(editor.document.text(), "hhelloello world")
+        self.assertEqual((editor.row, editor.column), (0, 6))
+
+    def test_w_still_moves_when_not_yanked(self):
+        editor = Editor(Document("hello world foo"))
+        self.keys(editor, "w")
+        self.assertEqual(editor.column, 4)
+        self.assertEqual(str(editor.document.buffer), "")
 
     def test_preferred_column_and_boundaries(self):
         editor = Editor(Document("abcdef\nx\nabcdef"))

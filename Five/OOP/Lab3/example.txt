@@ -1,13 +1,37 @@
-test data
-test data
-test data test data test data test data test data
-test data test data test data test data test data
-test data test data test data test data test data
-test data test data test data test data test data
-test data test data test data test data test data
-test data test data test data test data test data
-test data test data test data test data test data
-test data test data test data test data test data
-test data test data test data test data test data
-test data test data test data test data test data
-test data test data test data test data test data
+Basic Usage
+
+
+In this document, we'll explore the essentials of IDA capabilities to kickstart your journey and disassemble your first binary file.
+Prerequisites
+
+Your IDA instance is installed and running.
+Before you begin
+What files and processors are supported?
+
+If you later realize that's not enough, you can always use one of our community plugins that add additional formats or processor types or try to write your own with C++ SDK.
+What are IDA database files?
+
+IDA stores the analysis results in the IDA Database files (called IDB), with the extension .i64. This allows you to save your work and continue from the same point later. After loading a file at the beginning, IDA does not require access to the binary.
+
+Any modifications you make are saved in the database and do not affect the original executable file.
+
+Dive deeper
+
+    Blog: Check what exactly IDB contains in Igor's tip of the week about IDA database.
+
+What decompilers can I work with?
+
+IDA provides decompilers designed to work with multiple processor architectures. The number of decompilers and their type (local or remote) available in your IDA instance depends on your chosen product and subscription plan and affects your ability to produce C-like pseudocode.
+Where can I find exemplary binaries to work with?
+
+Check CrackMe, from where you can download executable files to test your reverse engineering skills.
+Part 1: Loading your file
+
+When you launch IDA, you will see a Quick Start dialog that offers three ways to continue. For now, we'll focus on loading a new file and proceeding to disassembly results.
+
+    Launch IDA and in the Quick start dialog (1), click New.
+
+    Specify the path for your binary file.
+
+    In the Load a new file dialog (2), IDA presents loaders that are suited to deal with a selected file. Accepting the loader default selection and then the processor type is a good strategy for beginners. Click OK to confirm your selection.
+

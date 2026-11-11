@@ -1,0 +1,93 @@
+MyVim Help
+==========
+
+A small modal text editor for Windows, driven entirely from the keyboard.
+Start it with:  python MyVim.py [file]
+
+Cursor position, mode and file name are shown on the status line.
+Type :h (or :help) followed by Enter at any time to open this page again.
+'[+]' on the status line means the buffer has unsaved changes.
+
+
+Modes
+-----
+  NORMAL   movement and commands (default)
+  INSERT   text is typed directly into the buffer
+  COMMAND  ':' ex-commands, finished with Enter
+  SEARCH   '/' or '?' pattern input, finished with Enter
+  ESC      leaves COMMAND, SEARCH or INSERT back to NORMAL
+
+
+Movement (NORMAL mode)
+----------------------
+  Arrow keys    move the cursor
+  Up / Down     move one line; the column is remembered
+  PG_UP / PG_DN move one screen up / down
+  0             go to the start of the line
+  $             go to the end of the line
+  w             jump forward one word
+  b             jump back one word
+  gg            go to the first line
+  G             go to the last line
+  [count]G      go to line [count], e.g. 12G
+
+
+Insert mode
+-----------
+  i             insert before the cursor
+  I             insert at the start of the line
+  A             append at the end of the line
+  S             clear the line and start inserting
+  ENTER         split the line at the cursor
+  BACKSPACE     delete the character or the line break before the cursor
+  DELETE        delete the character under the cursor
+  TAB           insert four spaces
+  ESC           return to NORMAL and save the changes
+
+
+Editing (NORMAL mode)
+---------------------
+  x             delete the character under the cursor
+  r<char>       replace the character under the cursor, e.g. rZ
+  dw            delete the next word
+  dd            delete the current line
+  diw           delete the word under the cursor
+  yy            copy the current line into the buffer
+  yw            copy the word under the cursor into the buffer
+  p             paste the buffer after the cursor
+
+
+Search
+------
+  /pattern      search forward for pattern
+  ?pattern      search backward for pattern
+  n             repeat the last search in the same direction
+  N             repeat the last search in the opposite direction
+  ESC           cancel the search
+Whenever a match is on screen it is highlighted; n and N cycle through it.
+
+
+Command mode (':' , finish with Enter)
+--------------------------------------
+  :h  or  :help   open this help.txt in the editor
+  :w [file]       write the buffer; with a name saves as that file
+  :wq [file]      write and quit
+  :x              write and quit (quit without saving if the file is new)
+  :q              quit; refuses while there are unsaved changes
+  :q!             quit and discard unsaved changes
+  :o file         open another file
+  :o! file        open another file, discarding unsaved changes
+  :[number]       jump to that line, e.g. :12
+  ESC             cancel the command line
+
+
+Counts and shortcuts
+--------------------
+  A number typed in NORMAL mode repeats the next command, for example 12G
+  jumps to line 12.
+
+
+Notes
+-----
+  Only printable ASCII, TAB and line breaks are accepted.
+  Line endings (LF or CRLF) keep the style of the file that was opened.
