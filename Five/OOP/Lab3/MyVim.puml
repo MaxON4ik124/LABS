@@ -1,0 +1,132 @@
+@startuml MyVim
+title MyVim - Class Diagram
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 45
+skinparam ranksep 55
+skinparam class {
+    BackgroundColor #FDFDFD
+    BorderColor #333333
+    ArrowColor #333333
+    HeaderBackgroundColor #E8EEF7
+}
+
+' ---------------------------------------------------------------------------
+' External library type (compiled extension my_string)
+' ---------------------------------------------------------------------------
+class MyString <<external>> {
+    + insert(index: int, source, ...)
+    + append(source, ...)
+    + erase(index: int, count: int)
+    + find(source, start, end) : int
+    + rfind(source, start, end) : int
+    + empty() : bool
+    + __len__() : int
+    + __str__() : str
+}
+
+' ---------------------------------------------------------------------------
+' Model
+' ---------------------------------------------------------------------------
+class Document {
+    + lines : list[MyString]
+    + path : Path | None
+    + newline : str
+    + modified : bool
+    + buffer : MyString
+    --
+    {static} + open(path: Path) : Document
+    + text() : str
+    + insert(row: int, column: int, text: str) : None
+    + split_line(row: int, column: int) : None
+    + delete_character(row: int, column: int) : None
+    + delete_word(row: int, column: int) : None
+    + backspace(row: int, column: int) : tuple[int, int]
+    + delete_line(row: int) : None
+    + copy_line(row: int) : None
+    + copy_word(row: int, column: int) : None
+    + paste(row: int, column: int) : tuple[int, int]
+    + save(path: Path | None = None) : None
+}
+
+' ---------------------------------------------------------------------------
+' Controller
+' ---------------------------------------------------------------------------
+class Editor {
+    + document : Document
+    + row : int
+    + column : int
+    + mode : str
+    + command : str
+    + pending : str
+    + sequence : str
+    + count : str
+    + search_direction : str
+    + search_origin : tuple[int, int]
+    + search_match : tuple[int, int, int] | None
+    + last_search : str
+    + last_direction : str
+    + message : str
+    + running : bool
+    + preferred_column : int
+    --
+    + __init__(document: Document) : None
+    + clamp() : None
+    + execute_command() : None
+    + show_help() : None
+    + open_file(name: str) : None
+    + find_match(pattern: str, origin: tuple[int, int]) : tuple[int, int] | None
+    + run_search() : None
+    + execute_search() : None
+    + repeat_search(reverse: bool = False) : None
+    + handle_key(key: str) : None
+    + dispatch_normal(key, pending, count, first_space, last_space, sequence) : None
+}
+
+' ---------------------------------------------------------------------------
+' Terminal I/O
+' ---------------------------------------------------------------------------
+class WindowsTerminal {
+    - kernel : WinDLL
+    - handle : HANDLE
+    - original_mode : DWORD
+    --
+    + __enter__() : WindowsTerminal
+    + __exit__(*args) : None
+    {static} + read_key() : str
+}
+
+class TerminalView {
+    + top : int
+    + left : int
+    --
+    + __init__() : None
+    + highlight_match(editor: Editor, row: int, visible: str) : str
+    + draw(editor: Editor) : None
+}
+
+' ---------------------------------------------------------------------------
+' Module-level helpers
+' ---------------------------------------------------------------------------
+class "Module: MyVim" <<module>> {
+    + HELP_PATH : Path
+    + validate_text(text: str) : None
+    + safe_screen_text(text: str) : str
+    + main() : int
+}
+
+' ---------------------------------------------------------------------------
+' Relationships
+' ---------------------------------------------------------------------------
+Editor "1" *-right- "1" Document : owns >
+Document "1" *-right- "1..*" MyString : stores lines/buffer >
+TerminalView ..> Editor : reads state >
+Editor ..> WindowsTerminal : uses read_key >
+"Module: MyVim" ..> Document : creates >
+"Module: MyVim" ..> Editor : creates >
+"Module: MyVim" ..> TerminalView : creates >
+"Module: MyVim" ..> WindowsTerminal : manages >
+Editor ..> MyString : via Document >
+
+@enduml
