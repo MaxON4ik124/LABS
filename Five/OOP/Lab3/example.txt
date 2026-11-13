@@ -1,6 +1,5 @@
 Basic Usage
 
-
 In this document, we'll explore the essentials of IDA capabilities to kickstart your journey and disassemble your first binary file.
 Prerequisites
 

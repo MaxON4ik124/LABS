@@ -1,0 +1,282 @@
+@startuml MyVim
+!pragma layout smetana
+title MyVim — актуальная диаграмма классов
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype polyline
+skinparam nodesep 45
+skinparam ranksep 65
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+skinparam class {
+    BackgroundColor #FFFFFF
+    BorderColor #425466
+    ArrowColor #425466
+    HeaderBackgroundColor #E8EEF7
+}
+hide empty members
+
+package "Editor core" #F5F8FC {
+    class Document <<model>> {
+        + lines : list[MyString]
+        + path : Path | None
+        + newline : str
+        + modified : bool
+        + buffer : MyString
+        # _saved_text : str
+        # _saved_newline : str
+        --
+        + __init__(text: str = "") : None
+        {static} + open_file(path: Path) : Document
+        + text() : str
+        + save(path: Path | None = None) : None
+    }
+
+    abstract class Command {
+        {static} + record_history : bool = True
+        # _editor_state : dict[str, object]
+        # _document : Document
+        # _document_state : tuple
+        --
+        {abstract} + execute(editor: Editor) : None
+        {abstract} + undo(editor: Editor) : None
+        # _remember(editor: Editor) : None
+        # _finish(editor: Editor) : None
+        # _restore(editor: Editor) : None
+    }
+
+    class Editor <<controller>> {
+        + history : History
+        + document : Document
+        + view : TerminalView | None
+        + syntax_enabled : bool
+        + row : int
+        + column : int
+        + preferred_column : int
+        + mode : str
+        + command : str
+        + pending : str
+        + sequence : str
+        + count : str
+        + search_direction : str
+        + search_origin : tuple[int, int]
+        + search_match : tuple[int, int, int] | None
+        + last_search : str
+        + last_direction : str
+        + message : str
+        + running : bool
+        --
+        + __init__(document: Document, view: TerminalView | None = None) : None
+        + clamp() : None
+        + execute(command: Command) : None
+        + undo() : None
+        + execute_command() : None
+        + show_help() : None
+        + open_file(name: str) : None
+        + find_match(pattern: str, origin: tuple[int, int]) : tuple[int, int] | None
+        + run_search() : None
+        + execute_search() : None
+        + repeat_search(reverse: bool = False) : None
+        + handle_key(key: str) : None
+        + dispatch_normal(key, pending = "", count = "")
+    }
+}
+
+package "History service" #FFF9EC {
+    class History <<Singleton>> {
+        {static} - _instance : History | None
+        {static} - _creation_lock : RLock
+        - _lock : RLock
+        - _sessions : WeakKeyDictionary[Editor, _EditorHistory]
+        - _next_line_id : int
+        --
+        {static} + __new__() : History
+        {static} + __init_subclass__(**kwargs)
+        + __copy__() : History
+        + __deepcopy__(memo) : History
+        + __reduce__() : tuple
+        + __reduce_ex__(protocol) : tuple
+        --
+        + register(editor: Editor) : None
+        + commands(editor: Editor) : tuple[Command, ...]
+        + changes(editor: Editor) : tuple[_FileChange, ...]
+        + checkpoint(editor: Editor) : tuple
+        + restore_checkpoint(editor: Editor, checkpoint: tuple) : None
+        + execute(editor: Editor, command: Command) : None
+        + undo_command(editor: Editor) : None
+        + undo(editor: Editor) : None
+        + undo_line(editor: Editor) : None
+        + reload(editor: Editor) : None
+        --
+        # _session(editor: Editor) : _EditorHistory
+        # _new_id() : int
+        # _new_buffer(document: Document) : _BufferHistory
+        # _buffer(editor: Editor) : _BufferHistory
+        {static} # _snapshot(buffer: _BufferHistory) : tuple
+        {static} # _from_snapshot(snapshot: tuple) : _BufferHistory
+        # _update_lines(buffer, command, before, after, row) : None
+    }
+
+    class _EditorHistory <<dataclass>> {
+        + commands : list[_CommandRecord]
+        + buffers : dict[Document, _BufferHistory]
+    }
+
+    class _BufferHistory <<dataclass>> {
+        + line_ids : list[int]
+        + originals : dict[int, str]
+        + changes : list[_FileChange]
+        + saved_text : str
+    }
+
+    class _CommandRecord <<frozen dataclass>> {
+        + command : Command
+        + document : Document
+        + resulting_document : Document
+        + before : tuple
+    }
+
+    class _FileChange <<frozen dataclass>> {
+        + command : Command
+        + before : tuple[str, ...]
+        + after : tuple[str, ...]
+        + before_ids : tuple[int, ...]
+        + after_ids : tuple[int, ...]
+        + row : int
+        + column : int
+        + preferred_column : int
+        + before_originals : tuple[tuple[int, str], ...]
+        + savepoint : str
+    }
+}
+
+package "Terminal and syntax" #F0FAF4 {
+    class CursesTerminal <<input adapter>> {
+        + screen : curses.window
+        --
+        + __init__(screen) : None
+        + read_key() : str
+    }
+
+    class TerminalView <<view>> {
+        + screen : curses.window | None
+        + show_num : bool
+        + top : int
+        + left : int
+        + styles : dict[str, int]
+        + highlighter : HighlightingDecorator
+        # _syntax_key : tuple | None
+        # _syntax_rows : list[list[str]]
+        --
+        + __init__(screen = None) : None
+        + draw(editor: Editor) : None
+        # _init_colors() : None
+        # _put(row: int, column: int, text: str, attribute: int = 0) : None
+        # _syntax(editor: Editor) : list[list[str]]
+        # _draw_text(editor, row, screen_row, number_width, text_width, syntax) : None
+    }
+
+    class HighlightingDecorator <<syntax highlighter>> {
+        + source : str
+        + comment_starts : set[str]
+        + statements : set[str]
+        + classes : set[str]
+        + preproc : set[str]
+        + specchars : set[str]
+        {static} + LANGUAGES : dict[str, str]
+        {static} + ESCAPE : re.Pattern
+        {static} + FORMAT : re.Pattern
+        --
+        + __init__(source: str)
+        + language(path: Path | None) : str | None
+        + highlight(path: Path | None = None) : list[list[str]]
+        # _category(token, value: str, language: str) : str
+    }
+}
+
+package "External APIs (excerpt)" #F4F4F4 {
+    class MyString <<extension>> {
+        + __init__(value: str)
+        + insert(index: int, source) : None
+        + append(source) : None
+        + erase(index: int, count: int) : None
+        + find(source, start, end) : int
+        + rfind(source, start, end) : int
+        + empty() : bool
+        + __len__() : int
+        + __str__() : str
+    }
+
+    class "curses.window" as CursesWindow <<external>> {
+        + getmaxyx() : tuple[int, int]
+        + keypad(enabled: bool)
+        + get_wch() : str | int
+        + erase()
+        + addnstr(row, column, text, count, attr)
+        + move(row: int, column: int)
+        + refresh()
+    }
+
+    class curses <<module>> {
+        + wrapper(callback, document)
+        + init_pair(pair, foreground, background)
+        + color_pair(pair) : int
+    }
+
+    class pygments <<module>> {
+        + get_lexer_by_name(language)
+    }
+}
+
+class "MyVim.py" as MyVimModule <<module>> {
+    + HELP_PATH : Path
+    --
+    + validate_text(text: str) : None
+    + safe_screen_text(text: str) : str
+    + run_editor(screen, document: Document) : None
+    + main() : int
+}
+
+' Short English relationship labels, as requested previously.
+Editor "0..*" --> "1" History : history
+Editor "0..*" --> "1" Document : document
+Editor "0..*" --> "0..1" TerminalView : view
+History "1" *-- "0..*" _EditorHistory : sessions
+History ..> Editor : context
+History ..> Command : executes
+History ..> Document : restores
+_EditorHistory "1" o-- "0..*" _CommandRecord : commands
+_EditorHistory "1" *-- "0..*" _BufferHistory : buffers
+_EditorHistory "0..*" --> "0..*" Document : buffer keys
+_BufferHistory "1" o-- "0..*" _FileChange : changes
+_CommandRecord "0..*" --> "1" Command : command
+_CommandRecord "0..*" --> "1" Document : before
+_CommandRecord "0..*" --> "1" Document : after
+_FileChange "0..*" --> "1" Command : command
+
+' Concrete command subclasses are folded into Command.
+Command ..> Editor : context
+Command "0..*" --> "0..1" Document : snapshot
+Command ..> History : undo control
+Command ..> MyString : edits
+Command ..> TerminalView : configures
+Document "1" *-- "1..*" MyString : lines
+Document "1" *-- "1" MyString : buffer
+
+TerminalView "1" *-- "1" HighlightingDecorator : highlighter
+TerminalView ..> Editor : reads state
+TerminalView "0..*" --> "0..1" CursesWindow : screen
+CursesTerminal "0..*" --> "1" CursesWindow : screen
+TerminalView ..> curses : colors
+CursesTerminal ..> curses : keys
+HighlightingDecorator ..> pygments : lexes
+
+MyVimModule ..> Document : opens
+MyVimModule ..> Editor : drives
+MyVimModule ..> TerminalView : renders
+MyVimModule ..> CursesTerminal : reads input
+MyVimModule ..> curses : wraps
+
+@enduml
