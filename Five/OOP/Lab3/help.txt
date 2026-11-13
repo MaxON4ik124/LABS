@@ -1,0 +1,130 @@
+MyVim Help
+==========
+
+A small modal text editor with a curses terminal interface, driven by the keyboard.
+Install dependencies:  python -m pip install -r requirements.txt
+Start it with:  python MyVim.py [file]
+On Windows, curses support is provided by windows-curses.
+
+Cursor position, mode and file name are shown on the status line.
+Type :h (or :help) followed by Enter at any time to open this page again.
+'[+]' on the status line means the buffer has unsaved changes.
+
+
+Modes
+-----
+  NORMAL   movement and commands (default)
+  INSERT   text is typed directly into the buffer
+  COMMAND  ':' ex-commands, finished with Enter
+  SEARCH   '/' or '?' pattern input, finished with Enter
+  ESC      leaves COMMAND, SEARCH or INSERT back to NORMAL
+
+
+Movement (NORMAL mode)
+----------------------
+  Arrow keys    move the cursor
+  Up / Down     move one line; the column is remembered
+  PG_UP / PG_DN move one screen up / down
+  0             go to the start of the line
+  $             go to the end of the line
+  w             jump forward one word
+  b             jump back one word
+  gg            go to the first line
+  G             go to the last line
+  [count]G      go to line [count], e.g. 12G
+
+
+Insert mode
+-----------
+  i             insert before the cursor
+  I             insert at the start of the line
+  A             append at the end of the line
+  S             clear the line and start inserting
+  ENTER         split the line at the cursor
+  BACKSPACE     delete the character or the line break before the cursor
+  DELETE        delete the character under the cursor
+  TAB           insert four spaces
+  ESC           return to NORMAL; keep edits in the buffer
+
+
+Editing (NORMAL mode)
+---------------------
+  x             delete the character under the cursor
+  r<char>       replace the character under the cursor, e.g. rZ
+  dd            delete the current line
+  diw           delete the word under the cursor
+  yy            copy the current line into the buffer
+  yw            copy the word under the cursor into the buffer
+  p             paste the buffer after the cursor
+  u             undo the last text-changing command in this buffer
+  U             restore the contents of the current line
+
+
+Search
+------
+  /pattern      search forward for pattern
+  ?pattern      search backward for pattern
+  n             repeat the last search in the same direction
+  N             repeat the last search in the opposite direction
+  ESC           cancel the search
+Whenever a match is on screen it is highlighted; n and N cycle through it.
+
+
+Command mode (':' , finish with Enter)
+--------------------------------------
+  :h  or  :help   open this help.txt in the editor
+  :w [file]       write the buffer; with a name saves as that file
+  :wq [file]      write and quit
+  :x              write and quit (quit without saving if the file is new)
+  :q              quit; refuses while there are unsaved changes
+  :q!             quit and discard unsaved changes
+  :o file         open another file
+  :o! file        open another file, discarding unsaved changes
+  :e!             discard changes and reload the last saved file version
+  :[number]       jump to that line, e.g. :12
+  :set num        toggle line numbers
+  :sy             toggle syntax highlighting
+  ESC             cancel the command line
+
+
+Counts and shortcuts
+--------------------
+  A number typed in NORMAL mode repeats the next command, for example 12G
+  jumps to line 12.
+
+
+Notes
+-----
+  Only printable ASCII, TAB and line breaks are accepted.
+  Line endings (LF or CRLF) keep the style of the file that was opened.
+
+Syntax highlighting
+-------------------
+  :sy switches highlighting on; repeat :sy to turn it off.
+  SY is shown on the status line while syntax highlighting is enabled.
+  Rules use the file extension: Python (.py, .pyw), C (.c, .h),
+  C++ (.cpp, .cc, .cxx, .hpp, .hh, .hxx), C# (.cs), Java (.java).
+  An unnamed buffer uses Python rules; other extensions remain plain text.
+  Yellow: statements, conditions, loops and operators.
+  Light green: types, structures and declaration modifiers.
+  Light blue: imports, annotations and preprocessor directives.
+  Light red: escapes, format specifiers and special delimiters.
+  Cyan: comments and recognised function names; magenta: strings/numbers.
+  Search matches use reverse video over the current syntax colours.
+  Colourless terminals still support editing and reverse-video search.
+
+
+Undo history
+------------
+  u and U are NORMAL-mode keys; do not prefix them with a colon.
+  u ignores movement, copying, searches, display settings and file writes.
+  Each text-changing command (including one typed character) is one undo step.
+  U restores the current line to its saved/initial contents and keeps the
+  other lines unchanged. Saving updates this reference point. New lines use
+  their initial contents; split/join starts a new reference point for the
+  resulting lines. Use u to undo structural changes such as split/join/delete.
+  U itself is a text change and can be undone with u.
+  :e! reads the current file from disk, preserving LF/CRLF. An unnamed or
+  not-yet-created file uses its last saved/initial in-memory version instead.
+  :e! clears the active buffer's undo stack; it does not write to disk.
+  Histories of other buffers/editors are kept separate in one History service.
